@@ -7,7 +7,7 @@ Portable AI agent skills, commands, and preferences. Drop into any project for O
 From the project directory:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/hembrow-innovations/agent-core/main/scripts/install.mjs | node -- --profile core
+curl -fsSL https://raw.githubusercontent.com/hembrow-innovations/agent-core/main/scripts/install.mjs | node - --profile core
 ```
 
 Profiles:
@@ -21,9 +21,9 @@ Profiles:
 
 ```bash
 # examples
-curl -fsSL …/install.mjs | node -- --profile web
-curl -fsSL …/install.mjs | node -- --profile mobile --with handoff
-curl -fsSL …/install.mjs | node -- --ref main --without wayfinder
+curl -fsSL …/install.mjs | node - --profile web
+curl -fsSL …/install.mjs | node - --profile mobile --with handoff
+curl -fsSL …/install.mjs | node - --ref main --without wayfinder
 
 # from a local clone
 node /path/to/agent-core/scripts/install.mjs /path/to/project --profile full

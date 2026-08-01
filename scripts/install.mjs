@@ -2,7 +2,7 @@
 /**
  * agent-core installer
  *
- *   curl -fsSL https://raw.githubusercontent.com/hembrow-innovations/agent-core/main/scripts/install.mjs | node -- --profile core
+ *   curl -fsSL https://raw.githubusercontent.com/hembrow-innovations/agent-core/main/scripts/install.mjs | node - --profile core
  *   node scripts/install.mjs --profile web
  *   node scripts/install.mjs /path/to/project --profile mobile --with maestro --without tdd --ref main
  */
@@ -70,7 +70,7 @@ Options:
   -h, --help         Show help
 
 Examples:
-  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/scripts/install.mjs | node -- --profile web
+  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/scripts/install.mjs | node - --profile web
   node scripts/install.mjs ~/Projects/my-app --profile mobile
 `);
 }
