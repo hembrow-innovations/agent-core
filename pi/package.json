@@ -1,0 +1,13 @@
+{
+  "name": "draconic",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Draconic coding harness for Pi",
+  "keywords": ["pi-package"],
+  "license": "MIT",
+  "pi": {
+    "skills": ["./skills"],
+    "prompts": ["./prompts"],
+    "extensions": ["./extensions"]
+  }
+}
