@@ -93,8 +93,8 @@ const PSTACK_SKILL_NAMES = [
 
 const PROFILES = {
   core: { skills: [...CORE_SKILLS], pstack: false, agents: false, commands: false, templates: false },
-  web: { skills: [...CORE_SKILLS, "playwright-cli"], pstack: false, agents: false, commands: false, templates: false },
-  mobile: { skills: [...CORE_SKILLS, "maestro"], pstack: false, agents: false, commands: false, templates: false },
+  web: { skills: [...CORE_SKILLS, "playwright-cli", "react-testing"], pstack: false, agents: false, commands: false, templates: false },
+  mobile: { skills: [...CORE_SKILLS, "maestro", "react-testing"], pstack: false, agents: false, commands: false, templates: false },
   pstack: {
     skills: [...PSTACK_SKILL_NAMES],
     pstack: true,
@@ -110,7 +110,7 @@ const PROFILES = {
     templates: true,
   },
   full: {
-    skills: [...new Set([...CORE_SKILLS, ...PSTACK_SKILL_NAMES, "playwright-cli", "maestro", "godot-mono"])],
+    skills: [...new Set([...CORE_SKILLS, ...PSTACK_SKILL_NAMES, "playwright-cli", "maestro", "godot-mono", "react-testing"])],
     pstack: true,
     agents: true,
     commands: true,
@@ -146,8 +146,8 @@ Options:
 
 Profiles:
   core     Matt Pocock-style engineering skills + prefs
-  web      core + playwright-cli
-  mobile   core + maestro
+  web      core + playwright-cli + react-testing
+  mobile   core + maestro + react-testing
   pstack   full pstack (poteto-mode, playbooks, principles) + OpenCode agents/commands
   godot    pstack + godot-mono skill
   full     everything

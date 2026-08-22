@@ -17,8 +17,8 @@ Profiles:
 | Profile  | Contents |
 |----------|----------|
 | `core`   | Engineering/productivity skills + prefs (default) |
-| `web`    | `core` + `playwright-cli` |
-| `mobile` | `core` + `maestro` |
+| `web`    | `core` + `playwright-cli` + `react-testing` |
+| `mobile` | `core` + `maestro` + `react-testing` |
 | `pstack` | Full pstack skills + poteto agents/commands + OpenCode templates |
 | `godot`  | `pstack` + `godot-mono` |
 | `full`   | everything |
