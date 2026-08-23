@@ -169,3 +169,32 @@ This pack runs on **OpenCode**. Map leftover Pi or Cursor wording as follows:
 **Verify.** Prefer a project-local `verify-*` skill. Otherwise use the project's documented harness. Compile-only is not prove-it-works.
 
 **Orchestrate, autopilot-full, autopilot-stack, and Graphite shipping.** One unit per session unless Task fan-out is enough. Prove it. Open a PR with `gh`. Do not pretend a cloud fleet ran.
+
+## Pi runtime adapter
+
+This pack also runs on **Pi**. Map leftover OpenCode or Cursor wording as follows:
+
+| Playbook wording | Pi equivalent |
+|---|---|
+| Skill tool / load skill X | `read` the skill's `SKILL.md`, or the user typed `/skill:name` |
+| Task / `subagent_type: "draconic-agent"` | `draconic_spawn` with a standalone prompt |
+| `Comment Sicko` | `draconic_spawn` with `/skill:comment-sicko`, or apply that skill yourself |
+| `generalPurpose` | `draconic_spawn` |
+| Slash `/foo` | Prompt `/foo` or `/skill:foo` |
+| Sticky primary agent | `.pi/APPEND_SYSTEM.md` keeps draconic on for the session |
+| Todos / todolist | `.draconic/TODO.md` or `draconic_todo` |
+| AskQuestion | Ask in prose, only for product or preference |
+| MCP | `git`, `gh`, and project CLIs. Skip missing sources and say so |
+| `/loop` | Stay in this session, or poll with bash |
+| `/deslop` / cursor-team-kit | `/unslop` |
+| control-ui / control-cli | Project `verify-*` skill |
+| Graphite / `gt` | Use only if the project already uses it. Default is `gh` |
+| Cursor `agent-transcripts/` | `~/.pi/agent/sessions/` for this cwd, or `PI_SESSION_FILE` |
+| `.cursor/worktrees` | `.draconic/worktrees/` |
+| Cloud `environment` | Does not exist. Local spawn or in-process only |
+
+**Skill load.** Descriptions are in the system prompt. Full instructions load when you `read` `SKILL.md`. Playbooks live under `.pi/skills/draconic-mode/playbooks/`.
+
+**Verify.** Prefer a project-local `verify-*` skill. Otherwise use the project's documented harness. Compile-only is not prove-it-works.
+
+**Orchestrate, autopilot-full, autopilot-stack, and Graphite shipping.** Degraded. Do one unit per session, prove it, open a PR with `gh`. Do not pretend a cloud fleet ran.

@@ -5,9 +5,10 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 
 /** @typedef {{ id: string, title: string, when: string }} PlaybookMeta */
 
@@ -21,8 +22,12 @@ import { join } from "node:path";
  *   agents: boolean,
  *   commands: boolean,
  *   templates: boolean,
+ *   pi: boolean,
  * }} Profile
  */
+
+export const OPENCODE_SKILL_DESTS = [".opencode/skills", ".claude/skills"];
+export const PI_SKILL_DESTS = [".pi/skills", ".agents/skills"];
 
 const START = "<!-- playbooks:start -->";
 const END = "<!-- playbooks:end -->";
@@ -87,6 +92,7 @@ export function loadProfile(srcRoot, name) {
     agents: asBool(raw.agents, "agents"),
     commands: asBool(raw.commands, "commands"),
     templates: asBool(raw.templates, "templates"),
+    pi: asBool(raw.pi, "pi"),
   };
 }
 
@@ -184,8 +190,27 @@ export function rewriteSkillPlaybooks(skillDir, metas) {
   writeFileSync(skillPath, `${text.slice(0, i + START.length)}\n${mid}${text.slice(j)}`, "utf8");
 }
 
-export function installModePlaybooks(srcRoot, target, mode, ids) {
-  const destBases = [".opencode/skills", ".claude/skills"];
+export function findSkillDir(srcRoot, name) {
+  const candidates = [];
+  const skillsRoot = join(srcRoot, "skills");
+  if (existsSync(skillsRoot)) {
+    walkSkillDirs(skillsRoot, (dir) => {
+      if (basename(dir) === name && existsSync(join(dir, "SKILL.md"))) {
+        candidates.push(dir);
+      }
+    });
+  }
+
+  if (!candidates.length) return null;
+  const prefer = ["skills/workflow", "skills/setup"].map((rel) => join(srcRoot, rel) + "/");
+  for (const prefix of prefer) {
+    const hit = candidates.find((p) => p.startsWith(prefix));
+    if (hit) return hit;
+  }
+  return candidates[0];
+}
+
+export function installModePlaybooks(srcRoot, target, mode, ids, destBases = OPENCODE_SKILL_DESTS) {
   const metas = ids.map((id) => readPlaybookMeta(srcRoot, id));
   for (const destBase of destBases) {
     const skillDir = join(target, destBase, `${mode}-mode`);
@@ -203,6 +228,84 @@ export function installModePlaybooks(srcRoot, target, mode, ids) {
       cpSync(src, join(pbDir, `${id}.md`));
     }
     rewriteSkillPlaybooks(skillDir, metas);
+  }
+}
+
+export function installPiSurface(srcRoot, target, plan) {
+  const piRoot = join(srcRoot, "pi");
+  if (!existsSync(join(piRoot, "extensions")) && !existsSync(join(piRoot, "APPEND_SYSTEM.md"))) {
+    throw new Error("Pi pack missing: expected pi/extensions or pi/APPEND_SYSTEM.md");
+  }
+
+  for (const name of plan.skills) {
+    const src = findSkillDir(srcRoot, name);
+    if (!src) throw new Error(`Skill not found in source: ${name}`);
+    for (const destBase of PI_SKILL_DESTS) {
+      const dest = join(target, destBase, name);
+      mkdirSync(dirname(dest), { recursive: true });
+      rmSync(dest, { recursive: true, force: true });
+      cpSync(src, dest, { recursive: true });
+    }
+  }
+
+  copyPiRuntime(piRoot, target);
+
+  if (plan.overlayPlaybooks) {
+    if (!plan.mode) throw new Error("Playbook overlay requires profile.mode");
+    installModePlaybooks(srcRoot, target, plan.mode, plan.playbookIds, PI_SKILL_DESTS);
+  }
+}
+
+function copyPiRuntime(piRoot, target) {
+  const promptsSrc = join(piRoot, "prompts");
+  if (existsSync(promptsSrc)) {
+    const dest = join(target, ".pi", "prompts");
+    mkdirSync(dest, { recursive: true });
+    for (const ent of readdirSync(promptsSrc, { withFileTypes: true })) {
+      if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
+      cpSync(join(promptsSrc, ent.name), join(dest, ent.name));
+    }
+  }
+
+  const extensionsSrc = join(piRoot, "extensions");
+  if (existsSync(extensionsSrc)) {
+    const dest = join(target, ".pi", "extensions");
+    mkdirSync(dest, { recursive: true });
+    for (const ent of readdirSync(extensionsSrc, { withFileTypes: true })) {
+      if (!ent.isFile() || !(ent.name.endsWith(".ts") || ent.name.endsWith(".js"))) continue;
+      cpSync(join(extensionsSrc, ent.name), join(dest, ent.name));
+    }
+  }
+
+  copyFileIfMissing(join(piRoot, "APPEND_SYSTEM.md"), join(target, ".pi", "APPEND_SYSTEM.md"));
+  cpSync(join(piRoot, "draconic-models.md"), join(target, ".pi", "draconic-models.md"));
+  copyFileIfMissing(join(piRoot, "WORKFLOW.md"), join(target, "WORKFLOW.md"));
+  cpSync(join(piRoot, "DRACONIC-INDEX.md"), join(target, "DRACONIC-INDEX.md"));
+  copyFileIfMissing(join(piRoot, "AGENTS.md"), join(target, "AGENTS.md"));
+
+  writeIfMissing(join(target, ".draconic", ".gitignore"), "worktrees/\nsessions/\n");
+  writeIfMissing(join(target, ".pi", ".gitignore"), "npm/\ngit/\n");
+}
+
+function copyFileIfMissing(src, dest) {
+  if (existsSync(dest) || !existsSync(src)) return;
+  mkdirSync(dirname(dest), { recursive: true });
+  cpSync(src, dest);
+}
+
+function writeIfMissing(dest, body) {
+  if (existsSync(dest)) return;
+  mkdirSync(dirname(dest), { recursive: true });
+  writeFileSync(dest, body, "utf8");
+}
+
+function walkSkillDirs(root, visit) {
+  if (!existsSync(root) || !statSync(root).isDirectory()) return;
+  for (const ent of readdirSync(root, { withFileTypes: true })) {
+    if (!ent.isDirectory() || ent.name.startsWith(".")) continue;
+    const full = join(root, ent.name);
+    if (existsSync(join(full, "SKILL.md"))) visit(full);
+    else walkSkillDirs(full, visit);
   }
 }
 

@@ -13,14 +13,13 @@ import {
   cpSync,
   existsSync,
   mkdirSync,
-  mkdtempSync,
-  readdirSync,
-  rmSync,
-  statSync,
-  writeFileSync,
+    mkdtempSync,
+    readdirSync,
+    rmSync,
+    writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const REPO = "hembrow-innovations/agent-core";
@@ -46,9 +45,11 @@ Options:
   --without-playbooks <ids> remove playbook ids
   --ref <git-ref>          GitHub ref when fetching remotely (default: main)
   --local <path>           Use a local agent-core checkout instead of GitHub
-  --no-agents              Skip OpenCode agents
+   --no-agents              Skip OpenCode agents
   --no-commands            Skip OpenCode commands
   --no-templates           Skip opencode.json / WORKFLOW / rules templates
+  --pi                     Also install the Pi pack from pi/
+  --no-pi                  Skip the Pi pack
   -h, --help               Show help
 
 Profiles (profiles/*.yaml):
@@ -59,7 +60,8 @@ Profiles (profiles/*.yaml):
    draconic     draconic-mode playbooks + agents/commands
    godot        draconic + godot-mono
    full         everything
-   life-engine  draconic + life-engine library skills and product principles
+    life-engine  draconic + life-engine library skills and product principles
+    pi           Pi runtime plus the draconic skill list
 
 Playbooks are selected in the YAML and overlaid into {mode}-mode.
 
@@ -85,6 +87,8 @@ function parseArgs(argv) {
     noAgents: false,
     noCommands: false,
     noTemplates: false,
+    forcePi: false,
+    noPi: false,
   };
   const args = [...argv];
   while (args.length) {
@@ -101,6 +105,8 @@ function parseArgs(argv) {
     else if (a === "--no-agents") out.noAgents = true;
     else if (a === "--no-commands") out.noCommands = true;
     else if (a === "--no-templates") out.noTemplates = true;
+    else if (a === "--pi") out.forcePi = true;
+    else if (a === "--no-pi") out.noPi = true;
     else if (a.startsWith("-")) die(`Unknown flag: ${a}`);
     else out.target = resolve(a);
   }
@@ -153,42 +159,7 @@ async function fetchRemoteRoot(ref) {
   return { root: join(extract, entries[0]), cleanup: dir };
 }
 
-/** Find skill dir by name under skills/** or pi/skills/<name>. Prefer skills/workflow, then skills/setup, so OpenCode overlays win over the Pi copies. */
-function findSkillDir(srcRoot, name) {
-  const candidates = [];
-  const piPath = join(srcRoot, "pi", "skills", name);
-  if (existsSync(join(piPath, "SKILL.md"))) candidates.push({ path: piPath, source: "pi" });
-
-  const skillsRoot = join(srcRoot, "skills");
-  if (existsSync(skillsRoot)) {
-    walkSkillDirs(skillsRoot, (dir) => {
-      if (basename(dir) === name && existsSync(join(dir, "SKILL.md"))) {
-        candidates.push({ path: dir, source: "skills" });
-      }
-    });
-  }
-
-  if (!candidates.length) return null;
-  const prefer = ["skills/workflow", "skills/setup"].map((rel) => join(srcRoot, rel) + "/");
-  for (const prefix of prefer) {
-    const hit = candidates.find((c) => c.path.startsWith(prefix));
-    if (hit) return hit.path;
-  }
-  return candidates[0].path;
-}
-
-function walkSkillDirs(root, visit) {
-  if (!existsSync(root) || !statSync(root).isDirectory()) return;
-  for (const ent of readdirSync(root, { withFileTypes: true })) {
-    if (!ent.isDirectory()) continue;
-    if (ent.name.startsWith(".")) continue;
-    const full = join(root, ent.name);
-    if (existsSync(join(full, "SKILL.md"))) visit(full);
-    else walkSkillDirs(full, visit);
-  }
-}
-
-function copySkill(srcRoot, name, target) {
+function copySkill(srcRoot, name, target, findSkillDir) {
   const src = findSkillDir(srcRoot, name);
   if (!src) die(`Skill not found in source: ${name}`);
   for (const destBase of SKILL_DESTS) {
@@ -288,6 +259,7 @@ function planFromProfile(profile, opts, available, resolvePlaybookIds) {
     agents: profile.agents && !opts.noAgents,
     commands: profile.commands && !opts.noCommands,
     templates: profile.templates && !opts.noTemplates,
+    pi: (opts.forcePi || profile.pi) && !opts.noPi,
     mode: profile.mode,
   };
 }
@@ -325,6 +297,8 @@ async function main() {
       listPlaybookIds,
       resolvePlaybookIds,
       installModePlaybooks,
+      installPiSurface,
+      findSkillDir,
     } = await loadProfileModule(srcRoot);
 
     let profile;
@@ -340,7 +314,7 @@ async function main() {
     console.log(`Profile: ${opts.profile}`);
     console.log(`Skills (${plan.skills.length}): ${plan.skills.join(", ")}`);
 
-    for (const name of plan.skills) copySkill(srcRoot, name, opts.target);
+    for (const name of plan.skills) copySkill(srcRoot, name, opts.target, findSkillDir);
     if (plan.overlayPlaybooks) {
       if (!plan.mode) die("Playbook overlay requires profile.mode");
       installModePlaybooks(srcRoot, opts.target, plan.mode, plan.playbookIds);
@@ -349,10 +323,19 @@ async function main() {
     if (plan.agents) installAgents(srcRoot, opts.target);
     if (plan.commands) installCommands(srcRoot, opts.target);
     if (plan.templates) installTemplates(srcRoot, opts.target);
+    if (plan.pi) {
+      installPiSurface(srcRoot, opts.target, plan);
+      console.log(`  pi (${plan.skills.length} skills) → .pi/skills, .agents/skills`);
+    }
 
     console.log("Done.");
-    if (plan.mode === "draconic") {
+    if (plan.mode === "draconic" && !plan.pi) {
       console.log("Next: open the project in OpenCode, run /setup-draconic, optionally /create-verification-skill.");
+    } else if (plan.pi) {
+      console.log("Next: run `pi` in the project, trust the folder, then /draconic-mode.");
+      if (plan.agents || plan.commands || plan.templates) {
+        console.log("OpenCode files also landed. Run /setup-draconic there if you use it.");
+      }
     }
   } finally {
     if (cleanup) rmSync(cleanup, { recursive: true, force: true });

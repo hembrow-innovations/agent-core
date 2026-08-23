@@ -12,9 +12,14 @@ playbooks: all        # omit the key, `all`, or a list of playbook ids
 agents: true          # copy agents/. Default: false
 commands: true        # copy commands/. Default: false
 templates: true       # copy templates/opencode. Default: false
+pi: true              # copy the Pi pack from pi/. Default: false
 ```
 
 Boolean keys default to false. `mode` defaults to unset. `skills` defaults to an empty list.
+
+`pi: true` copies the profile skill list from `skills/` into `.pi/skills/` and `.agents/skills/`, then copies Pi runtime files from `pi/` (extensions, prompts, `APPEND_SYSTEM.md`). `--pi` and `--no-pi` override the profile.
+
+`pi/` is runtime config only. It does not own skills. The `pi` profile is the flag plus the draconic skill list. Draconic-family profiles (`draconic`, `godot`, `full`, `life-engine`) include it.
 
 ## Playbooks
 

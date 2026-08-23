@@ -53,8 +53,6 @@ function walkSkillDirs(dir, visit) {
 
 function resolveSkill(name) {
   const candidates = [];
-  const pi = join(root, "pi", "skills", name);
-  if (existsSync(join(pi, "SKILL.md"))) candidates.push(pi);
   walkSkillDirs(join(root, "skills"), (dir) => {
     if (basename(dir) === name) candidates.push(dir);
   });
@@ -99,8 +97,30 @@ try {
     process.exit(1);
   }
   const body = readFileSync(modeSkill, "utf8");
-  if (!body.includes("OpenCode runtime adapter") || body.includes("Pi runtime adapter")) {
-    console.error("installed draconic-mode is not the OpenCode adapter");
+  if (!body.includes("OpenCode runtime adapter")) {
+    console.error("installed draconic-mode is missing the OpenCode adapter");
+    process.exit(1);
+  }
+  const piMode = join(dest, ".pi", "skills", "draconic-mode", "SKILL.md");
+  if (!existsSync(piMode)) {
+    console.error("draconic install did not copy the Pi pack");
+    process.exit(1);
+  }
+  const piBody = readFileSync(piMode, "utf8");
+  if (!piBody.includes("Pi runtime adapter")) {
+    console.error("installed .pi/draconic-mode is missing the Pi adapter");
+    process.exit(1);
+  }
+  if (!existsSync(join(dest, ".pi", "extensions", "draconic-spawn.ts"))) {
+    console.error("draconic install did not copy Pi extensions");
+    process.exit(1);
+  }
+  if (existsSync(join(root, "pi", "skills"))) {
+    console.error("pi/skills still exists; Pi runtime should not own skills");
+    process.exit(1);
+  }
+  if (existsSync(join(root, "pi", "install.mjs"))) {
+    console.error("pi/install.mjs still exists; install lives in scripts/");
     process.exit(1);
   }
   console.log("check-no-pstack: ok");

@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+  findSkillDir,
   installModePlaybooks,
   listProfiles,
   loadProfile,
@@ -105,6 +106,7 @@ test("loadProfile: defaults and playbooks shapes", () => {
     agents: false,
     commands: false,
     templates: false,
+    pi: false,
   });
 
   assert.deepEqual(loadProfile(root, "all").playbooks, { kind: "all" });
@@ -248,6 +250,7 @@ test("repo life-engine profile loads", () => {
   assert.equal(p.agents, true);
   assert.equal(p.commands, true);
   assert.equal(p.templates, true);
+  assert.equal(p.pi, true);
   const ported = [
     "behaviour-contracts",
     "diagnose",
@@ -266,6 +269,100 @@ test("repo life-engine profile loads", () => {
   for (const name of ported) assert.ok(p.skills.includes(name), name);
   const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
   assert.deepEqual(missing, []);
+});
+
+test("repo pi profile resolves every skill from skills/", () => {
+  const p = loadProfile(REPO, "pi");
+  assert.equal(p.pi, true);
+  assert.equal(p.agents, false);
+  assert.equal(p.commands, false);
+  assert.equal(p.templates, false);
+  assert.equal(p.mode, "draconic");
+  const needed = [...p.skills, `${p.mode}-mode`];
+  for (const name of needed) {
+    assert.ok(findSkillDir(REPO, name), name);
+    assert.doesNotMatch(findSkillDir(REPO, name), /\/pi\/skills\//);
+  }
+  assert.equal(existsSync(join(REPO, "pi", "skills")), false);
+  assert.equal(existsSync(join(REPO, "pi", "install.mjs")), false);
+  assert.equal(existsSync(join(REPO, "pi", "extensions", "draconic-spawn.ts")), true);
+});
+
+test("findSkillDir reads skills/ only", () => {
+  const mode = findSkillDir(REPO, "draconic-mode");
+  assert.ok(mode.endsWith(join("skills", "workflow", "draconic-mode")), mode);
+  assert.equal(findSkillDir(REPO, "no-such-skill"), null);
+});
+
+test("install --profile pi writes shared skills plus Pi runtime files", () => {
+  const dest = mkdtempSync(join(tmpdir(), "install-pi-"));
+  const r = spawnSync(
+    process.execPath,
+    [join(REPO, "scripts", "install.mjs"), dest, "--local", REPO, "--profile", "pi", "--no-templates"],
+    { encoding: "utf8" },
+  );
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.match(r.stdout, /Profile: pi/);
+  const piSkill = readFileSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md"), "utf8");
+  const ocSkill = readFileSync(join(dest, ".opencode", "skills", "draconic-mode", "SKILL.md"), "utf8");
+  assert.match(piSkill, /Pi runtime adapter/);
+  assert.match(ocSkill, /OpenCode runtime adapter/);
+  assert.equal(existsSync(join(dest, ".pi", "prompts", "draconic-mode.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-spawn.ts")), true);
+  assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
+  assert.equal(existsSync(join(dest, ".agents", "skills", "draconic-mode", "SKILL.md")), true);
+});
+
+test("install --profile core skips pi unless --pi", () => {
+  const dest = mkdtempSync(join(tmpdir(), "install-core-"));
+  const r = spawnSync(
+    process.execPath,
+    [
+      join(REPO, "scripts", "install.mjs"),
+      dest,
+      "--local",
+      REPO,
+      "--profile",
+      "core",
+      "--no-templates",
+      "--without",
+      "domain-modeling,wayfinder,tdd,handoff,improve-codebase-architecture,codebase-design,setup-matt-pocock-skills,research,prototype,planning,planning-with-docs,management,docs,unslop",
+    ],
+    { encoding: "utf8" },
+  );
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.equal(existsSync(join(dest, ".pi")), false);
+  const forced = mkdtempSync(join(tmpdir(), "install-core-pi-"));
+  const r2 = spawnSync(
+    process.execPath,
+    [
+      join(REPO, "scripts", "install.mjs"),
+      forced,
+      "--local",
+      REPO,
+      "--profile",
+      "core",
+      "--pi",
+      "--no-templates",
+      "--without",
+      "domain-modeling,wayfinder,tdd,handoff,improve-codebase-architecture,codebase-design,setup-matt-pocock-skills,research,prototype,planning,planning-with-docs,management,docs,unslop",
+    ],
+    { encoding: "utf8" },
+  );
+  assert.equal(r2.status, 0, r2.stderr || r2.stdout);
+  assert.equal(existsSync(join(forced, ".pi", "skills", "bro", "SKILL.md")), true);
+});
+
+test("install --profile draconic --no-pi skips the Pi pack", () => {
+  const dest = mkdtempSync(join(tmpdir(), "install-nopi-"));
+  const r = spawnSync(
+    process.execPath,
+    [join(REPO, "scripts", "install.mjs"), dest, "--local", REPO, "--profile", "draconic", "--no-pi", "--no-templates"],
+    { encoding: "utf8" },
+  );
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.equal(existsSync(join(dest, ".opencode", "skills", "draconic-mode", "SKILL.md")), true);
+  assert.equal(existsSync(join(dest, ".pi")), false);
 });
 
 test("install uses profiles yaml only and does not write preference stubs", () => {
@@ -311,7 +408,6 @@ test("ported life-engine skills keep the management/docs split", () => {
 });
 
 function skillHasMarkdown(root, name) {
-  if (existsSync(join(root, "pi", "skills", name, "SKILL.md"))) return true;
   return walkSkillMarkdown(join(root, "skills"), name);
 }
 
