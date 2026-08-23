@@ -21,7 +21,11 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
-  packages/draconic-boot: {}
+  packages/draconic-boot:
+    dependencies:
+      '@earendil-works/pi-coding-agent':
+        specifier: 0.84.2
+        version: 0.84.2(ws@8.21.3)
 
   packages/draconic-coms:
     dependencies:

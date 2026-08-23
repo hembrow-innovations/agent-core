@@ -1,8 +1,20 @@
 {
   "name": "@agentic-core/draconic-boot",
   "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
-    "test": "node --eval \"process.exit(0)\"",
-    "typecheck": "node --eval \"process.exit(0)\""
+    "test": "node --experimental-strip-types --test src/index.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "0.84.2"
+  },
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
   }
 }
