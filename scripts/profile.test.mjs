@@ -309,6 +309,35 @@ test("repo life-engine profile loads", () => {
   assert.deepEqual(missing, []);
 });
 
+test("repo life-engine-pi profile loads", () => {
+  const p = loadProfile(REPO, "life-engine-pi");
+  assert.equal(p.mode, "draconic");
+  assert.deepEqual(p.playbooks, { kind: "all" });
+  assert.equal(p.agents, false);
+  assert.equal(p.commands, false);
+  assert.equal(p.templates, false);
+  assert.equal(p.harness, "pi");
+  const ported = [
+    "behaviour-contracts",
+    "diagnose",
+    "frontend-design",
+    "tanstack-query",
+    "thermo-review",
+    "to-issues",
+    "triage",
+    "typography",
+    "vault-pack",
+    "vercel-react-best-practices",
+    "verify-issue",
+    "webapp-testing",
+    "write-a-skill",
+    "comment-sicko",
+  ];
+  for (const name of ported) assert.ok(p.skills.includes(name), name);
+  const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
+  assert.deepEqual(missing, []);
+});
+
 test("repo pi profile resolves every skill from skills/", () => {
   const p = loadProfile(REPO, "pi");
   assert.equal(p.harness, "pi");
@@ -460,6 +489,24 @@ test("install --profile pi writes .pi only", () => {
   assert.equal(existsSync(join(dest, ".claude")), false);
   assert.equal(existsSync(join(dest, ".agents")), false);
   assert.equal(existsSync(join(dest, ".draconic")), false);
+});
+
+test("install --profile life-engine-pi writes .pi only", () => {
+  const dest = mkdtempSync(join(tmpdir(), "install-life-engine-pi-"));
+  const r = spawnSync(
+    process.execPath,
+    [join(REPO, "scripts", "install.mjs"), dest, "--local", REPO, "--profile", "life-engine-pi"],
+    { encoding: "utf8" },
+  );
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.match(r.stdout, /Profile: life-engine-pi/);
+  assert.match(r.stdout, /Harness: pi/);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "vault-pack", "SKILL.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-spawn.ts")), true);
+  assert.equal(existsSync(join(dest, ".opencode")), false);
+  assert.equal(existsSync(join(dest, ".claude")), false);
+  assert.equal(existsSync(join(dest, ".agents")), false);
 });
 
 test("install --profile pi --without how omits the how prompt", () => {

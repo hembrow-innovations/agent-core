@@ -58,8 +58,9 @@ Profiles (profiles/*.yaml):
    draconic     draconic-mode playbooks + agents/commands
    godot        draconic + godot-mono
    full         everything
-    life-engine  draconic + life-engine library skills and product principles
-    pi           Pi dest plus the draconic skill list
+     life-engine     draconic + life-engine library skills and product principles
+     life-engine-pi  life-engine skills on the Pi dest
+     pi              Pi dest plus the draconic skill list
 
 Playbooks are selected in the YAML and overlaid into {mode}-mode.
 
