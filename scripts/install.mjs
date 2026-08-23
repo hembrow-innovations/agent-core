@@ -61,6 +61,7 @@ Profiles (profiles/*.yaml):
      life-engine     draconic + life-engine library skills and product principles
      life-engine-pi  life-engine skills on the Pi dest
      pi              Pi dest plus the draconic skill list
+     agentic-core    Pi dest plus skills for developing this pack
 
 Playbooks are selected in the YAML and overlaid into {mode}-mode.
 

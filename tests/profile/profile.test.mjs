@@ -338,6 +338,22 @@ test("repo life-engine-pi profile loads", () => {
   assert.deepEqual(missing, []);
 });
 
+test("repo agentic-core profile loads", () => {
+  const p = loadProfile(REPO, "agentic-core");
+  assert.equal(p.mode, "draconic");
+  assert.deepEqual(p.playbooks, { kind: "all" });
+  assert.equal(p.agents, false);
+  assert.equal(p.commands, false);
+  assert.equal(p.templates, false);
+  assert.equal(p.harness, "pi");
+  const needed = ["write-a-skill", "diagnose", "thermo-review", "research", "codebase-design"];
+  for (const name of needed) assert.ok(p.skills.includes(name), name);
+  const banned = ["godot-mono", "vault-pack", "playwright-cli", "supabase", "frontend-design"];
+  for (const name of banned) assert.equal(p.skills.includes(name), false, name);
+  const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
+  assert.deepEqual(missing, []);
+});
+
 test("repo pi profile resolves every skill from skills/", () => {
   const p = loadProfile(REPO, "pi");
   assert.equal(p.harness, "pi");
@@ -515,6 +531,28 @@ test("install --profile pi writes .pi only", () => {
   assert.equal(existsSync(join(dest, ".claude")), false);
   assert.equal(existsSync(join(dest, ".agents")), false);
   assert.equal(existsSync(join(dest, ".draconic")), false);
+});
+
+test("install --profile agentic-core writes .pi only", () => {
+  const dest = mkdtempSync(join(tmpdir(), "install-agentic-core-"));
+  const r = spawnSync(
+    process.execPath,
+    [join(REPO, "scripts", "install.mjs"), dest, "--local", REPO, "--profile", "agentic-core"],
+    { encoding: "utf8" },
+  );
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.match(r.stdout, /Profile: agentic-core/);
+  assert.match(r.stdout, /Harness: pi/);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "write-a-skill", "SKILL.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "diagnose", "SKILL.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "godot-mono", "SKILL.md")), false);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "vault-pack", "SKILL.md")), false);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "playwright-cli", "SKILL.md")), false);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "supabase", "SKILL.md")), false);
+  assert.equal(existsSync(join(dest, ".opencode")), false);
+  assert.equal(existsSync(join(dest, ".claude")), false);
+  assert.equal(existsSync(join(dest, ".agents")), false);
 });
 
 test("install --profile life-engine-pi writes .pi only", () => {

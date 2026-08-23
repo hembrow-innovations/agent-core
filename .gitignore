@@ -1,5 +1,6 @@
 .DS_Store
 .opencode/
+.pi/
 .draconic/worktrees/
 .draconic/sessions/
 .draconic/TODO.md
