@@ -84,7 +84,7 @@ Maestro scars that show up in many apps: debug `inputText` DEADLINE, `hideKeyboa
 
 ## Sibling skills
 
-- `tdd` — what a good test is; seams; tautologies
-- project `vitest` — aliases and config, if installed
+- `tdd` owns what a good test is, seams, and tautologies
+- `vitest` owns commands, config, `vi.mock`, and coverage
 - `maestro` — device E2E
 - `playwright-cli` — interactive browser, not the suite

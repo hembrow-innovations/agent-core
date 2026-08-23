@@ -22,7 +22,7 @@ Profiles live in `profiles/*.yaml`. A profile lists skills and, when it sets `mo
 | `pstack` | pstack skills, `poteto-mode`, every playbook, agents, commands, templates |
 | `godot` | `pstack` plus `godot-mono` |
 | `full` | Union of core, pstack, and the extra skills. Every playbook. |
-| `life-engine` | `draconic-mode` plus investigation, feature, bug-fix, refactoring, and opening-a-pr |
+| `life-engine` | `pstack` plus `docs`, `wayfinder`, `prototype`, `improve-codebase-architecture`, `playwright-cli`, `maestro`, `vitest`, and the seven life-engine product principles |
 
 ```bash
 # pstack / poteto on OpenCode

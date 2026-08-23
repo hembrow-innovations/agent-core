@@ -65,7 +65,7 @@ Profiles (profiles/*.yaml):
   pstack       pstack skills + poteto-mode playbooks + agents/commands
   godot        pstack + godot-mono
   full         everything
-  life-engine  draconic-mode + a short playbook list
+  life-engine  pstack + life-engine library skills and product principles
 
 Playbooks are selected in the YAML and overlaid into {mode}-mode.
 

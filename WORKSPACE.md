@@ -332,7 +332,7 @@ Install from this repo with a profile. The profile is the set. Do not hand-copy 
 | Profile | What you get |
 | --- | --- |
 | `core` | Engineering and productivity skills, including planning |
-| `web` | `core`, plus `playwright-cli` and `react-testing` |
+| `web` | `core`, plus `playwright-cli`, `react-testing`, and `vitest` |
 | `mobile` | `core`, plus `maestro` and `react-testing` |
 | `pstack` | Full pstack playbooks, poteto agents and commands, OpenCode templates |
 | `godot` | `pstack` plus `godot-mono` |

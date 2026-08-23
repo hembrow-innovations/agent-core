@@ -30,7 +30,7 @@ Do not invent a second runner, a root `pnpm test`, or E2E the repo does not alre
 
 **Do not introduce:** Enzyme, Cypress, Detox, snapshots, Vitest for RN render, mega `AllTheProviders`, timeout/retry inflation — unless the repo already uses them.
 
-Project-local skills (**vitest**, **maestro**, **tdd**, **playwright-cli**) own commands and config when present.
+Sibling **vitest** owns Vitest commands and config. **maestro**, **tdd**, and **playwright-cli** own their layers when present.
 
 ## When to apply
 

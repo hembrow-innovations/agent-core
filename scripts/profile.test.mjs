@@ -1,12 +1,11 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import {
   installModePlaybooks,
-  listPlaybookIds,
   listProfiles,
   loadProfile,
   parseProfileYaml,
@@ -244,11 +243,93 @@ test("readPlaybookMeta: frontmatter and heading fallback", () => {
 
 test("repo life-engine profile loads", () => {
   const p = loadProfile(REPO, "life-engine");
-  assert.equal(p.mode, "draconic");
-  assert.deepEqual(p.skills, []);
-  assert.equal(p.playbooks.kind, "list");
-  assert.ok(listPlaybookIds(REPO).includes("feature"));
+  assert.equal(p.mode, "poteto");
+  assert.deepEqual(p.playbooks, { kind: "all" });
+  assert.equal(p.pstack, true);
+  assert.equal(p.agents, true);
+  assert.equal(p.commands, true);
+  assert.equal(p.templates, true);
+  assert.deepEqual(p.skills, [
+    "architect",
+    "arena",
+    "automate-me",
+    "blast-radius",
+    "bro",
+    "create-verification-skill",
+    "docs",
+    "figure-it-out",
+    "how",
+    "improve-codebase-architecture",
+    "interrogate",
+    "maestro",
+    "maintain-verification-skill",
+    "no-comments",
+    "playwright-cli",
+    "poteto-mode",
+    "principle-boundary-discipline",
+    "principle-build-the-lever",
+    "principle-contracts-have-two-altitudes",
+    "principle-encode-lessons-in-structure",
+    "principle-exhaust-the-design-space",
+    "principle-experience-first",
+    "principle-fix-root-causes",
+    "principle-foundational-thinking",
+    "principle-guard-the-context-window",
+    "principle-intent-ladder-stop",
+    "principle-laziness-protocol",
+    "principle-make-operations-idempotent",
+    "principle-migrate-callers-then-delete-legacy-apis",
+    "principle-minimize-reader-load",
+    "principle-model-the-domain",
+    "principle-never-block-on-the-human",
+    "principle-occurrences-project-never-materialize",
+    "principle-outcome-oriented-execution",
+    "principle-personal-home-shared-bridge",
+    "principle-prove-it-works",
+    "principle-react-api-owns-shared-behaviour",
+    "principle-redesign-from-first-principles",
+    "principle-rls-is-the-security-boundary",
+    "principle-separate-before-serializing-shared-state",
+    "principle-sequence-verifiable-units",
+    "principle-subtract-before-you-add",
+    "principle-type-system-discipline",
+    "principle-zod-degrades-never-blanks",
+    "prototype",
+    "recall",
+    "reflect",
+    "setup-pstack",
+    "show-me-your-work",
+    "swarm",
+    "tdd",
+    "teach",
+    "technical-writing",
+    "typescript-best-practices",
+    "unslop",
+    "vitest",
+    "wayfinder",
+    "why",
+  ]);
+  const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
+  assert.deepEqual(missing, []);
 });
+
+function skillHasMarkdown(root, name) {
+  if (existsSync(join(root, "pstack", "skills", name, "SKILL.md"))) return true;
+  if (existsSync(join(root, "pi", "skills", name, "SKILL.md"))) return true;
+  return walkSkillMarkdown(join(root, "skills"), name);
+}
+
+function walkSkillMarkdown(dir, name) {
+  if (!existsSync(dir)) return false;
+  if (existsSync(join(dir, name, "SKILL.md"))) return true;
+  for (const ent of readdirSync(dir, { withFileTypes: true })) {
+    if (!ent.isDirectory() || ent.name.startsWith(".")) continue;
+    const full = join(dir, ent.name);
+    if (existsSync(join(full, "SKILL.md"))) continue;
+    if (walkSkillMarkdown(full, name)) return true;
+  }
+  return false;
+}
 
 function tempRoot() {
   const root = mkdtempSync(join(tmpdir(), "profile-"));
