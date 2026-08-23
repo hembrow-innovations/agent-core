@@ -8,17 +8,22 @@ skills:
   - architect
   - arena
   - automate-me
+  - behaviour-contracts
   - blast-radius
   - bro
   - create-verification-skill
+  - diagnose
   - docs
   - figure-it-out
+  - frontend-design
+  - grill-me
   - how
   - improve-codebase-architecture
   - interrogate
   - maestro
   - maintain-verification-skill
   - no-comments
+  - planning-workflow
   - playwright-cli
   - poteto-mode
   - principle-boundary-discipline
@@ -55,11 +60,23 @@ skills:
   - setup-pstack
   - show-me-your-work
   - swarm
+  - tanstack-query
   - tdd
   - teach
   - technical-writing
+  - thermo-review
+  - to-issues
+  - to-orchestrator
+  - to-prd
+  - triage
   - typescript-best-practices
+  - typography
   - unslop
+  - vault-pack
+  - vercel-react-best-practices
+  - verify-issue
   - vitest
   - wayfinder
+  - webapp-testing
   - why
+  - write-a-skill

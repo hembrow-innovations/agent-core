@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -249,68 +250,35 @@ test("repo life-engine profile loads", () => {
   assert.equal(p.agents, true);
   assert.equal(p.commands, true);
   assert.equal(p.templates, true);
-  assert.deepEqual(p.skills, [
-    "architect",
-    "arena",
-    "automate-me",
-    "blast-radius",
-    "bro",
-    "create-verification-skill",
-    "docs",
-    "figure-it-out",
-    "how",
-    "improve-codebase-architecture",
-    "interrogate",
-    "maestro",
-    "maintain-verification-skill",
-    "no-comments",
-    "playwright-cli",
-    "poteto-mode",
-    "principle-boundary-discipline",
-    "principle-build-the-lever",
-    "principle-contracts-have-two-altitudes",
-    "principle-encode-lessons-in-structure",
-    "principle-exhaust-the-design-space",
-    "principle-experience-first",
-    "principle-fix-root-causes",
-    "principle-foundational-thinking",
-    "principle-guard-the-context-window",
-    "principle-intent-ladder-stop",
-    "principle-laziness-protocol",
-    "principle-make-operations-idempotent",
-    "principle-migrate-callers-then-delete-legacy-apis",
-    "principle-minimize-reader-load",
-    "principle-model-the-domain",
-    "principle-never-block-on-the-human",
-    "principle-occurrences-project-never-materialize",
-    "principle-outcome-oriented-execution",
-    "principle-personal-home-shared-bridge",
-    "principle-prove-it-works",
-    "principle-react-api-owns-shared-behaviour",
-    "principle-redesign-from-first-principles",
-    "principle-rls-is-the-security-boundary",
-    "principle-separate-before-serializing-shared-state",
-    "principle-sequence-verifiable-units",
-    "principle-subtract-before-you-add",
-    "principle-type-system-discipline",
-    "principle-zod-degrades-never-blanks",
-    "prototype",
-    "recall",
-    "reflect",
-    "setup-pstack",
-    "show-me-your-work",
-    "swarm",
-    "tdd",
-    "teach",
-    "technical-writing",
-    "typescript-best-practices",
-    "unslop",
-    "vitest",
-    "wayfinder",
-    "why",
-  ]);
+  const ported = [
+    "behaviour-contracts",
+    "diagnose",
+    "frontend-design",
+    "grill-me",
+    "planning-workflow",
+    "tanstack-query",
+    "thermo-review",
+    "to-issues",
+    "to-orchestrator",
+    "to-prd",
+    "triage",
+    "typography",
+    "vault-pack",
+    "vercel-react-best-practices",
+    "verify-issue",
+    "webapp-testing",
+    "write-a-skill",
+  ];
+  for (const name of ported) assert.ok(p.skills.includes(name), name);
   const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
   assert.deepEqual(missing, []);
+});
+
+test("ported life-engine skills keep the management/docs split", () => {
+  const r = spawnSync(process.execPath, [join(REPO, "scripts", "check-ported-skills.mjs")], {
+    encoding: "utf8",
+  });
+  assert.equal(r.status, 0, r.stderr || r.stdout);
 });
 
 function skillHasMarkdown(root, name) {
