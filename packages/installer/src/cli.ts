@@ -9,6 +9,12 @@ import {
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import {
+  FIRST_PARTY_EXTENSIONS,
+  type FirstPartyExtension,
+  installVendorExtensions,
+  isFirstPartyExtension,
+} from "./vendor.ts";
 
 const AGENT_DEST = join(".opencode", "agent");
 const COMMAND_DEST = join(".opencode", "command");
@@ -66,7 +72,7 @@ type ProfileModule = {
 type InstallRequest = {
   kind: "install";
   target: string;
-  profile: string;
+  profile: string | null;
   with: string[];
   without: string[];
   playbooks: string[] | null;
@@ -76,6 +82,7 @@ type InstallRequest = {
   noCommands: boolean;
   noTemplates: boolean;
   harness: string | null;
+  extensions: FirstPartyExtension[];
 };
 
 type CliRequest = { kind: "help" } | InstallRequest;
@@ -104,6 +111,7 @@ Usage:
 
 Options:
   --profile <name>         YAML profile in profiles/ (default: core)
+  --extension <name>       first-party vendor package (repeatable)
   --with <skills>          comma-separated skills to add
   --without <skills>       comma-separated skills to remove
   --playbooks <ids>        replace profile playbook selection
@@ -137,7 +145,7 @@ function parseArgs(argv: string[]): CliRequest {
   const out: InstallRequest = {
     kind: "install",
     target: "",
-    profile: "core",
+    profile: null,
     with: [],
     without: [],
     playbooks: null,
@@ -147,6 +155,7 @@ function parseArgs(argv: string[]): CliRequest {
     noCommands: false,
     noTemplates: false,
     harness: null,
+    extensions: [],
   };
 
   while (args.length) {
@@ -165,7 +174,15 @@ function parseArgs(argv: string[]): CliRequest {
     else if (a === "--no-commands") out.noCommands = true;
     else if (a === "--no-templates") out.noTemplates = true;
     else if (a === "--harness") out.harness = need(args, a);
-    else if (a.startsWith("-")) die(`Unknown flag: ${a}`);
+    else if (a === "--extension") {
+      const name = need(args, a);
+      if (!isFirstPartyExtension(name)) {
+        die(
+          `Unknown extension: ${name}. Choose: ${FIRST_PARTY_EXTENSIONS.join(", ")}`,
+        );
+      }
+      out.extensions.push(name);
+    } else if (a.startsWith("-")) die(`Unknown flag: ${a}`);
     else if (out.target) die(`Unexpected argument: ${a}`);
     else out.target = resolve(a);
   }
@@ -190,6 +207,13 @@ function need(args: string[], flag: string): string {
 function die(msg: string): never {
   console.error(msg);
   process.exit(1);
+}
+
+function writePiGitignore(target: string): void {
+  const gitignore = join(target, ".pi", ".gitignore");
+  if (existsSync(gitignore)) return;
+  mkdirSync(dirname(gitignore), { recursive: true });
+  writeFileSync(gitignore, "npm/\ngit/\n", "utf8");
 }
 
 function repoRoot(): string {
@@ -328,6 +352,12 @@ function installTemplates(srcRoot: string, target: string): void {
   }
 }
 
+function resolveHarnessId(opts: InstallRequest, profile: Profile): string {
+  if (opts.harness) return opts.harness;
+  if (opts.extensions.length > 0 && opts.profile == null) return "pi";
+  return profile.harness;
+}
+
 function planFromProfile(
   profile: Profile,
   opts: InstallRequest,
@@ -339,7 +369,7 @@ function planFromProfile(
   if (profile.mode) set.add(`${profile.mode}-mode`);
   for (const s of opts.with) set.add(s);
   for (const s of opts.without) set.delete(s);
-  const harnessId = opts.harness ?? profile.harness;
+  const harnessId = resolveHarnessId(opts, profile);
   const harness = harnesses[harnessId];
   if (!harness) {
     const known = Object.keys(harnesses).join(", ");
@@ -379,6 +409,23 @@ async function run(argv: string[]): Promise<void> {
     return;
   }
 
+  if (!existsSync(opts.target)) die(`Target does not exist: ${opts.target}`);
+
+  if (opts.profile == null && opts.extensions.length > 0) {
+    console.log(`Using local source: ${srcRoot}`);
+    console.log(`Installing into ${opts.target}`);
+    console.log("Profile: none");
+    console.log("Harness: pi");
+    writePiGitignore(opts.target);
+    try {
+      installVendorExtensions(srcRoot, opts.target, opts.extensions);
+    } catch (err) {
+      die(err instanceof Error ? err.message : String(err));
+    }
+    console.log("Done.");
+    return;
+  }
+
   const {
     HARNESSES,
     loadProfile,
@@ -389,9 +436,10 @@ async function run(argv: string[]): Promise<void> {
     findSkillDir,
   } = await loadProfileModule(srcRoot);
 
+  const profileName = opts.profile ?? "core";
   let profile: Profile;
   try {
-    profile = loadProfile(srcRoot, opts.profile);
+    profile = loadProfile(srcRoot, profileName);
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));
   }
@@ -408,10 +456,9 @@ async function run(argv: string[]): Promise<void> {
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));
   }
-  if (!existsSync(opts.target)) die(`Target does not exist: ${opts.target}`);
   console.log(`Using local source: ${srcRoot}`);
   console.log(`Installing into ${opts.target}`);
-  console.log(`Profile: ${opts.profile}`);
+  console.log(`Profile: ${profileName}`);
   console.log(`Harness: ${plan.harness}`);
   console.log(`Skills (${plan.skills.length}): ${plan.skills.join(", ")}`);
 
@@ -440,6 +487,13 @@ async function run(argv: string[]): Promise<void> {
       playbooks: plan.playbookIds,
     });
     console.log("  pi runtime → .pi");
+    if (opts.extensions.length > 0) {
+      try {
+        installVendorExtensions(srcRoot, opts.target, opts.extensions);
+      } catch (err) {
+        die(err instanceof Error ? err.message : String(err));
+      }
+    }
   }
 
   console.log("Done.");
