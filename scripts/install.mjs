@@ -61,7 +61,7 @@ Profiles (profiles/*.yaml):
    godot        draconic + godot-mono
    full         everything
     life-engine  draconic + life-engine library skills and product principles
-    pi           Pi runtime plus the draconic skill list
+    pi           Pi extensions plus the draconic skill list
 
 Playbooks are selected in the YAML and overlaid into {mode}-mode.
 
@@ -325,7 +325,7 @@ async function main() {
     if (plan.templates) installTemplates(srcRoot, opts.target);
     if (plan.pi) {
       installPiSurface(srcRoot, opts.target, plan);
-      console.log(`  pi (${plan.skills.length} skills) → .pi/skills, .agents/skills`);
+      console.log(`  pi (${plan.skills.length} skills + extensions) → .pi/`);
     }
 
     console.log("Done.");

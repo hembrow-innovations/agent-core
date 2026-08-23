@@ -307,9 +307,10 @@ test("install --profile pi writes shared skills plus Pi runtime files", () => {
   const ocSkill = readFileSync(join(dest, ".opencode", "skills", "draconic-mode", "SKILL.md"), "utf8");
   assert.match(piSkill, /Pi runtime adapter/);
   assert.match(ocSkill, /OpenCode runtime adapter/);
-  assert.equal(existsSync(join(dest, ".pi", "prompts", "draconic-mode.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-spawn.ts")), true);
-  assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-boot.ts")), true);
+  assert.equal(existsSync(join(dest, ".pi", "prompts")), false);
+  assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), false);
   assert.equal(existsSync(join(dest, ".agents", "skills", "draconic-mode", "SKILL.md")), true);
 });
 

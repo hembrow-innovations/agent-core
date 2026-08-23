@@ -64,6 +64,12 @@ function resolveSkill(name) {
   return candidates[0] ?? null;
 }
 
+const piRoot = join(root, "pi");
+if (existsSync(piRoot)) {
+  const extra = readdirSync(piRoot).filter((n) => !n.startsWith(".") && n !== "extensions");
+  if (extra.length) errors.push(`pi/ should only contain extensions/, found ${extra.join(", ")}`);
+}
+
 for (const name of listProfiles(root)) {
   const profile = loadProfile(root, name);
   const needed = new Set(profile.skills);
@@ -115,12 +121,8 @@ try {
     console.error("draconic install did not copy Pi extensions");
     process.exit(1);
   }
-  if (existsSync(join(root, "pi", "skills"))) {
-    console.error("pi/skills still exists; Pi runtime should not own skills");
-    process.exit(1);
-  }
-  if (existsSync(join(root, "pi", "install.mjs"))) {
-    console.error("pi/install.mjs still exists; install lives in scripts/");
+  if (existsSync(join(dest, ".pi", "prompts")) || existsSync(join(dest, ".pi", "APPEND_SYSTEM.md"))) {
+    console.error("pi install wrote removed runtime files");
     process.exit(1);
   }
   console.log("check-no-pstack: ok");

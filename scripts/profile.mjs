@@ -233,8 +233,8 @@ export function installModePlaybooks(srcRoot, target, mode, ids, destBases = OPE
 
 export function installPiSurface(srcRoot, target, plan) {
   const piRoot = join(srcRoot, "pi");
-  if (!existsSync(join(piRoot, "extensions")) && !existsSync(join(piRoot, "APPEND_SYSTEM.md"))) {
-    throw new Error("Pi pack missing: expected pi/extensions or pi/APPEND_SYSTEM.md");
+  if (!existsSync(join(piRoot, "extensions"))) {
+    throw new Error("Pi pack missing: expected pi/extensions");
   }
 
   for (const name of plan.skills) {
@@ -257,40 +257,16 @@ export function installPiSurface(srcRoot, target, plan) {
 }
 
 function copyPiRuntime(piRoot, target) {
-  const promptsSrc = join(piRoot, "prompts");
-  if (existsSync(promptsSrc)) {
-    const dest = join(target, ".pi", "prompts");
-    mkdirSync(dest, { recursive: true });
-    for (const ent of readdirSync(promptsSrc, { withFileTypes: true })) {
-      if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
-      cpSync(join(promptsSrc, ent.name), join(dest, ent.name));
-    }
-  }
-
   const extensionsSrc = join(piRoot, "extensions");
-  if (existsSync(extensionsSrc)) {
-    const dest = join(target, ".pi", "extensions");
-    mkdirSync(dest, { recursive: true });
-    for (const ent of readdirSync(extensionsSrc, { withFileTypes: true })) {
-      if (!ent.isFile() || !(ent.name.endsWith(".ts") || ent.name.endsWith(".js"))) continue;
-      cpSync(join(extensionsSrc, ent.name), join(dest, ent.name));
-    }
+  const dest = join(target, ".pi", "extensions");
+  mkdirSync(dest, { recursive: true });
+  for (const ent of readdirSync(extensionsSrc, { withFileTypes: true })) {
+    if (!ent.isFile() || !(ent.name.endsWith(".ts") || ent.name.endsWith(".js"))) continue;
+    cpSync(join(extensionsSrc, ent.name), join(dest, ent.name));
   }
-
-  copyFileIfMissing(join(piRoot, "APPEND_SYSTEM.md"), join(target, ".pi", "APPEND_SYSTEM.md"));
-  cpSync(join(piRoot, "draconic-models.md"), join(target, ".pi", "draconic-models.md"));
-  copyFileIfMissing(join(piRoot, "WORKFLOW.md"), join(target, "WORKFLOW.md"));
-  cpSync(join(piRoot, "DRACONIC-INDEX.md"), join(target, "DRACONIC-INDEX.md"));
-  copyFileIfMissing(join(piRoot, "AGENTS.md"), join(target, "AGENTS.md"));
 
   writeIfMissing(join(target, ".draconic", ".gitignore"), "worktrees/\nsessions/\n");
   writeIfMissing(join(target, ".pi", ".gitignore"), "npm/\ngit/\n");
-}
-
-function copyFileIfMissing(src, dest) {
-  if (existsSync(dest) || !existsSync(src)) return;
-  mkdirSync(dirname(dest), { recursive: true });
-  cpSync(src, dest);
 }
 
 function writeIfMissing(dest, body) {
