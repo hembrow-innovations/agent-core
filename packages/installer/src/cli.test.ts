@@ -55,6 +55,33 @@ test("unknown command, remote flags, and --extension die", () => {
   assert.match(extension.stderr, /Unknown flag: --extension/);
 });
 
+test("install --profile pi writes skills, pack files, and third-party npm sources", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-pi-"));
+  const r = runCli(["install", dest, "--profile", "pi"]);
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.match(r.stdout, /Profile: pi/);
+  assert.match(r.stdout, /Harness: pi/);
+
+  const skillRoot = join(dest, ".pi", "skills");
+  const folders = readdirSync(skillRoot);
+  assert.ok(folders.includes("draconic-mode"), folders.join(", "));
+  assert.ok(folders.includes("how"), folders.join(", "));
+  assert.equal(existsSync(join(skillRoot, "draconic-mode", "SKILL.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
+  assert.equal(
+    existsSync(join(dest, ".pi", "prompts", "draconic-mode.md")),
+    true,
+  );
+  assert.equal(existsSync(join(dest, ".pi", "roles", "researcher.md")), true);
+  assert.deepEqual(
+    JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8"))
+      .packages,
+    ["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"],
+  );
+  assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
+  assert.equal(existsSync(join(dest, ".opencode")), false);
+});
+
 test("install --profile core writes .opencode/skills and does not wire this checkout", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-core-"));
   const checkoutSettingsPath = join(REPO, ".pi", "settings.json");

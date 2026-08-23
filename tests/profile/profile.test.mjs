@@ -369,8 +369,7 @@ test("repo pi profile resolves every skill from skills/", () => {
   }
   assert.equal(existsSync(join(REPO, "pi", "skills")), false);
   assert.equal(existsSync(join(REPO, "pi", "install.mjs")), false);
-  assert.equal(existsSync(join(REPO, "pi", "extensions", "draconic-spawn.ts")), true);
-  assert.equal(existsSync(join(REPO, "pi", "extensions", "draconic-coms.ts")), true);
+  assert.equal(existsSync(join(REPO, "pi", "packages.json")), true);
   assert.equal(existsSync(join(REPO, "pi", "APPEND_SYSTEM.md")), true);
   assert.equal(existsSync(join(REPO, "pi", "draconic-models.md")), true);
   assert.equal(existsSync(join(REPO, "pi", "prompts", "draconic-mode.md")), true);
@@ -515,8 +514,7 @@ test("install --profile pi writes .pi only", () => {
   const piSkill = readFileSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md"), "utf8");
   assert.match(piSkill, /Pi runtime adapter/);
   assert.equal(existsSync(join(dest, ".pi", "roles", "researcher.md")), true);
-  assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-spawn.ts")), true);
-  assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-boot.ts")), true);
+  assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
   const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
   assert.match(append, /draconic-mode on Pi/);
   assert.match(readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"), /feature, refactoring:/);
@@ -568,7 +566,7 @@ test("install --profile life-engine-pi writes .pi only", () => {
   assert.match(r.stdout, /Harness: pi/);
   assert.equal(existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "skills", "vault-pack", "SKILL.md")), true);
-  assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-spawn.ts")), true);
+  assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
   assert.equal(existsSync(join(dest, ".opencode")), false);
   assert.equal(existsSync(join(dest, ".claude")), false);
   assert.equal(existsSync(join(dest, ".agents")), false);
