@@ -14,7 +14,6 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
-  readFileSync,
   readdirSync,
   rmSync,
   statSync,
@@ -30,11 +29,6 @@ const DEFAULT_REF = "main";
 const SKILL_DESTS = [".opencode/skills", ".claude/skills"];
 const AGENT_DEST = join(".opencode", "agent");
 const COMMAND_DEST = join(".opencode", "command");
-const PREF_DESTS = [
-  "AGENTS.md",
-  "CLAUDE.md",
-  join(".github", "copilot-instructions.md"),
-];
 
 function usage(profileNames) {
   const listed = profileNames?.length ? profileNames.join(" | ") : "see profiles/";
@@ -59,7 +53,7 @@ Options:
 
 Profiles (profiles/*.yaml):
   ${listed}
-  core         engineering skills + prefs
+  core         engineering skills
   web          core + playwright-cli + react-testing
   mobile       core + maestro + react-testing
   pstack       pstack skills + poteto-mode playbooks + agents/commands
@@ -277,25 +271,6 @@ function installTemplates(srcRoot, target) {
   }
 }
 
-function installPrefs(srcRoot, target) {
-  const prefPath = join(srcRoot, "preferences", "AGENTS.md");
-  if (!existsSync(prefPath)) {
-    console.log("  prefs: no preferences/AGENTS.md");
-    return;
-  }
-  const body = readFileSync(prefPath, "utf8");
-  for (const rel of PREF_DESTS) {
-    const dest = join(target, rel);
-    if (existsSync(dest)) {
-      console.log(`  prefs skip (exists): ${rel}`);
-      continue;
-    }
-    mkdirSync(dirname(dest), { recursive: true });
-    writeFileSync(dest, body, "utf8");
-    console.log(`  prefs write: ${rel}`);
-  }
-}
-
 async function loadProfileModule(srcRoot) {
   const href = pathToFileURL(join(srcRoot, "scripts", "profile.mjs")).href;
   return import(href);
@@ -378,7 +353,6 @@ async function main() {
     if (plan.agents) installAgents(srcRoot, opts.target);
     if (plan.commands) installCommands(srcRoot, opts.target);
     if (plan.templates) installTemplates(srcRoot, opts.target);
-    installPrefs(srcRoot, opts.target);
 
     console.log("Done.");
     if (plan.pstack) {

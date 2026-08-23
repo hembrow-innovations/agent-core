@@ -274,6 +274,34 @@ test("repo life-engine profile loads", () => {
   assert.deepEqual(missing, []);
 });
 
+test("install uses profiles yaml only and does not write preference stubs", () => {
+  const dest = mkdtempSync(join(tmpdir(), "install-"));
+  const r = spawnSync(
+    process.execPath,
+    [
+      join(REPO, "scripts", "install.mjs"),
+      dest,
+      "--local",
+      REPO,
+      "--profile",
+      "core",
+      "--no-templates",
+      "--without",
+      "domain-modeling,wayfinder,tdd,handoff,improve-codebase-architecture,codebase-design,setup-matt-pocock-skills,research,prototype,planning,planning-with-docs,management,docs,unslop",
+    ],
+    { encoding: "utf8" },
+  );
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.match(r.stdout, /Profile: core/);
+  assert.match(r.stdout, /skill bro → \.opencode\/skills\/bro/);
+  assert.doesNotMatch(r.stdout, /prefs/);
+  assert.equal(existsSync(join(dest, "AGENTS.md")), false);
+  assert.equal(existsSync(join(dest, "CLAUDE.md")), false);
+  assert.equal(existsSync(join(dest, ".github", "copilot-instructions.md")), false);
+  assert.equal(existsSync(join(dest, ".opencode", "skills", "bro", "SKILL.md")), true);
+  assert.equal(existsSync(join(REPO, "preferences")), false);
+});
+
 test("ported life-engine skills keep the management/docs split", () => {
   const r = spawnSync(process.execPath, [join(REPO, "scripts", "check-ported-skills.mjs")], {
     encoding: "utf8",
