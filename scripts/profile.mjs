@@ -282,7 +282,7 @@ const SHIPPED_ROLE_FILES = ["argv.mjs", "researcher.md", "architect.md", "coder.
 
 export function installPiRuntime(srcRoot, target, opts = {}) {
   const pack = join(srcRoot, "pi");
-  const required = ["extensions", "APPEND_SYSTEM.md", "draconic-models.md", "prompts", "roles"];
+  const required = ["APPEND_SYSTEM.md", "draconic-models.md", "prompts", "roles"];
   for (const name of required) {
     if (!existsSync(join(pack, name))) {
       throw new Error(`Pi pack missing: expected pi/${name}`);
@@ -292,13 +292,6 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
     if (!existsSync(join(pack, "roles", name))) {
       throw new Error(`Pi pack missing: expected pi/roles/${name}`);
     }
-  }
-
-  const destExt = join(target, ".pi", "extensions");
-  mkdirSync(destExt, { recursive: true });
-  for (const ent of readdirSync(join(pack, "extensions"), { withFileTypes: true })) {
-    if (!ent.isFile() || !(ent.name.endsWith(".ts") || ent.name.endsWith(".js"))) continue;
-    cpSync(join(pack, "extensions", ent.name), join(destExt, ent.name));
   }
 
   const allow = new Set([...(opts.skills ?? []), ...(opts.playbooks ?? [])]);

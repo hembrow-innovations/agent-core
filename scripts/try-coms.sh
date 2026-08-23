@@ -3,9 +3,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-node --experimental-strip-types --test "$ROOT/tests/coms/draconic-coms.test.ts"
+pnpm --filter @agentic-core/draconic-coms test
 
-EXT="$ROOT/pi/extensions/draconic-coms.ts"
+EXT="$ROOT/packages/draconic-coms/src/index.ts"
 cat <<EOF
 
 Print three pasteable living-session commands:

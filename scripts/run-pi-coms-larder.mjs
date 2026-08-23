@@ -466,8 +466,8 @@ Do not edit .pi/, run/, or .coms/.
 }
 
 async function main() {
-  if (!existsSync(join(PLAY, ".pi", "extensions", "draconic-coms.ts"))) {
-    throw new Error("playground missing coms extension. run: node scripts/install.mjs playground --profile pi --local .");
+  if (!existsSync(join(PLAY, ".pi", "vendor", "@agentic-core", "draconic-coms"))) {
+    throw new Error("playground missing coms package. run: pnpm exec agentic-core install playground --profile pi");
   }
   mkdirSync(RUN, { recursive: true });
   mkdirSync(COMS, { recursive: true });
