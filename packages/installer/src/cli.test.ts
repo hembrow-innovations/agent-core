@@ -93,11 +93,64 @@ test("install --profile pi writes skills, pack files, and third-party npm source
     ],
   );
   const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
-  assert.equal(existsSync(join(vendorRoot, "draconic-todo", "src", "index.ts")), true);
-  assert.equal(existsSync(join(vendorRoot, "draconic-coms", "src", "index.ts")), true);
-  assert.equal(existsSync(join(vendorRoot, "draconic-boot", "src", "index.ts")), true);
+  assert.equal(
+    existsSync(join(vendorRoot, "draconic-todo", "src", "index.ts")),
+    true,
+  );
+  assert.equal(
+    existsSync(join(vendorRoot, "draconic-coms", "src", "index.ts")),
+    true,
+  );
+  assert.equal(
+    existsSync(join(vendorRoot, "draconic-boot", "src", "index.ts")),
+    true,
+  );
   assert.equal(existsSync(join(vendorRoot, "lib")), false);
   assert.equal(existsSync(join(dest, ".opencode")), false);
+});
+
+test("install --profile pi --harness opencode writes .opencode/skills and skips vendor", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-pi-opencode-"));
+  const r = runCli([
+    "install",
+    dest,
+    "--profile",
+    "pi",
+    "--harness",
+    "opencode",
+  ]);
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.match(r.stdout, /Profile: pi/);
+  assert.match(r.stdout, /Harness: opencode/);
+
+  assert.equal(existsSync(join(dest, ".opencode", "skills")), true);
+  assert.equal(
+    existsSync(join(dest, ".opencode", "skills", "draconic-mode", "SKILL.md")),
+    true,
+  );
+  assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
+});
+
+test("install --profile pi --harness pi writes the three vendor packages", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-pi-harness-"));
+  const r = runCli(["install", dest, "--profile", "pi", "--harness", "pi"]);
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.match(r.stdout, /Profile: pi/);
+  assert.match(r.stdout, /Harness: pi/);
+
+  const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
+  assert.equal(
+    existsSync(join(vendorRoot, "draconic-todo", "src", "index.ts")),
+    true,
+  );
+  assert.equal(
+    existsSync(join(vendorRoot, "draconic-coms", "src", "index.ts")),
+    true,
+  );
+  assert.equal(
+    existsSync(join(vendorRoot, "draconic-boot", "src", "index.ts")),
+    true,
+  );
 });
 
 test("install --profile core writes .opencode/skills and does not wire this checkout", () => {
