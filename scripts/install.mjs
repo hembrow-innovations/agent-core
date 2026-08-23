@@ -59,7 +59,7 @@ Profiles (profiles/*.yaml):
    godot        draconic + godot-mono
    full         everything
     life-engine  draconic + life-engine library skills and product principles
-    pi           Pi extensions plus the draconic skill list
+    pi           Pi dest plus the draconic skill list
 
 Playbooks are selected in the YAML and overlaid into {mode}-mode.
 
@@ -338,8 +338,11 @@ async function main() {
     if (plan.commands) installCommands(srcRoot, opts.target);
     if (plan.templates) installTemplates(srcRoot, opts.target);
     if (plan.runtime === "pi") {
-      installPiRuntime(srcRoot, opts.target);
-      console.log("  pi runtime → .pi/extensions");
+      installPiRuntime(srcRoot, opts.target, {
+        skills: plan.skills,
+        playbooks: plan.playbookIds,
+      });
+      console.log("  pi runtime → .pi");
     }
 
     console.log("Done.");

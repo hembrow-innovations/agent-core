@@ -1,21 +1,28 @@
 ---
 name: setup-draconic
-description: Configure which models draconic uses per role. Detects available models and writes .opencode/rules/draconic-models.md. Use for /setup-draconic or changing draconic model choices.
+description: Configure which models draconic uses per role. Detects available models and writes .pi/draconic-models.md or .opencode/rules/draconic-models.md. Use for /setup-draconic or changing draconic model choices.
 ---
 
 # Setup draconic
 
-Write `.opencode/rules/draconic-models.md` so spawn roles can pick models. Skills fall back to inherit-parent when a line is absent.
+Write the model map next to the dest this session uses. Skills fall back to inherit-parent when a line is absent.
+
+Dest:
+
+- If `.pi/skills` exists, write `.pi/draconic-models.md`.
+- If `.opencode` exists, write `.opencode/rules/draconic-models.md`.
+- If both exist, write both.
+- If neither exists, write `.pi/draconic-models.md` when `.pi` exists, otherwise `.opencode/rules/draconic-models.md`.
 
 ## Steps
 
 ### 1. Detect available models
 
-List models the user can actually run in this OpenCode session. Never write a slug you have not confirmed. `inherit-parent` and `auto` are always valid and mean the child runs on the parent chat model.
+List models the user can actually run in this session. Never write a slug you have not confirmed. `inherit-parent` and `auto` are always valid and mean the child runs on the parent chat model.
 
 ### 2. Load current state
 
-If `.opencode/rules/draconic-models.md` exists, read it. Otherwise start from the defaults in step 5.
+Read each dest file that already exists. Otherwise start from the defaults in step 5.
 
 ### 3. Map and confirm
 
@@ -29,7 +36,7 @@ Every real slug must be in the detected set. `inherit-parent` and `auto` always 
 
 ### 5. Write the rule
 
-Overwrite `.opencode/rules/draconic-models.md` so re-runs stay idempotent:
+Overwrite every dest file from the Dest list so re-runs stay idempotent:
 
 ```
 ---

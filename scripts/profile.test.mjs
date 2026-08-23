@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import {
   findSkillDir,
   installModePlaybooks,
+  installPiRuntime,
   listProfiles,
   loadProfile,
   parseProfileYaml,
@@ -320,6 +321,44 @@ test("repo pi profile resolves every skill from skills/", () => {
   assert.equal(existsSync(join(REPO, "pi", "skills")), false);
   assert.equal(existsSync(join(REPO, "pi", "install.mjs")), false);
   assert.equal(existsSync(join(REPO, "pi", "extensions", "draconic-spawn.ts")), true);
+  assert.equal(existsSync(join(REPO, "pi", "APPEND_SYSTEM.md")), true);
+  assert.equal(existsSync(join(REPO, "pi", "draconic-models.md")), true);
+  assert.equal(existsSync(join(REPO, "pi", "prompts", "draconic-mode.md")), true);
+});
+
+test("installPiRuntime writes boot, models, and profile-filtered prompts", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "pi", "extensions"), { recursive: true });
+  mkdirSync(join(root, "pi", "prompts"), { recursive: true });
+  writeFileSync(join(root, "pi", "extensions", "boot.ts"), "export default function () {}\n");
+  writeFileSync(join(root, "pi", "APPEND_SYSTEM.md"), "boot\n");
+  writeFileSync(join(root, "pi", "draconic-models.md"), "models\n");
+  writeFileSync(join(root, "pi", "prompts", "how.md"), "how\n");
+  writeFileSync(join(root, "pi", "prompts", "why.md"), "why\n");
+  writeFileSync(join(root, "pi", "prompts", "orchestrate.md"), "orch\n");
+
+  const dest = mkdtempSync(join(tmpdir(), "pi-rt-"));
+  installPiRuntime(root, dest, { skills: ["how"], playbooks: ["orchestrate"] });
+  assert.equal(readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"), "boot\n");
+  assert.equal(readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"), "models\n");
+  assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "prompts", "orchestrate.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "prompts", "why.md")), false);
+
+  writeFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "custom\n");
+  writeFileSync(join(dest, ".pi", "draconic-models.md"), "picked\n");
+  writeFileSync(join(dest, ".pi", "prompts", "why.md"), "stale\n");
+  installPiRuntime(root, dest, { skills: ["how"], playbooks: ["orchestrate"] });
+  assert.equal(readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"), "custom\n");
+  assert.equal(readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"), "picked\n");
+  assert.equal(existsSync(join(dest, ".pi", "prompts", "why.md")), false);
+});
+
+test("installPiRuntime dies when the pack is incomplete", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "pi", "extensions"), { recursive: true });
+  const dest = mkdtempSync(join(tmpdir(), "pi-rt-missing-"));
+  assert.throws(() => installPiRuntime(root, dest), /Pi pack missing: expected pi\/APPEND_SYSTEM.md/);
 });
 
 test("findSkillDir reads skills/ only", () => {
@@ -342,12 +381,30 @@ test("install --profile pi writes .pi only", () => {
   assert.match(piSkill, /Pi runtime adapter/);
   assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-spawn.ts")), true);
   assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-boot.ts")), true);
-  assert.equal(existsSync(join(dest, ".pi", "prompts")), false);
-  assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), false);
+  const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
+  assert.match(append, /draconic-mode on Pi/);
+  assert.match(readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"), /feature, refactoring:/);
+  assert.match(readFileSync(join(dest, ".pi", "prompts", "draconic-mode.md"), "utf8"), /\.pi\/skills\/draconic-mode/);
+  assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "prompts", "orchestrate.md")), true);
+  assert.equal(existsSync(join(dest, "AGENTS.md")), false);
   assert.equal(existsSync(join(dest, ".opencode")), false);
   assert.equal(existsSync(join(dest, ".claude")), false);
   assert.equal(existsSync(join(dest, ".agents")), false);
   assert.equal(existsSync(join(dest, ".draconic")), false);
+});
+
+test("install --profile pi --without how omits the how prompt", () => {
+  const dest = mkdtempSync(join(tmpdir(), "install-pi-without-"));
+  const r = spawnSync(
+    process.execPath,
+    [join(REPO, "scripts", "install.mjs"), dest, "--local", REPO, "--profile", "pi", "--without", "how"],
+    { encoding: "utf8" },
+  );
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "how", "SKILL.md")), false);
+  assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), false);
+  assert.equal(existsSync(join(dest, ".pi", "prompts", "draconic-mode.md")), true);
 });
 
 test("install --profile core writes .opencode/skills only", () => {

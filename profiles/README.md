@@ -28,7 +28,14 @@ Install writes only that dest. `--harness <id>` overrides the profile value.
 
 `runtime` `opencode` copies agents, commands, and templates when those profile flags are true and the matching `--no-*` flag is off.
 
-`runtime` `pi` copies `pi/extensions/*.{ts,js}` into `.pi/extensions/` and writes `.pi/.gitignore` if that file is missing.
+`runtime` `pi` copies the Pi pack into `.pi/`:
+
+- `pi/extensions/*.{ts,js}` to `.pi/extensions/`
+- `pi/prompts/*.md` whose stem is in the installed skill list or playbook list
+- `pi/APPEND_SYSTEM.md` and `pi/draconic-models.md` if those dest files are missing
+- `.pi/.gitignore` if that file is missing
+
+A missing `pi/APPEND_SYSTEM.md`, `pi/draconic-models.md`, `pi/prompts/`, or `pi/extensions/` is an error.
 
 A leftover `pi:` key is an error. The message says `use harness: pi`. Missing, empty, or unknown `harness` is an error and names the known ids. Unknown YAML keys are an error. `agents`, `commands`, or `templates` set true on a non-opencode harness is an error.
 
