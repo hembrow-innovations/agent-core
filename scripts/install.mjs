@@ -25,7 +25,6 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const REPO = "hembrow-innovations/agent-core";
 const DEFAULT_REF = "main";
 
-const SKILL_DESTS = [".opencode/skills", ".claude/skills"];
 const AGENT_DEST = join(".opencode", "agent");
 const COMMAND_DEST = join(".opencode", "command");
 
@@ -48,8 +47,7 @@ Options:
    --no-agents              Skip OpenCode agents
   --no-commands            Skip OpenCode commands
   --no-templates           Skip opencode.json / WORKFLOW / rules templates
-  --pi                     Also install the Pi pack from pi/
-  --no-pi                  Skip the Pi pack
+  --harness <id>           Override profile harness (opencode | claude | pi | agents)
   -h, --help               Show help
 
 Profiles (profiles/*.yaml):
@@ -87,8 +85,7 @@ function parseArgs(argv) {
     noAgents: false,
     noCommands: false,
     noTemplates: false,
-    forcePi: false,
-    noPi: false,
+    harness: null,
   };
   const args = [...argv];
   while (args.length) {
@@ -105,8 +102,7 @@ function parseArgs(argv) {
     else if (a === "--no-agents") out.noAgents = true;
     else if (a === "--no-commands") out.noCommands = true;
     else if (a === "--no-templates") out.noTemplates = true;
-    else if (a === "--pi") out.forcePi = true;
-    else if (a === "--no-pi") out.noPi = true;
+    else if (a === "--harness") out.harness = need(args, a);
     else if (a.startsWith("-")) die(`Unknown flag: ${a}`);
     else out.target = resolve(a);
   }
@@ -159,10 +155,10 @@ async function fetchRemoteRoot(ref) {
   return { root: join(extract, entries[0]), cleanup: dir };
 }
 
-function copySkill(srcRoot, name, target, findSkillDir) {
+function copySkill(srcRoot, name, target, findSkillDir, destBases) {
   const src = findSkillDir(srcRoot, name);
   if (!src) die(`Skill not found in source: ${name}`);
-  for (const destBase of SKILL_DESTS) {
+  for (const destBase of destBases) {
     const dest = join(target, destBase, name);
     mkdirSync(dirname(dest), { recursive: true });
     rmSync(dest, { recursive: true, force: true });
@@ -244,11 +240,18 @@ async function loadProfileModule(srcRoot) {
   return import(href);
 }
 
-function planFromProfile(profile, opts, available, resolvePlaybookIds) {
+function planFromProfile(profile, opts, available, resolvePlaybookIds, harnesses) {
   const set = new Set(profile.skills);
   if (profile.mode) set.add(`${profile.mode}-mode`);
   for (const s of opts.with) set.add(s);
   for (const s of opts.without) set.delete(s);
+  const harnessId = opts.harness ?? profile.harness;
+  const harness = harnesses[harnessId];
+  if (!harness) {
+    const known = Object.keys(harnesses).join(", ");
+    throw new Error(`Unknown harness "${harnessId}". Choose: ${known}`);
+  }
+  const opencode = harness.runtime === "opencode";
   return {
     skills: [...set].sort(),
     playbookIds: resolvePlaybookIds(profile, opts, available),
@@ -256,11 +259,13 @@ function planFromProfile(profile, opts, available, resolvePlaybookIds) {
       profile.playbooks.kind !== "omit" ||
       opts.playbooks != null ||
       opts.withPlaybooks.length > 0,
-    agents: profile.agents && !opts.noAgents,
-    commands: profile.commands && !opts.noCommands,
-    templates: profile.templates && !opts.noTemplates,
-    pi: (opts.forcePi || profile.pi) && !opts.noPi,
+    agents: opencode && profile.agents && !opts.noAgents,
+    commands: opencode && profile.commands && !opts.noCommands,
+    templates: opencode && profile.templates && !opts.noTemplates,
+    skillDests: [...harness.skillDests],
+    runtime: harness.runtime,
     mode: profile.mode,
+    harness: harnessId,
   };
 }
 
@@ -293,11 +298,12 @@ async function main() {
 
   try {
     const {
+      HARNESSES,
       loadProfile,
       listPlaybookIds,
       resolvePlaybookIds,
       installModePlaybooks,
-      installPiSurface,
+      installPiRuntime,
       findSkillDir,
     } = await loadProfileModule(srcRoot);
 
@@ -308,34 +314,39 @@ async function main() {
       die(err.message);
     }
 
-    const plan = planFromProfile(profile, opts, listPlaybookIds(srcRoot), resolvePlaybookIds);
+    let plan;
+    try {
+      plan = planFromProfile(profile, opts, listPlaybookIds(srcRoot), resolvePlaybookIds, HARNESSES);
+    } catch (err) {
+      die(err.message);
+    }
     if (!existsSync(opts.target)) die(`Target does not exist: ${opts.target}`);
     console.log(`Installing into ${opts.target}`);
     console.log(`Profile: ${opts.profile}`);
+    console.log(`Harness: ${plan.harness}`);
     console.log(`Skills (${plan.skills.length}): ${plan.skills.join(", ")}`);
 
-    for (const name of plan.skills) copySkill(srcRoot, name, opts.target, findSkillDir);
+    for (const name of plan.skills) {
+      copySkill(srcRoot, name, opts.target, findSkillDir, plan.skillDests);
+    }
     if (plan.overlayPlaybooks) {
       if (!plan.mode) die("Playbook overlay requires profile.mode");
-      installModePlaybooks(srcRoot, opts.target, plan.mode, plan.playbookIds);
+      installModePlaybooks(srcRoot, opts.target, plan.mode, plan.playbookIds, plan.skillDests);
       console.log(`  playbooks (${plan.playbookIds.length}) → ${plan.mode}-mode/playbooks`);
     }
     if (plan.agents) installAgents(srcRoot, opts.target);
     if (plan.commands) installCommands(srcRoot, opts.target);
     if (plan.templates) installTemplates(srcRoot, opts.target);
-    if (plan.pi) {
-      installPiSurface(srcRoot, opts.target, plan);
-      console.log(`  pi (${plan.skills.length} skills + extensions) → .pi/`);
+    if (plan.runtime === "pi") {
+      installPiRuntime(srcRoot, opts.target);
+      console.log("  pi runtime → .pi/extensions");
     }
 
     console.log("Done.");
-    if (plan.mode === "draconic" && !plan.pi) {
+    if (plan.runtime === "opencode" && plan.mode === "draconic") {
       console.log("Next: open the project in OpenCode, run /setup-draconic, optionally /create-verification-skill.");
-    } else if (plan.pi) {
+    } else if (plan.runtime === "pi") {
       console.log("Next: run `pi` in the project, trust the folder, then /draconic-mode.");
-      if (plan.agents || plan.commands || plan.templates) {
-        console.log("OpenCode files also landed. Run /setup-draconic there if you use it.");
-      }
     }
   } finally {
     if (cleanup) rmSync(cleanup, { recursive: true, force: true });

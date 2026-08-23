@@ -14,20 +14,43 @@ import { basename, dirname, join } from "node:path";
 
 /** @typedef {{ kind: 'all' } | { kind: 'list', ids: string[] } | { kind: 'omit' }} PlaybookSelection */
 
+/** @typedef {'opencode' | 'claude' | 'pi' | 'agents'} HarnessId */
+
+/** @typedef {{
+ *   skillDests: string[],
+ *   runtime: 'opencode' | 'pi' | null,
+ * }} Harness
+ */
+
 /** @typedef {{
  *   name: string,
  *   mode: string | null,
  *   skills: string[],
  *   playbooks: PlaybookSelection,
+ *   harness: HarnessId,
  *   agents: boolean,
  *   commands: boolean,
  *   templates: boolean,
- *   pi: boolean,
  * }} Profile
  */
 
-export const OPENCODE_SKILL_DESTS = [".opencode/skills", ".claude/skills"];
-export const PI_SKILL_DESTS = [".pi/skills", ".agents/skills"];
+/** @type {Record<HarnessId, Harness>} */
+export const HARNESSES = {
+  opencode: { skillDests: [".opencode/skills"], runtime: "opencode" },
+  claude: { skillDests: [".claude/skills"], runtime: null },
+  pi: { skillDests: [".pi/skills"], runtime: "pi" },
+  agents: { skillDests: [".agents/skills"], runtime: null },
+};
+
+const PROFILE_KEYS = new Set([
+  "mode",
+  "skills",
+  "playbooks",
+  "agents",
+  "commands",
+  "templates",
+  "harness",
+]);
 
 const START = "<!-- playbooks:start -->";
 const END = "<!-- playbooks:end -->";
@@ -84,15 +107,32 @@ export function loadProfile(srcRoot, name) {
     throw new Error(`Unknown profile "${name}". Choose: ${listed}`);
   }
   const raw = parseProfileYaml(readFileSync(file, "utf8"));
+  if (Object.hasOwn(raw, "pi")) {
+    throw new Error(`Profile "${name}" has leftover "pi:". use harness: pi`);
+  }
+  for (const key of Object.keys(raw)) {
+    if (!PROFILE_KEYS.has(key)) {
+      throw new Error(`Unknown profile key "${key}"`);
+    }
+  }
+  const harness = parseHarness(raw.harness);
+  const agents = asBool(raw.agents, "agents");
+  const commands = asBool(raw.commands, "commands");
+  const templates = asBool(raw.templates, "templates");
+  if (harness !== "opencode") {
+    if (agents) throw new Error(`"agents" is only valid on harness: opencode`);
+    if (commands) throw new Error(`"commands" is only valid on harness: opencode`);
+    if (templates) throw new Error(`"templates" is only valid on harness: opencode`);
+  }
   return {
     name,
     mode: raw.mode == null || raw.mode === "" ? null : String(raw.mode),
     skills: asStringList(raw.skills, "skills"),
     playbooks: toPlaybooks(raw.playbooks),
-    agents: asBool(raw.agents, "agents"),
-    commands: asBool(raw.commands, "commands"),
-    templates: asBool(raw.templates, "templates"),
-    pi: asBool(raw.pi, "pi"),
+    harness,
+    agents,
+    commands,
+    templates,
   };
 }
 
@@ -210,7 +250,10 @@ export function findSkillDir(srcRoot, name) {
   return candidates[0];
 }
 
-export function installModePlaybooks(srcRoot, target, mode, ids, destBases = OPENCODE_SKILL_DESTS) {
+export function installModePlaybooks(srcRoot, target, mode, ids, destBases) {
+  if (!Array.isArray(destBases) || destBases.length === 0) {
+    throw new Error("installModePlaybooks requires a nonempty dest list");
+  }
   const metas = ids.map((id) => readPlaybookMeta(srcRoot, id));
   for (const destBase of destBases) {
     const skillDir = join(target, destBase, `${mode}-mode`);
@@ -231,33 +274,12 @@ export function installModePlaybooks(srcRoot, target, mode, ids, destBases = OPE
   }
 }
 
-export function installPiSurface(srcRoot, target, plan) {
-  const piRoot = join(srcRoot, "pi");
-  if (!existsSync(join(piRoot, "extensions"))) {
+export function installPiRuntime(srcRoot, target) {
+  const extensionsSrc = join(srcRoot, "pi", "extensions");
+  if (!existsSync(extensionsSrc)) {
     throw new Error("Pi pack missing: expected pi/extensions");
   }
 
-  for (const name of plan.skills) {
-    const src = findSkillDir(srcRoot, name);
-    if (!src) throw new Error(`Skill not found in source: ${name}`);
-    for (const destBase of PI_SKILL_DESTS) {
-      const dest = join(target, destBase, name);
-      mkdirSync(dirname(dest), { recursive: true });
-      rmSync(dest, { recursive: true, force: true });
-      cpSync(src, dest, { recursive: true });
-    }
-  }
-
-  copyPiRuntime(piRoot, target);
-
-  if (plan.overlayPlaybooks) {
-    if (!plan.mode) throw new Error("Playbook overlay requires profile.mode");
-    installModePlaybooks(srcRoot, target, plan.mode, plan.playbookIds, PI_SKILL_DESTS);
-  }
-}
-
-function copyPiRuntime(piRoot, target) {
-  const extensionsSrc = join(piRoot, "extensions");
   const dest = join(target, ".pi", "extensions");
   mkdirSync(dest, { recursive: true });
   for (const ent of readdirSync(extensionsSrc, { withFileTypes: true })) {
@@ -265,7 +287,6 @@ function copyPiRuntime(piRoot, target) {
     cpSync(join(extensionsSrc, ent.name), join(dest, ent.name));
   }
 
-  writeIfMissing(join(target, ".draconic", ".gitignore"), "worktrees/\nsessions/\n");
   writeIfMissing(join(target, ".pi", ".gitignore"), "npm/\ngit/\n");
 }
 
@@ -283,6 +304,18 @@ function walkSkillDirs(root, visit) {
     if (existsSync(join(full, "SKILL.md"))) visit(full);
     else walkSkillDirs(full, visit);
   }
+}
+
+function parseHarness(value) {
+  const known = Object.keys(HARNESSES).join(", ");
+  if (value == null || value === "") {
+    throw new Error(`Missing harness. Choose: ${known}`);
+  }
+  const id = String(value);
+  if (!Object.hasOwn(HARNESSES, id)) {
+    throw new Error(`Unknown harness "${id}". Choose: ${known}`);
+  }
+  return id;
 }
 
 function toPlaybooks(value) {

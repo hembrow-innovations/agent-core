@@ -66,7 +66,13 @@ function resolveSkill(name) {
 
 const piRoot = join(root, "pi");
 if (existsSync(piRoot)) {
-  const extra = readdirSync(piRoot).filter((n) => !n.startsWith(".") && n !== "extensions");
+  const listed = spawnSync("git", ["-C", root, "ls-files", "pi"], { encoding: "utf8" });
+  const tracked = listed.status === 0
+    ? listed.stdout.split("\n").filter(Boolean)
+    : readdirSync(piRoot).filter((n) => !n.startsWith(".")).map((n) => join("pi", n));
+  const extra = [...new Set(tracked.map((p) => p.split("/")[1]).filter(Boolean))].filter(
+    (n) => n !== "extensions",
+  );
   if (extra.length) errors.push(`pi/ should only contain extensions/, found ${extra.join(", ")}`);
 }
 
@@ -107,23 +113,11 @@ try {
     console.error("installed draconic-mode is missing the OpenCode adapter");
     process.exit(1);
   }
-  const piMode = join(dest, ".pi", "skills", "draconic-mode", "SKILL.md");
-  if (!existsSync(piMode)) {
-    console.error("draconic install did not copy the Pi pack");
-    process.exit(1);
-  }
-  const piBody = readFileSync(piMode, "utf8");
-  if (!piBody.includes("Pi runtime adapter")) {
-    console.error("installed .pi/draconic-mode is missing the Pi adapter");
-    process.exit(1);
-  }
-  if (!existsSync(join(dest, ".pi", "extensions", "draconic-spawn.ts"))) {
-    console.error("draconic install did not copy Pi extensions");
-    process.exit(1);
-  }
-  if (existsSync(join(dest, ".pi", "prompts")) || existsSync(join(dest, ".pi", "APPEND_SYSTEM.md"))) {
-    console.error("pi install wrote removed runtime files");
-    process.exit(1);
+  for (const extra of [".pi", ".claude", ".agents"]) {
+    if (existsSync(join(dest, extra))) {
+      console.error(`draconic install wrote ${extra}`);
+      process.exit(1);
+    }
   }
   console.log("check-no-pstack: ok");
 } finally {

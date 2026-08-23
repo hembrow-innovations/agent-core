@@ -5,3 +5,5 @@
 .draconic/TODO.md
 .draconic/decisions.tsv
 .draconic/
+playground/
+node_modules/

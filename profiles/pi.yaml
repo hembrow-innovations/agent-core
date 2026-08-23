@@ -1,6 +1,6 @@
+harness: pi
 mode: draconic
 playbooks: all
-pi: true
 skills:
   - architect
   - arena

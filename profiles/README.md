@@ -1,40 +1,49 @@
 # Profiles
 
-Each `*.yaml` file in this folder is an install profile. `scripts/install.mjs --profile NAME` loads `profiles/NAME.yaml`.
+`scripts/install.mjs --profile NAME` loads `profiles/NAME.yaml`.
 
 ## Schema
 
 ```yaml
+harness: opencode     # required. One of opencode, claude, pi, agents
 mode: draconic        # optional. If set, install adds {mode}-mode to the skill list
 skills:               # skill folder names to copy. Default: []
   - architect
 playbooks: all        # omit the key, `all`, or a list of playbook ids
-agents: true          # copy agents/. Default: false
-commands: true        # copy commands/. Default: false
-templates: true       # copy templates/opencode. Default: false
-pi: true              # copy the Pi pack from pi/. Default: false
+agents: true          # copy agents/. Default: false. Valid only when harness is opencode
+commands: true        # copy commands/. Default: false. Valid only when harness is opencode
+templates: true       # copy templates/opencode. Default: false. Valid only when harness is opencode
 ```
+
+`harness` selects the dest tree from `HARNESSES` in `scripts/profile.mjs`.
+
+| id | skill dest | runtime |
+|----|------------|---------|
+| opencode | `.opencode/skills` | opencode |
+| claude | `.claude/skills` | unset |
+| pi | `.pi/skills` | pi |
+| agents | `.agents/skills` | unset |
+
+Install writes only that dest. `--harness <id>` overrides the profile value.
+
+`runtime` `opencode` copies agents, commands, and templates when those profile flags are true and the matching `--no-*` flag is off.
+
+`runtime` `pi` copies `pi/extensions/*.{ts,js}` into `.pi/extensions/` and writes `.pi/.gitignore` if that file is missing.
+
+A leftover `pi:` key is an error. The message says `use harness: pi`. Missing, empty, or unknown `harness` is an error and names the known ids. Unknown YAML keys are an error. `agents`, `commands`, or `templates` set true on a non-opencode harness is an error.
 
 Boolean keys default to false. `mode` defaults to unset. `skills` defaults to an empty list.
 
-`pi: true` copies the profile skill list from `skills/` into `.pi/skills/` and `.agents/skills/`, then copies `pi/extensions/` into `.pi/extensions/`. `--pi` and `--no-pi` override the profile.
-
-`pi/` is Pi extensions only. Skills live under `skills/`. The `pi` profile is the flag plus the draconic skill list. Draconic-family profiles (`draconic`, `godot`, `full`, `life-engine`) include it.
-
 ## Playbooks
 
-`playbooks/` is the library. A profile selects which files install copies into `{mode}-mode/playbooks/` and which bullets appear in that skill's matching list.
+`playbooks/` is the library. Install copies the selected files into `{mode}-mode/playbooks/` and rewrites that skill's matching list.
 
 | Value | Install |
 |-------|---------|
-| key omitted | Leave the mode skill's bundled playbooks alone |
-| `all` | Copy every `playbooks/*.md` except README |
-| list of ids | Copy those files, including an empty list |
+| key omitted | The mode skill's bundled playbooks stay as copied from source |
+| `all` | Every `playbooks/*.md` except README |
+| list of ids | Those files, including an empty list |
 
 `--playbooks a,b` replaces the profile selection. `--with-playbooks` and `--without-playbooks` add or remove ids after that.
 
-## Add a playbook
-
-1. Write `playbooks/<id>.md` with `title` and `when` frontmatter.
-2. List `<id>` in the profiles that should ship it, or use `playbooks: all`.
-3. Do not edit copies inside a mode skill. Install overwrites those from the library.
+Playbook files live at `playbooks/<id>.md` with `title` and `when` frontmatter. A profile names the ids it ships, or sets `playbooks: all`. Install overwrites copies inside a mode skill from the library.

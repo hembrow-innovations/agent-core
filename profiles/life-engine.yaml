@@ -1,9 +1,9 @@
+harness: opencode
 mode: draconic
 playbooks: all
 agents: true
 commands: true
 templates: true
-pi: true
 skills:
   - architect
   - arena
