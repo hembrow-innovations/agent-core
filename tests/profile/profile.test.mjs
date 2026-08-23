@@ -22,6 +22,7 @@ import {
 } from "../../scripts/profile.mjs";
 
 const REPO = fileURLToPath(new URL("../..", import.meta.url));
+const INSTALLER = join(REPO, "packages", "installer", "src", "cli.ts");
 const CORE_WITHOUT =
   "domain-modeling,wayfinder,tdd,handoff,improve-codebase-architecture,codebase-design,setup-matt-pocock-skills,research,prototype,planning,planning-with-docs,management,docs,unslop";
 
@@ -505,7 +506,7 @@ test("install --profile pi writes .pi only", () => {
   const dest = mkdtempSync(join(tmpdir(), "install-pi-"));
   const r = spawnSync(
     process.execPath,
-    [join(REPO, "scripts", "install.mjs"), dest, "--local", REPO, "--profile", "pi"],
+    [INSTALLER, "install", dest, "--profile", "pi"],
     { encoding: "utf8" },
   );
   assert.equal(r.status, 0, r.stderr || r.stdout);
@@ -537,7 +538,7 @@ test("install --profile agentic-core writes .pi only", () => {
   const dest = mkdtempSync(join(tmpdir(), "install-agentic-core-"));
   const r = spawnSync(
     process.execPath,
-    [join(REPO, "scripts", "install.mjs"), dest, "--local", REPO, "--profile", "agentic-core"],
+    [INSTALLER, "install", dest, "--profile", "agentic-core"],
     { encoding: "utf8" },
   );
   assert.equal(r.status, 0, r.stderr || r.stdout);
@@ -559,7 +560,7 @@ test("install --profile life-engine-pi writes .pi only", () => {
   const dest = mkdtempSync(join(tmpdir(), "install-life-engine-pi-"));
   const r = spawnSync(
     process.execPath,
-    [join(REPO, "scripts", "install.mjs"), dest, "--local", REPO, "--profile", "life-engine-pi"],
+    [INSTALLER, "install", dest, "--profile", "life-engine-pi"],
     { encoding: "utf8" },
   );
   assert.equal(r.status, 0, r.stderr || r.stdout);
@@ -577,7 +578,7 @@ test("install --profile pi --without how omits the how prompt", () => {
   const dest = mkdtempSync(join(tmpdir(), "install-pi-without-"));
   const r = spawnSync(
     process.execPath,
-    [join(REPO, "scripts", "install.mjs"), dest, "--local", REPO, "--profile", "pi", "--without", "how"],
+    [INSTALLER, "install", dest, "--profile", "pi", "--without", "how"],
     { encoding: "utf8" },
   );
   assert.equal(r.status, 0, r.stderr || r.stdout);
@@ -591,10 +592,9 @@ test("install --profile core writes .opencode/skills only", () => {
   const r = spawnSync(
     process.execPath,
     [
-      join(REPO, "scripts", "install.mjs"),
+      INSTALLER,
+      "install",
       dest,
-      "--local",
-      REPO,
       "--profile",
       "core",
       "--without",
@@ -613,10 +613,9 @@ test("install --harness claude on core writes .claude/skills only", () => {
   const r = spawnSync(
     process.execPath,
     [
-      join(REPO, "scripts", "install.mjs"),
+      INSTALLER,
+      "install",
       dest,
-      "--local",
-      REPO,
       "--profile",
       "core",
       "--harness",
@@ -638,7 +637,7 @@ test("install --harness unknown dies", () => {
   const dest = mkdtempSync(join(tmpdir(), "install-bad-harness-"));
   const r = spawnSync(
     process.execPath,
-    [join(REPO, "scripts", "install.mjs"), dest, "--local", REPO, "--profile", "core", "--harness", "nope"],
+    [INSTALLER, "install", dest, "--profile", "core", "--harness", "nope"],
     { encoding: "utf8" },
   );
   assert.notEqual(r.status, 0);
@@ -650,10 +649,9 @@ test("install uses profiles yaml only and does not write preference stubs", () =
   const r = spawnSync(
     process.execPath,
     [
-      join(REPO, "scripts", "install.mjs"),
+      INSTALLER,
+      "install",
       dest,
-      "--local",
-      REPO,
       "--profile",
       "core",
       "--no-templates",

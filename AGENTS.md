@@ -8,7 +8,8 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
 - `playbooks/` is the playbook library.
 - `pi/` is the Pi runtime pack.
 - `profiles/` is the install profiles.
-- `scripts/` is the installer and the checks.
+- `scripts/` is the checks and the profile module.
+- `packages/installer/` is the `agentic-core` CLI.
 - `agents/`, `commands/`, and `templates/` are the OpenCode pack.
 
 ## Dest
@@ -18,7 +19,7 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
 After you change a source skill, reinstall:
 
 ```
-node scripts/install.mjs . --local . --profile agentic-core
+pnpm exec agentic-core install . --profile agentic-core
 ```
 
 When you write or edit a skill, read `skills/engineering/write-a-skill/SKILL.md`.

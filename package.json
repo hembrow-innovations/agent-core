@@ -6,6 +6,9 @@
     "typecheck": "pnpm -r --filter \"./packages/**\" typecheck",
     "test": "bash scripts/run-tests.sh"
   },
+  "dependencies": {
+    "@agentic-core/installer": "workspace:*"
+  },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "0.84.2",
     "@types/node": "24.3.0",

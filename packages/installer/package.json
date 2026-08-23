@@ -1,8 +1,12 @@
 {
   "name": "@agentic-core/installer",
   "private": true,
+  "type": "module",
+  "bin": {
+    "agentic-core": "./src/cli.ts"
+  },
   "scripts": {
-    "test": "node --eval \"process.exit(0)\"",
-    "typecheck": "node --eval \"process.exit(0)\""
+    "test": "node --test src/cli.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   }
 }

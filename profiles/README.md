@@ -1,6 +1,6 @@
 # Profiles
 
-`scripts/install.mjs --profile NAME` loads `profiles/NAME.yaml`.
+`pnpm exec agentic-core install <target> --profile NAME` loads `profiles/NAME.yaml`.
 
 ## Schema
 
@@ -18,7 +18,7 @@ templates: true       # copy templates/opencode. Default: false. Valid only when
 `harness` selects the dest tree from `HARNESSES` in `scripts/profile.mjs`.
 
 | id | skill dest | runtime |
-|----|------------|---------|
+| ---- | ------------ | --------- |
 | opencode | `.opencode/skills` | opencode |
 | claude | `.claude/skills` | unset |
 | pi | `.pi/skills` | pi |
@@ -51,7 +51,7 @@ Boolean keys default to false. `mode` defaults to unset. `skills` defaults to an
 `playbooks/` is the library. Install copies the selected files into `{mode}-mode/playbooks/` and rewrites that skill's matching list.
 
 | Value | Install |
-|-------|---------|
+| ------- | --------- |
 | key omitted | The mode skill's bundled playbooks stay as copied from source |
 | `all` | Every `playbooks/*.md` except README |
 | list of ids | Those files, including an empty list |

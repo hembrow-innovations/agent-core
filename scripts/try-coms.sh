@@ -21,7 +21,7 @@ Raw two-terminal smoke without role files:
 
 Recorded living-session scenario (install playground first):
 
-  node scripts/install.mjs playground --profile pi --local .
+  pnpm exec agentic-core install playground --profile pi
   node scripts/run-pi-coms-larder.mjs --smoke
   node scripts/run-pi-coms-larder.mjs
 EOF

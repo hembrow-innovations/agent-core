@@ -96,7 +96,7 @@ const dest = mkdtempSync(join(tmpdir(), "check-no-pstack-"));
 try {
   const r = spawnSync(
     process.execPath,
-    [join(root, "scripts", "install.mjs"), dest, "--local", root, "--profile", "draconic", "--no-templates"],
+    [join(root, "packages", "installer", "src", "cli.ts"), "install", dest, "--profile", "draconic", "--no-templates"],
     { encoding: "utf8" },
   );
   if (r.status !== 0) {

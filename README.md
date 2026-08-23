@@ -5,7 +5,7 @@ Skill and profile pack for OpenCode, Claude, Pi, and agents.
 ## Develop this repo with Pi
 
 ```
-node scripts/install.mjs . --local . --profile agentic-core
+pnpm exec agentic-core install . --profile agentic-core
 pi
 ```
 

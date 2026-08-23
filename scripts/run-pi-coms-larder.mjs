@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Live pi-coms scenario. Install playground first:
- *   node scripts/install.mjs playground --profile pi --local .
+ *   pnpm exec agentic-core install playground --profile pi
  * Then:
  *   node scripts/run-pi-coms-larder.mjs --smoke
  *   node scripts/run-pi-coms-larder.mjs
