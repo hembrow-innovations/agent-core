@@ -1,0 +1,3 @@
+interface:
+  display_name: "Management"
+  short_description: "Local .draconic/ project management"

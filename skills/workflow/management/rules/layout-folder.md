@@ -1,0 +1,61 @@
+---
+title: Folder layout and naming
+impact: CRITICAL
+tags: [layout]
+---
+
+# Folder layout and naming
+
+`.draconic/` sits at the project root. Gitignore the whole directory. Add `.draconic/` to `.gitignore` if it is missing.
+
+```text
+.draconic/
+├─ inbox/
+│  └─ issues/
+├─ closed/
+├─ planning/
+│  ├─ plans/
+│  └─ tasks/
+└─ logs/
+   ├─ journal/
+   │  └─ {YYYY}/
+   │     └─ {MM}/
+   └─ reports/
+```
+
+Create a folder when the first file needs it. The tree is optional until then.
+
+Reserved at the root, owned by other skills. Do not relocate them.
+
+| Path | Owner |
+|---|---|
+| `TODO.md` | session checklist |
+| `decisions.tsv` | show-me-your-work |
+| `worktrees/` | isolated child work |
+| `sessions/` | child session transcripts |
+
+## What each folder holds
+
+**inbox/**. Dumping ground for ideas and notes. Filename is `{slug}.md` or `{YYYY-MM-DD}-{slug}.md`.
+
+**inbox/issues/**. Tickets. Filename is `issue-<N>-<slug>.md`.
+
+**planning/plans/**. Planning documents that link to child tasks. Filename is `plan-<N>-<slug>.md`.
+
+**planning/tasks/**. One unit of work. May belong to a plan. Filename is `task-<N>-<slug>.md`.
+
+**closed/**. Terminal notes. Flat. Keep the original filename.
+
+**logs/journal/{YYYY}/{MM}/**. One file per calendar day. Filename is `YYYY-MM-DD.md`. Skip empty days.
+
+**logs/reports/**. Reviews, audits, investigations. Filename is `YYYY-MM-DD-report-<slug>.md`.
+
+## Numbers
+
+`<N>` is the next unused integer for that kind. Scan the live folder and `closed/`. Start at `1`. Do not reuse a number after a close.
+
+`slug` is lowercase kebab-case. Keep it short.
+
+## Moves
+
+`mv` the file. Do not copy. Do not rename on close. Update `updated_at`.
