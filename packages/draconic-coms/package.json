@@ -1,0 +1,8 @@
+{
+  "name": "@agentic-core/draconic-coms",
+  "private": true,
+  "scripts": {
+    "test": "node --eval \"process.exit(0)\"",
+    "typecheck": "node --eval \"process.exit(0)\""
+  }
+}

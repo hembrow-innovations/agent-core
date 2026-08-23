@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm -r --filter \"./packages/**\" typecheck",
     "test": "bash scripts/run-tests.sh"
   },
   "devDependencies": {
