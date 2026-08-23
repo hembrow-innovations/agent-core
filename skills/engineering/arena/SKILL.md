@@ -10,7 +10,7 @@ Fan out N attempts at the same task. Read every candidate end to end. Pick the s
 
 ## Pi runtime
 
-Spawn each candidate with `draconic_spawn` and `worktree: true`. Pass `model` from `arena runners` when those slugs are real. If spawn is missing, sketch 2 to 3 shapes yourself, pick one, and write `skip: no spawn runtime` on the unused arms. Do not invent child transcripts.
+Spawn each candidate with `subagents` and `worktree: true`. Pass `model` from `arena runners` when those slugs are real. If spawn is missing, sketch 2 to 3 shapes yourself, pick one, and write `skip: no spawn runtime` on the unused arms. Do not invent child transcripts.
 
 ## Start
 
@@ -34,7 +34,7 @@ The N candidates will receive the same prompt, so the prompt is the contract. Ge
 
 ## Phase B: Fan out
 
-Spawn all N candidates with `draconic_spawn`, each with the task, the path to the shared grounding, its own output path, and instructions to produce both the artifact and a short rationale.
+Spawn all N candidates with `subagents`, each with the task, the path to the shared grounding, its own output path, and instructions to produce both the artifact and a short rationale.
 
 The rationale is mandatory. Without it, the parent cannot tell whether a candidate's structure is principled or accidental, which makes Phase E grafting unreliable. Each rationale names the alternatives the candidate considered and what it rejected.
 

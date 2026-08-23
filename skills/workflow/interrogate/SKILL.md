@@ -10,7 +10,7 @@ Spawn one reviewer per configured model to adversarially review code changes. Ea
 
 ## Pi runtime
 
-Spawn each reviewer with `draconic_spawn` and `readonly: true`. Pass a distinct `model` per reviewer when `.pi/draconic-models.md` has real slugs. If spawn is missing or every role is `inherit-parent`, do one thorough review in this session and say the diversity signal was unavailable. Do not auto-apply changes.
+Spawn each reviewer with `subagents` and `readonly: true`. Pass a distinct `model` per reviewer when `.pi/draconic-models.md` has real slugs. If spawn is missing or every role is `inherit-parent`, do one thorough review in this session and say the diversity signal was unavailable. Do not auto-apply changes.
 
 The deliverable is a synthesized verdict. Do NOT auto-apply changes.
 
@@ -37,7 +37,7 @@ Write one clear paragraph. Reviewers challenge whether the work achieves the int
 
 ## Step 3, Spawn Reviewers
 
-Launch reviewers with `draconic_spawn`. Use the `interrogate reviewers` list from `.pi/draconic-models.md` when present, one reviewer per entry, extending or shrinking the Reviewer A/B/C/D labels below to the configured entry count; otherwise use the table defaults.
+Launch reviewers with `subagents`. Use the `interrogate reviewers` list from `.pi/draconic-models.md` when present, one reviewer per entry, extending or shrinking the Reviewer A/B/C/D labels below to the configured entry count; otherwise use the table defaults.
 
 | Subagent | Default model |
 |----------|---------------|

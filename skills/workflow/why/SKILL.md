@@ -9,7 +9,7 @@ Investigate the motivation and intent behind code. Why was it built this way? Wh
 
 ## Pi runtime
 
-Pi has no MCP. Use `git`, `gh`, and docs in the repo. Skip Linear, Slack, Datadog, Sentry, and warehouse sources unless the project has a CLI for them, and report those as unavailable. Spawn investigators with `draconic_spawn` only when isolation helps. Otherwise do the sweep yourself.
+Pi has no MCP. Use `git`, `gh`, and docs in the repo. Skip Linear, Slack, Datadog, Sentry, and warehouse sources unless the project has a CLI for them, and report those as unavailable. Spawn investigators with `subagents` only when isolation helps. Otherwise do the sweep yourself.
 
 Companion to the `how` skill. `how` answers what the code does and how it works. `why` answers what forces led to its shape.
 

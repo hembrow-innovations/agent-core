@@ -9,7 +9,7 @@ Explore the codebase to answer "how does X work?" questions. Produce clear archi
 
 ## Pi runtime
 
-Prefer `read`, `grep`, and `find` in this session. Use `draconic_spawn` for bulk explorers or critique reviewers when you need isolation. If spawn is missing, explore and explain yourself. Critique mode without distinct models is a same-session second pass, and you must say so.
+Prefer `read`, `grep`, and `find` in this session. Use `subagents` for bulk explorers or critique reviewers when you need isolation. If spawn is missing, explore and explain yourself. Critique mode without distinct models is a same-session second pass, and you must say so.
 
 Two modes:
 

@@ -177,9 +177,9 @@ This pack also runs on **Pi**. Map leftover OpenCode or Cursor wording as follow
 | Playbook wording | Pi equivalent |
 |---|---|
 | Skill tool / load skill X | `read` the skill's `SKILL.md`, or the user typed `/skill:name` |
-| Task / `subagent_type: "draconic-agent"` | `draconic_spawn` with a standalone prompt |
-| `Comment Sicko` | `draconic_spawn` with `/skill:comment-sicko`, or apply that skill yourself |
-| `generalPurpose` | `draconic_spawn` |
+| Task / `subagent_type: "draconic-agent"` | `subagents` with a standalone prompt |
+| `Comment Sicko` | `subagents` with `/skill:comment-sicko`, or apply that skill yourself |
+| `generalPurpose` | `subagents` |
 | Slash `/foo` | Prompt `/foo` or `/skill:foo` |
 | Sticky primary agent | `.pi/APPEND_SYSTEM.md` keeps draconic on for the session |
 | Todos / todolist | `.draconic/TODO.md` or `draconic_todo` |
