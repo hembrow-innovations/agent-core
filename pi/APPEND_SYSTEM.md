@@ -21,3 +21,5 @@ Pi runtime:
 - Project rules in AGENTS.md win on layout and tooling.
 
 Casual chitchat can be short. Any engineering task re-enters playbook discipline.
+
+Peer tools (`coms_list`, `coms_send`, `coms_get`, `coms_await`) talk to other living Pi sessions on this machine. Do not use them for swarm, arena, or orchestrate. Those stay `draconic_spawn`.

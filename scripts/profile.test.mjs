@@ -353,6 +353,7 @@ test("repo pi profile resolves every skill from skills/", () => {
   assert.equal(existsSync(join(REPO, "pi", "skills")), false);
   assert.equal(existsSync(join(REPO, "pi", "install.mjs")), false);
   assert.equal(existsSync(join(REPO, "pi", "extensions", "draconic-spawn.ts")), true);
+  assert.equal(existsSync(join(REPO, "pi", "extensions", "draconic-coms.ts")), true);
   assert.equal(existsSync(join(REPO, "pi", "APPEND_SYSTEM.md")), true);
   assert.equal(existsSync(join(REPO, "pi", "draconic-models.md")), true);
   assert.equal(existsSync(join(REPO, "pi", "prompts", "draconic-mode.md")), true);
