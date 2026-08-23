@@ -87,7 +87,7 @@ Use the Task tool for playbook delegates, arena arms, swarm workers, interrogate
 - Writing children: `subagent_type: "draconic-agent"`. Pass a standalone prompt with file paths, success criteria, and the prove-it-works bar.
 - Read-only reviews: `subagent_type: "explore"` or `comment-sicko`.
 - Isolate writes in a git worktree under `.draconic/worktrees/` when the child should not touch the main tree.
-- Pass `model` from `.opencode/rules/draconic-models.md` when a role has a real slug. Omit it for inherit-parent.
+- Pass `model` from `.pi/draconic-models.md` or `.opencode/rules/draconic-models.md` when a role has a real slug. Omit it for inherit-parent.
 
 You own every child's work. Read the returned text and the diff. Write your own summary. Do not pass through what it said.
 

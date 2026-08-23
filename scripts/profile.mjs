@@ -274,19 +274,40 @@ export function installModePlaybooks(srcRoot, target, mode, ids, destBases) {
   }
 }
 
-export function installPiRuntime(srcRoot, target) {
-  const extensionsSrc = join(srcRoot, "pi", "extensions");
-  if (!existsSync(extensionsSrc)) {
-    throw new Error("Pi pack missing: expected pi/extensions");
+export function installPiRuntime(srcRoot, target, opts = {}) {
+  const pack = join(srcRoot, "pi");
+  const required = ["extensions", "APPEND_SYSTEM.md", "draconic-models.md", "prompts"];
+  for (const name of required) {
+    if (!existsSync(join(pack, name))) {
+      throw new Error(`Pi pack missing: expected pi/${name}`);
+    }
   }
 
-  const dest = join(target, ".pi", "extensions");
-  mkdirSync(dest, { recursive: true });
-  for (const ent of readdirSync(extensionsSrc, { withFileTypes: true })) {
+  const destExt = join(target, ".pi", "extensions");
+  mkdirSync(destExt, { recursive: true });
+  for (const ent of readdirSync(join(pack, "extensions"), { withFileTypes: true })) {
     if (!ent.isFile() || !(ent.name.endsWith(".ts") || ent.name.endsWith(".js"))) continue;
-    cpSync(join(extensionsSrc, ent.name), join(dest, ent.name));
+    cpSync(join(pack, "extensions", ent.name), join(destExt, ent.name));
   }
 
+  const allow = new Set([...(opts.skills ?? []), ...(opts.playbooks ?? [])]);
+  const destPrompts = join(target, ".pi", "prompts");
+  mkdirSync(destPrompts, { recursive: true });
+  const keep = new Set();
+  for (const ent of readdirSync(join(pack, "prompts"), { withFileTypes: true })) {
+    if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
+    const id = ent.name.slice(0, -3);
+    if (allow.size > 0 && !allow.has(id)) continue;
+    keep.add(ent.name);
+    cpSync(join(pack, "prompts", ent.name), join(destPrompts, ent.name));
+  }
+  for (const ent of readdirSync(destPrompts, { withFileTypes: true })) {
+    if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
+    if (!keep.has(ent.name)) rmSync(join(destPrompts, ent.name));
+  }
+
+  writeIfMissing(join(target, ".pi", "APPEND_SYSTEM.md"), readFileSync(join(pack, "APPEND_SYSTEM.md"), "utf8"));
+  writeIfMissing(join(target, ".pi", "draconic-models.md"), readFileSync(join(pack, "draconic-models.md"), "utf8"));
   writeIfMissing(join(target, ".pi", ".gitignore"), "npm/\ngit/\n");
 }
 

@@ -66,14 +66,13 @@ function resolveSkill(name) {
 
 const piRoot = join(root, "pi");
 if (existsSync(piRoot)) {
-  const listed = spawnSync("git", ["-C", root, "ls-files", "pi"], { encoding: "utf8" });
-  const tracked = listed.status === 0
-    ? listed.stdout.split("\n").filter(Boolean)
-    : readdirSync(piRoot).filter((n) => !n.startsWith(".")).map((n) => join("pi", n));
-  const extra = [...new Set(tracked.map((p) => p.split("/")[1]).filter(Boolean))].filter(
-    (n) => n !== "extensions",
-  );
-  if (extra.length) errors.push(`pi/ should only contain extensions/, found ${extra.join(", ")}`);
+  const names = new Set(readdirSync(piRoot).filter((n) => !n.startsWith(".")));
+  const allowed = new Set(["extensions", "APPEND_SYSTEM.md", "draconic-models.md", "prompts"]);
+  for (const need of allowed) {
+    if (!names.has(need)) errors.push(`pi/ missing ${need}`);
+  }
+  const extra = [...names].filter((n) => !allowed.has(n)).sort();
+  if (extra.length) errors.push(`pi/ unexpected ${extra.join(", ")}`);
 }
 
 for (const name of listProfiles(root)) {
