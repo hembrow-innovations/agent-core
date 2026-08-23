@@ -1,8 +1,12 @@
 {
   "name": "@agentic-core/lib",
   "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
-    "test": "node --eval \"process.exit(0)\"",
-    "typecheck": "node --eval \"process.exit(0)\""
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   }
 }

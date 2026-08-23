@@ -12,7 +12,7 @@ import {
 	type SessionId,
 	sessionTodoPath,
 	writeSessionChecklist,
-} from "../lib/draconic-todo-store.ts";
+} from "@agentic-core/lib";
 
 function toolPath(input: unknown): string | undefined {
 	if (!input || typeof input !== "object" || !("path" in input)) {
@@ -98,10 +98,7 @@ export default function (pi: ExtensionAPI) {
 						items.length === 0
 							? "No session checklists."
 							: items
-									.map(
-										(item) =>
-											`- **${item.sessionId}**: ${item.path} (${item.title})`,
-									)
+									.map((item) => `- **${item.sessionId}**: ${item.path} (${item.title})`)
 									.join("\n");
 					return {
 						content: [{ type: "text" as const, text }],
