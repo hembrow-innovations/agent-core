@@ -9,7 +9,12 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { createConnection, createServer, type Server, type Socket } from "node:net";
+import {
+  createConnection,
+  createServer,
+  type Server,
+  type Socket,
+} from "node:net";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -109,11 +114,19 @@ export type BoundPeer = {
   project: string;
   registryPath: string;
   list: () => Promise<ListedPeer[]>;
-  send: (args: { target: string; prompt: string; hops?: number }) => Promise<{ msg_id: string }>;
+  send: (args: {
+    target: string;
+    prompt: string;
+    hops?: number;
+  }) => Promise<{ msg_id: string }>;
   get: (msgId: string) => GetResult;
   awaitReply: (msgId: string, timeoutMs?: number) => Promise<string>;
   lastUnfulfilledInbound: () => PromptEnvelope | undefined;
-  fulfillInbound: (args: { msgId: string; response: string; error?: string }) => Promise<void>;
+  fulfillInbound: (args: {
+    msgId: string;
+    response: string;
+    error?: string;
+  }) => Promise<void>;
   shutdown: () => Promise<void>;
 };
 
@@ -137,7 +150,9 @@ function asString(value: unknown): string | undefined {
 }
 
 function asNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
 }
 
 export function defaultComsDir(): string {
@@ -166,7 +181,11 @@ export function agentsDir(comsDir: string, project: string): string {
   return join(comsDir, "projects", project, "agents");
 }
 
-export function registryPath(comsDir: string, project: string, name: string): string {
+export function registryPath(
+  comsDir: string,
+  project: string,
+  name: string,
+): string {
   return join(agentsDir(comsDir, project), `${name}.json`);
 }
 
@@ -202,7 +221,11 @@ export function writeRegistryAtomic(args: {
   return finalPath;
 }
 
-export function removeRegistryFile(comsDir: string, project: string, name: string): void {
+export function removeRegistryFile(
+  comsDir: string,
+  project: string,
+  name: string,
+): void {
   try {
     unlinkSync(registryPath(comsDir, project, name));
   } catch {
@@ -222,7 +245,16 @@ function readRegistryFile(path: string): RegistryEntry | undefined {
     const endpoint = asString(parsed.endpoint);
     const cwd = asString(parsed.cwd);
     const started_at = asString(parsed.started_at);
-    if (!session_id || !name || purpose === undefined || !model || pid === undefined || !endpoint || !cwd || !started_at) {
+    if (
+      !session_id ||
+      !name ||
+      purpose === undefined ||
+      !model ||
+      pid === undefined ||
+      !endpoint ||
+      !cwd ||
+      !started_at
+    ) {
       return undefined;
     }
     return { session_id, name, purpose, model, pid, endpoint, cwd, started_at };
@@ -231,7 +263,10 @@ function readRegistryFile(path: string): RegistryEntry | undefined {
   }
 }
 
-export function pruneAndRead(comsDir: string, project: string): RegistryEntry[] {
+export function pruneAndRead(
+  comsDir: string,
+  project: string,
+): RegistryEntry[] {
   const dir = agentsDir(comsDir, project);
   if (!existsSync(dir)) return [];
   let files: string[];
@@ -259,8 +294,14 @@ export function pruneAndRead(comsDir: string, project: string): RegistryEntry[] 
   return live;
 }
 
-export function resolveUniqueName(comsDir: string, project: string, desired: string): string {
-  const live = new Set(pruneAndRead(comsDir, project).map((entry) => entry.name));
+export function resolveUniqueName(
+  comsDir: string,
+  project: string,
+  desired: string,
+): string {
+  const live = new Set(
+    pruneAndRead(comsDir, project).map((entry) => entry.name),
+  );
   if (!live.has(desired)) return desired;
   let n = 2;
   while (live.has(`${desired}${n}`)) n += 1;
@@ -275,14 +316,22 @@ function parseEnvelope(value: unknown): Envelope | undefined {
   const hops = asNumber(value.hops);
   const timestamp = asString(value.timestamp);
   const type = asString(value.type);
-  if (!msg_id || !sender_session || !sender_endpoint || hops === undefined || !timestamp || !type) {
+  if (
+    !msg_id ||
+    !sender_session ||
+    !sender_endpoint ||
+    hops === undefined ||
+    !timestamp ||
+    !type
+  ) {
     return undefined;
   }
   if (type === "prompt") {
     const prompt = asString(value.prompt);
     const sender_name = asString(value.sender_name);
     const sender_cwd = asString(value.sender_cwd);
-    if (prompt === undefined || !sender_name || sender_cwd === undefined) return undefined;
+    if (prompt === undefined || !sender_name || sender_cwd === undefined)
+      return undefined;
     return {
       type,
       msg_id,
@@ -297,7 +346,9 @@ function parseEnvelope(value: unknown): Envelope | undefined {
   }
   if (type === "response") {
     const response =
-      typeof value.response === "string" ? value.response : JSON.stringify(value.response ?? "");
+      typeof value.response === "string"
+        ? value.response
+        : JSON.stringify(value.response ?? "");
     const error = asString(value.error);
     return {
       type,
@@ -307,7 +358,7 @@ function parseEnvelope(value: unknown): Envelope | undefined {
       hops,
       timestamp,
       response,
-      ...(error !== undefined ? { error } : {}),
+      ...(error === undefined ? {} : { error }),
     };
   }
   if (type === "ping") {
@@ -332,15 +383,25 @@ function parseReply(value: unknown): Reply | undefined {
     const model = asString(value.agent_card.model);
     const context_used_pct = asNumber(value.agent_card.context_used_pct);
     const queue_depth = asNumber(value.agent_card.queue_depth);
-    if (!name || purpose === undefined || !model || context_used_pct === undefined || queue_depth === undefined) {
+    if (
+      !name ||
+      purpose === undefined ||
+      !model ||
+      context_used_pct === undefined ||
+      queue_depth === undefined
+    ) {
       return undefined;
     }
-    return { type, msg_id, agent_card: { name, purpose, model, context_used_pct, queue_depth } };
+    return {
+      type,
+      msg_id,
+      agent_card: { name, purpose, model, context_used_pct, queue_depth },
+    };
   }
   return undefined;
 }
 
-function writeLine(socket: Socket, value: object): void {
+function writeLine(socket: Socket, value: Reply): void {
   try {
     socket.write(`${JSON.stringify(value)}\n`);
   } catch {
@@ -383,11 +444,16 @@ function readOneLine(socket: Socket): Promise<string> {
     };
     socket.on("data", onData);
     socket.once("error", (err) => finish(err));
-    socket.once("close", () => finish(new Error("connection closed before line received")));
+    socket.once("close", () =>
+      finish(new Error("connection closed before line received")),
+    );
   });
 }
 
-export async function sendEnvelope(endpoint: string, envelope: Envelope): Promise<Reply> {
+export async function sendEnvelope(
+  endpoint: string,
+  envelope: Envelope,
+): Promise<Reply> {
   return await new Promise((resolve, reject) => {
     const sock = createConnection({ path: endpoint });
     let settled = false;
@@ -459,7 +525,10 @@ function probeStaleSocket(endpoint: string): Promise<"in_use" | "stale"> {
   });
 }
 
-async function listen(endpoint: string, handler: (socket: Socket) => void): Promise<Server> {
+async function listen(
+  endpoint: string,
+  handler: (socket: Socket) => void,
+): Promise<Server> {
   if (existsSync(endpoint)) {
     const verdict = await probeStaleSocket(endpoint);
     if (verdict === "in_use") {
@@ -479,10 +548,6 @@ async function listen(endpoint: string, handler: (socket: Socket) => void): Prom
       resolve(server);
     });
   });
-}
-
-export default function draconicComsProtocol(): void {
-  // Pi loads every .ts file in .pi/extensions/. This module is a library.
 }
 
 export async function bindPeer(opts: BindPeerOptions): Promise<BoundPeer> {
@@ -539,14 +604,20 @@ export async function bindPeer(opts: BindPeerOptions): Promise<BoundPeer> {
   const handleResponse = (socket: Socket, env: ResponseEnvelope) => {
     const wait = pending.get(env.msg_id);
     if (wait && !wait.result) {
-      wait.result = env.error ? { response: env.response, error: env.error } : { response: env.response };
+      wait.result = env.error
+        ? { response: env.response, error: env.error }
+        : { response: env.response };
       wait.resolve(wait.result);
     }
     ackOk(socket, env.msg_id);
   };
 
   const handlePing = (socket: Socket, env: PingEnvelope) => {
-    writeLine(socket, { type: "pong", msg_id: env.msg_id, agent_card: card() } satisfies Pong);
+    writeLine(socket, {
+      type: "pong",
+      msg_id: env.msg_id,
+      agent_card: card(),
+    } satisfies Pong);
   };
 
   const connHandler = (socket: Socket) => {
@@ -594,7 +665,11 @@ export async function bindPeer(opts: BindPeerOptions): Promise<BoundPeer> {
 
   ensureComsDir(opts.comsDir, project);
   server = await listen(endpoint, connHandler);
-  const file = writeRegistryAtomic({ comsDir: opts.comsDir, project, entry: identity() });
+  const file = writeRegistryAtomic({
+    comsDir: opts.comsDir,
+    project,
+    entry: identity(),
+  });
 
   const pingAlive = async (peerEndpoint: string): Promise<boolean> => {
     const env: PingEnvelope = {
@@ -614,7 +689,9 @@ export async function bindPeer(opts: BindPeerOptions): Promise<BoundPeer> {
   };
 
   const list = async (): Promise<ListedPeer[]> => {
-    const entries = pruneAndRead(opts.comsDir, project).filter((entry) => entry.session_id !== sessionId);
+    const entries = pruneAndRead(opts.comsDir, project).filter(
+      (entry) => entry.session_id !== sessionId,
+    );
     const out: ListedPeer[] = [];
     for (const entry of entries) {
       out.push({
@@ -628,10 +705,18 @@ export async function bindPeer(opts: BindPeerOptions): Promise<BoundPeer> {
     return out;
   };
 
-  const send = async (args: { target: string; prompt: string; hops?: number }): Promise<{ msg_id: string }> => {
-    const target = pruneAndRead(opts.comsDir, project).find((entry) => entry.name === args.target);
-    if (!target) throw new Error(`coms: no live agent matching "${args.target}"`);
-    const hops = args.hops ?? (currentInbound ? currentInbound.env.hops + 1 : 0);
+  const send = async (args: {
+    target: string;
+    prompt: string;
+    hops?: number;
+  }): Promise<{ msg_id: string }> => {
+    const target = pruneAndRead(opts.comsDir, project).find(
+      (entry) => entry.name === args.target,
+    );
+    if (!target)
+      throw new Error(`coms: no live agent matching "${args.target}"`);
+    const hops =
+      args.hops ?? (currentInbound ? currentInbound.env.hops + 1 : 0);
     const msg_id = newId();
     const env: PromptEnvelope = {
       type: "prompt",
@@ -661,7 +746,10 @@ export async function bindPeer(opts: BindPeerOptions): Promise<BoundPeer> {
     return { status: "complete", response: wait.result.response };
   };
 
-  const awaitReply = async (msgId: string, timeoutMs = defaultTimeoutMs()): Promise<string> => {
+  const awaitReply = async (
+    msgId: string,
+    timeoutMs = defaultTimeoutMs(),
+  ): Promise<string> => {
     const wait = pending.get(msgId);
     if (!wait) throw new Error(`unknown msg_id ${msgId}`);
     if (wait.result) {
@@ -686,7 +774,11 @@ export async function bindPeer(opts: BindPeerOptions): Promise<BoundPeer> {
     return [...inbound.values()].reverse().find((item) => !item.fulfilled)?.env;
   };
 
-  const fulfillInbound = async (args: { msgId: string; response: string; error?: string }): Promise<void> => {
+  const fulfillInbound = async (args: {
+    msgId: string;
+    response: string;
+    error?: string;
+  }): Promise<void> => {
     const item = inbound.get(args.msgId);
     if (!item || item.fulfilled) return;
     const env: ResponseEnvelope = {
@@ -697,12 +789,13 @@ export async function bindPeer(opts: BindPeerOptions): Promise<BoundPeer> {
       hops: 0,
       timestamp: nowIso(),
       response: args.response,
-      ...(args.error !== undefined ? { error: args.error } : {}),
+      ...(args.error === undefined ? {} : { error: args.error }),
     };
     await sendEnvelope(item.env.sender_endpoint, env);
     item.fulfilled = true;
     inbound.delete(item.env.msg_id);
-    if (currentInbound?.env.msg_id === item.env.msg_id) currentInbound = undefined;
+    if (currentInbound?.env.msg_id === item.env.msg_id)
+      currentInbound = undefined;
   };
 
   const shutdown = async (): Promise<void> => {

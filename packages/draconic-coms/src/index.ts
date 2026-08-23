@@ -9,7 +9,7 @@ import {
 	defaultComsDir,
 	defaultTimeoutMs,
 	newId,
-} from "./draconic-coms-protocol.js";
+} from "./protocol.ts";
 
 function flagString(pi: ExtensionAPI, name: string): string | undefined {
 	const value = pi.getFlag(name);
@@ -44,11 +44,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function lastAssistantText(branch: readonly unknown[]): string {
 	let text = "";
 	for (const entry of branch) {
-		if (
-			!isRecord(entry) ||
-			entry.type !== "message" ||
-			!isRecord(entry.message)
-		)
+		if (!isRecord(entry) || entry.type !== "message" || !isRecord(entry.message))
 			continue;
 		if (entry.message.role !== "assistant") continue;
 		const content = entry.message.content;
@@ -60,9 +56,7 @@ function lastAssistantText(branch: readonly unknown[]): string {
 		text = content
 			.filter(
 				(block): block is { type: "text"; text: string } =>
-					isRecord(block) &&
-					block.type === "text" &&
-					typeof block.text === "string",
+					isRecord(block) && block.type === "text" && typeof block.text === "string",
 			)
 			.map((block) => block.text)
 			.join("\n");
@@ -142,8 +136,7 @@ export default function (pi: ExtensionAPI) {
 		async execute() {
 			if (!peer) return toolText("coms not initialised", { ok: false });
 			const peers = await peer.list();
-			if (peers.length === 0)
-				return toolText("No peer agents found.", { peers });
+			if (peers.length === 0) return toolText("No peer agents found.", { peers });
 			const lines = peers.map((item) => {
 				const live = item.alive ? "alive" : "dead";
 				const purpose = item.purpose ? ` ${item.purpose}` : "";
@@ -172,13 +165,10 @@ export default function (pi: ExtensionAPI) {
 					target: params.target,
 					prompt: params.prompt,
 				});
-				return toolText(
-					`coms_send to ${params.target}\nmsg_id ${sent.msg_id}`,
-					{
-						msg_id: sent.msg_id,
-						target: params.target,
-					},
-				);
+				return toolText(`coms_send to ${params.target}\nmsg_id ${sent.msg_id}`, {
+					msg_id: sent.msg_id,
+					target: params.target,
+				});
 			} catch (err) {
 				const message = err instanceof Error ? err.message : String(err);
 				return toolText(`coms_send failed: ${message}`, {
