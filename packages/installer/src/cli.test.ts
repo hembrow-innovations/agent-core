@@ -93,6 +93,11 @@ test("install --profile pi writes skills, pack files, and third-party npm source
     ],
   );
   const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
+  assert.deepEqual(readdirSync(vendorRoot).sort(), [
+    "draconic-boot",
+    "draconic-coms",
+    "draconic-todo",
+  ]);
   assert.equal(
     existsSync(join(vendorRoot, "draconic-todo", "src", "index.ts")),
     true,
@@ -107,6 +112,7 @@ test("install --profile pi writes skills, pack files, and third-party npm source
   );
   assert.equal(existsSync(join(vendorRoot, "lib")), false);
   assert.equal(existsSync(join(dest, ".opencode")), false);
+  assertNoCheckoutPath(dest);
 });
 
 test("install --profile pi --harness opencode writes .opencode/skills and skips vendor", () => {
@@ -129,6 +135,7 @@ test("install --profile pi --harness opencode writes .opencode/skills and skips 
     true,
   );
   assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
+  assertNoCheckoutPath(dest);
 });
 
 test("install --profile pi --harness pi writes the three vendor packages", () => {
@@ -213,13 +220,12 @@ test("install --extension draconic-todo vendors a lib-bundled dest-relative pack
   const r = runCli(["install", dest, "--extension", "draconic-todo"]);
   assert.equal(r.status, 0, r.stderr || r.stdout);
 
-  const vendor = join(dest, ".pi", "vendor", "@agentic-core", "draconic-todo");
+  const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
+  const vendor = join(vendorRoot, "draconic-todo");
   assert.equal(existsSync(vendor), true);
+  assert.deepEqual(readdirSync(vendorRoot), ["draconic-todo"]);
   assert.equal(existsSync(join(dest, ".pi", "skills")), false);
-  assert.equal(
-    existsSync(join(dest, ".pi", "vendor", "@agentic-core", "lib")),
-    false,
-  );
+  assert.equal(existsSync(join(vendorRoot, "lib")), false);
   assert.equal(
     existsSync(join(vendor, "src", "lib", "draconic-todo-store.ts")),
     true,
@@ -248,8 +254,7 @@ test("install --extension draconic-todo vendors a lib-bundled dest-relative pack
   assert.equal(gitignore, "npm/\ngit/\n");
   assert.doesNotMatch(gitignore, /vendor/);
 
-  assertNoCheckoutPath(join(dest, ".pi", "vendor"));
-  assertNoCheckoutPath(join(dest, ".pi", "settings.json"));
+  assertNoCheckoutPath(dest);
 });
 
 test("install --extension can repeat and a second run overwrites vendor", () => {
@@ -287,4 +292,5 @@ test("install --extension can repeat and a second run overwrites vendor", () => 
     ".pi/vendor/@agentic-core/draconic-todo",
     ".pi/vendor/@agentic-core/draconic-boot",
   ]);
+  assertNoCheckoutPath(dest);
 });
