@@ -27,8 +27,8 @@ When you write or edit a skill, read `skills/engineering/write-a-skill/SKILL.md`
 ## Verify
 
 ```
-npm test
-npm run typecheck
+pnpm test
+pnpm run typecheck
 ```
 
 ## Pi

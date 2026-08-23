@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "pnpm -r --filter \"./packages/**\" typecheck",
-    "test": "bash scripts/run-tests.sh"
+    "test": "pnpm -r --filter \"./packages/**\" test && bash scripts/run-tests.sh"
   },
   "dependencies": {
     "@agentic-core/installer": "workspace:*"

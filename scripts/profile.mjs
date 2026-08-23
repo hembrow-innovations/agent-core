@@ -294,6 +294,9 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
     }
   }
 
+  rmSync(join(target, ".pi", "extensions"), { recursive: true, force: true });
+  rmSync(join(target, ".pi", "lib"), { recursive: true, force: true });
+
   const allow = new Set([...(opts.skills ?? []), ...(opts.playbooks ?? [])]);
   const destPrompts = join(target, ".pi", "prompts");
   mkdirSync(destPrompts, { recursive: true });

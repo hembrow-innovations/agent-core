@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -136,6 +137,36 @@ test("install --profile pi --harness opencode writes .opencode/skills and skips 
   );
   assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
   assertNoCheckoutPath(dest);
+});
+
+test("install --profile core --harness agents writes .agents/skills", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-agents-"));
+  const r = runCli([
+    "install",
+    dest,
+    "--profile",
+    "core",
+    "--harness",
+    "agents",
+  ]);
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.equal(
+    existsSync(join(dest, ".agents", "skills", "bro", "SKILL.md")),
+    true,
+  );
+  assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
+});
+
+test("install --profile pi removes leftover dest extension files", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-pi-stale-"));
+  mkdirSync(join(dest, ".pi", "extensions"), { recursive: true });
+  mkdirSync(join(dest, ".pi", "lib"), { recursive: true });
+  writeFileSync(join(dest, ".pi", "extensions", "draconic-boot.ts"), "old\n");
+  writeFileSync(join(dest, ".pi", "lib", "old.ts"), "old\n");
+  const r = runCli(["install", dest, "--profile", "pi"]);
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.equal(existsSync(join(dest, ".pi", "extensions")), false);
+  assert.equal(existsSync(join(dest, ".pi", "lib")), false);
 });
 
 test("install --profile pi --harness pi writes the three vendor packages", () => {
