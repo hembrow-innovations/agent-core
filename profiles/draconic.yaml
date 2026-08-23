@@ -4,25 +4,11 @@ agents: true
 commands: true
 templates: true
 skills:
-  - domain-modeling
-  - wayfinder
-  - tdd
-  - handoff
-  - improve-codebase-architecture
-  - codebase-design
-  - setup-matt-pocock-skills
-  - research
-  - prototype
-  - planning
-  - planning-with-docs
-  - management
-  - docs
-  - unslop
-  - bro
   - architect
   - arena
   - automate-me
   - blast-radius
+  - bro
   - create-verification-skill
   - figure-it-out
   - how
@@ -55,12 +41,9 @@ skills:
   - setup-draconic
   - show-me-your-work
   - swarm
+  - tdd
   - teach
   - technical-writing
   - typescript-best-practices
+  - unslop
   - why
-  - playwright-cli
-  - maestro
-  - godot-mono
-  - react-testing
-  - vitest

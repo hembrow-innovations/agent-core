@@ -1,8 +1,8 @@
 ---
 description: Decision trail TSV for reviewable long runs
-agent: poteto
+agent: draconic
 ---
 
-Load skill **show-me-your-work**. Log under `.pstack/`. Task:
+Load skill **show-me-your-work**. Log under `.draconic/`. Task:
 
 $ARGUMENTS

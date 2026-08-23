@@ -5,14 +5,13 @@ Each `*.yaml` file in this folder is an install profile. `scripts/install.mjs --
 ## Schema
 
 ```yaml
-mode: poteto          # optional. If set, install adds {mode}-mode to the skill list
+mode: draconic        # optional. If set, install adds {mode}-mode to the skill list
 skills:               # skill folder names to copy. Default: []
   - architect
 playbooks: all        # omit the key, `all`, or a list of playbook ids
 agents: true          # copy agents/. Default: false
 commands: true        # copy commands/. Default: false
 templates: true       # copy templates/opencode. Default: false
-pstack: true          # prefer pstack/skills when a name exists in both trees. Default: false
 ```
 
 Boolean keys default to false. `mode` defaults to unset. `skills` defaults to an empty list.

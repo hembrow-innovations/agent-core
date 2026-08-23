@@ -6,9 +6,9 @@ disable-model-invocation: true
 
 # Principals catalog
 
-A first cut for life-engine (`/Users/jaredhembrow/workbench/life-engine-work-bench/projects/life-engine`). Seventeen leaf skills. Ten copied from `pstack/skills`. Seven written for this product. Folder name is `principals` because that is what you asked for. Rename to `principles` if you want it to match pstack.
+A first cut for life-engine (`/Users/jaredhembrow/workbench/life-engine-work-bench/projects/life-engine`). Seventeen leaf skills. Ten copied from the original principle pack. Seven written for this product. Folder name is `principals` because that is what you asked for.
 
-Each leaf is a short `SKILL.md` with `name`, `description`, and `disable-model-invocation: true`. Same shape as `pstack/skills/principle-fix-root-causes`.
+Each leaf is a short `SKILL.md` with `name`, `description`, and `disable-model-invocation: true`. Same shape as `skills/principals/principle-fix-root-causes`.
 
 This file is the review surface. Cut anything that does not change a decision. Add anything I skipped that would.
 
@@ -16,11 +16,11 @@ This file is the review surface. Cut anything that does not change a decision. A
 
 Read the one-line "changes this decision" under each skill. If you cannot picture an agent picking the wrong move without it, delete the skill.
 
-Copied skills stay close to pstack. Only `principle-prove-it-works` has a life-engine note (reset the DB, typecheck is not proof, Maestro after checking the emulator).
+Copied skills stay close to the originals. Only `principle-prove-it-works` has a life-engine note (reset the DB, typecheck is not proof, Maestro after checking the emulator).
 
 New skills point at vault names (ADR-0023, data-flows) instead of copying those docs.
 
-## Take (copied from pstack)
+## Take (copied from the original pack)
 
 - **principle-prove-it-works.** Changes "it typechecks" into a run on the real surface from `pnpm db:reset`.
 - **principle-fix-root-causes.** Changes a nil-check or "skip Maestro, no simulator" into reproduce-then-fix.
@@ -43,7 +43,7 @@ New skills point at vault names (ADR-0023, data-flows) instead of copying those 
 - **principle-zod-degrades-never-blanks.** Changes a strict throw on read drift into warn-and-return-raw-rows.
 - **principle-contracts-have-two-altitudes.** Changes stitch-as-law or CRUD-in-`ui/contract.md` into behaviour vs presentation promises.
 
-## Skip (pstack, on purpose)
+## Skip (on purpose)
 
 - **never-block-on-the-human.** Fights the intent ladder. Product direction is not reversible execution. Use `principle-intent-ladder-stop` instead.
 - **experience-first.** "Delight" invents chrome and pixels past purpose out of scope. Craft inside a named promise is already covered by prove-it-works.

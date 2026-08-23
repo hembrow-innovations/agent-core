@@ -1,6 +1,6 @@
 ---
 description: Multi-model adversarial review of a diff
-agent: poteto
+agent: draconic
 ---
 
 Load skill **interrogate**. Review:

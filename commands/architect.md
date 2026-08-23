@@ -1,6 +1,6 @@
 ---
 description: Settle types, caller usage, module shape before coding across a boundary
-agent: poteto
+agent: draconic
 ---
 
 Load skill **architect**. Design first:

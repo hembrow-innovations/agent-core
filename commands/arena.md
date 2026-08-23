@@ -1,6 +1,6 @@
 ---
 description: N parallel attempts, graft the best
-agent: poteto
+agent: draconic
 ---
 
 Load skill **arena**. Run bakeoff:

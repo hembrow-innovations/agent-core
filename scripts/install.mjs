@@ -3,9 +3,9 @@
  * agent-core installer
  *
  *   curl -fsSL https://raw.githubusercontent.com/hembrow-innovations/agent-core/main/scripts/install.mjs | node - --profile core
- *   node scripts/install.mjs --profile pstack
+ *   node scripts/install.mjs --profile draconic
  *   node scripts/install.mjs /path/to/project --profile mobile --with handoff --ref main
- *   node scripts/install.mjs /path/to/project --local . --profile pstack
+ *   node scripts/install.mjs /path/to/project --local . --profile draconic
  */
 
 import { spawnSync } from "node:child_process";
@@ -53,18 +53,18 @@ Options:
 
 Profiles (profiles/*.yaml):
   ${listed}
-  core         engineering skills
-  web          core + playwright-cli + react-testing
-  mobile       core + maestro + react-testing
-  pstack       pstack skills + poteto-mode playbooks + agents/commands
-  godot        pstack + godot-mono
-  full         everything
-  life-engine  pstack + life-engine library skills and product principles
+   core         engineering skills
+   web          core + playwright-cli + react-testing
+   mobile       core + maestro + react-testing
+   draconic     draconic-mode playbooks + agents/commands
+   godot        draconic + godot-mono
+   full         everything
+   life-engine  draconic + life-engine library skills and product principles
 
 Playbooks are selected in the YAML and overlaid into {mode}-mode.
 
 Examples:
-  curl -fsSL https://raw.githubusercontent.com/${REPO}/main/scripts/install.mjs | node - --profile pstack
+   curl -fsSL https://raw.githubusercontent.com/${REPO}/main/scripts/install.mjs | node - --profile draconic
   node scripts/install.mjs ~/Projects/my-app --profile godot --local .
   node scripts/install.mjs . --profile core --with godot-mono
 `);
@@ -126,7 +126,7 @@ function detectBundledRoot() {
   try {
     const here = dirname(fileURLToPath(import.meta.url));
     const root = join(here, "..");
-    if (existsSync(join(root, "skills")) || existsSync(join(root, "pstack"))) {
+    if (existsSync(join(root, "skills")) || existsSync(join(root, "pi"))) {
       return root;
     }
   } catch {
@@ -153,11 +153,9 @@ async function fetchRemoteRoot(ref) {
   return { root: join(extract, entries[0]), cleanup: dir };
 }
 
-/** Find skill dir by name under skills/**, pstack/skills/<name>, or pi/skills/<name>. Prefer pstack when both exist and installing pstack. Prefer skills/workflow over skills/engineering when both exist so docs+management overlays win. */
-function findSkillDir(srcRoot, name, preferPstack) {
+/** Find skill dir by name under skills/** or pi/skills/<name>. Prefer skills/workflow, then skills/setup, so OpenCode overlays win over the Pi copies. */
+function findSkillDir(srcRoot, name) {
   const candidates = [];
-  const pstackPath = join(srcRoot, "pstack", "skills", name);
-  if (existsSync(join(pstackPath, "SKILL.md"))) candidates.push({ path: pstackPath, source: "pstack" });
   const piPath = join(srcRoot, "pi", "skills", name);
   if (existsSync(join(piPath, "SKILL.md"))) candidates.push({ path: piPath, source: "pi" });
 
@@ -171,12 +169,11 @@ function findSkillDir(srcRoot, name, preferPstack) {
   }
 
   if (!candidates.length) return null;
-  if (preferPstack) {
-    const p = candidates.find((c) => c.source === "pstack");
-    if (p) return p.path;
+  const prefer = ["skills/workflow", "skills/setup"].map((rel) => join(srcRoot, rel) + "/");
+  for (const prefix of prefer) {
+    const hit = candidates.find((c) => c.path.startsWith(prefix));
+    if (hit) return hit.path;
   }
-  const workflow = candidates.find((c) => c.path.startsWith(join(srcRoot, "skills", "workflow") + "/"));
-  if (workflow) return workflow.path;
   return candidates[0].path;
 }
 
@@ -191,8 +188,8 @@ function walkSkillDirs(root, visit) {
   }
 }
 
-function copySkill(srcRoot, name, target, preferPstack) {
-  const src = findSkillDir(srcRoot, name, preferPstack);
+function copySkill(srcRoot, name, target) {
+  const src = findSkillDir(srcRoot, name);
   if (!src) die(`Skill not found in source: ${name}`);
   for (const destBase of SKILL_DESTS) {
     const dest = join(target, destBase, name);
@@ -247,15 +244,15 @@ function installTemplates(srcRoot, target) {
     console.log("  template skip (exists): opencode.json");
   }
 
-  const rulesSrc = join(tpl, "rules", "pstack-models.md");
-  const rulesDest = join(target, ".opencode", "rules", "pstack-models.md");
+  const rulesSrc = join(tpl, "rules", "draconic-models.md");
+  const rulesDest = join(target, ".opencode", "rules", "draconic-models.md");
   mkdirSync(dirname(rulesDest), { recursive: true });
   cpSync(rulesSrc, rulesDest);
-  console.log("  template write: .opencode/rules/pstack-models.md");
+  console.log("  template write: .opencode/rules/draconic-models.md");
 
-  for (const name of ["WORKFLOW.md", "PSTACK-INDEX.md"]) {
+  for (const name of ["WORKFLOW.md", "DRACONIC-INDEX.md"]) {
     const dest = join(target, name);
-    if (name === "PSTACK-INDEX.md" || !existsSync(dest)) {
+    if (name === "DRACONIC-INDEX.md" || !existsSync(dest)) {
       cpSync(join(tpl, name), dest);
       console.log(`  template write: ${name}`);
     } else {
@@ -291,7 +288,6 @@ function planFromProfile(profile, opts, available, resolvePlaybookIds) {
     agents: profile.agents && !opts.noAgents,
     commands: profile.commands && !opts.noCommands,
     templates: profile.templates && !opts.noTemplates,
-    pstack: profile.pstack,
     mode: profile.mode,
   };
 }
@@ -344,7 +340,7 @@ async function main() {
     console.log(`Profile: ${opts.profile}`);
     console.log(`Skills (${plan.skills.length}): ${plan.skills.join(", ")}`);
 
-    for (const name of plan.skills) copySkill(srcRoot, name, opts.target, plan.pstack);
+    for (const name of plan.skills) copySkill(srcRoot, name, opts.target);
     if (plan.overlayPlaybooks) {
       if (!plan.mode) die("Playbook overlay requires profile.mode");
       installModePlaybooks(srcRoot, opts.target, plan.mode, plan.playbookIds);
@@ -355,8 +351,8 @@ async function main() {
     if (plan.templates) installTemplates(srcRoot, opts.target);
 
     console.log("Done.");
-    if (plan.pstack) {
-      console.log("Next: open the project in OpenCode, run /setup-pstack, optionally /create-verification-skill.");
+    if (plan.mode === "draconic") {
+      console.log("Next: open the project in OpenCode, run /setup-draconic, optionally /create-verification-skill.");
     }
   } finally {
     if (cleanup) rmSync(cleanup, { recursive: true, force: true });

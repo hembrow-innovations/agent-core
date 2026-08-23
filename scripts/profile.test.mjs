@@ -21,16 +21,16 @@ const REPO = fileURLToPath(new URL("..", import.meta.url));
 test("parseProfileYaml: comments, scalars, booleans, lists, all", () => {
   const got = parseProfileYaml(`
 # header
-mode: poteto
-pstack: true
+mode: draconic
+templates: true
 agents: false
 playbooks: all
 skills: [architect, arena]
 empty: []
 `);
   assert.deepEqual(got, {
-    mode: "poteto",
-    pstack: true,
+    mode: "draconic",
+    templates: true,
     agents: false,
     playbooks: "all",
     skills: ["architect", "arena"],
@@ -85,7 +85,7 @@ test("loadProfile: missing dies with available names", () => {
 test("loadProfile: defaults and playbooks shapes", () => {
   const root = tempRoot();
   writeYaml(root, "bare", "skills: []\n");
-  writeYaml(root, "all", "playbooks: all\nmode: poteto\n");
+  writeYaml(root, "all", "playbooks: all\nmode: draconic\n");
   writeYaml(
     root,
     "listed",
@@ -105,11 +105,10 @@ test("loadProfile: defaults and playbooks shapes", () => {
     agents: false,
     commands: false,
     templates: false,
-    pstack: false,
   });
 
   assert.deepEqual(loadProfile(root, "all").playbooks, { kind: "all" });
-  assert.equal(loadProfile(root, "all").mode, "poteto");
+  assert.equal(loadProfile(root, "all").mode, "draconic");
   assert.deepEqual(loadProfile(root, "listed").playbooks, {
     kind: "list",
     ids: ["investigation", "feature"],
@@ -244,9 +243,8 @@ test("readPlaybookMeta: frontmatter and heading fallback", () => {
 
 test("repo life-engine profile loads", () => {
   const p = loadProfile(REPO, "life-engine");
-  assert.equal(p.mode, "poteto");
+  assert.equal(p.mode, "draconic");
   assert.deepEqual(p.playbooks, { kind: "all" });
-  assert.equal(p.pstack, true);
   assert.equal(p.agents, true);
   assert.equal(p.commands, true);
   assert.equal(p.templates, true);
@@ -254,13 +252,9 @@ test("repo life-engine profile loads", () => {
     "behaviour-contracts",
     "diagnose",
     "frontend-design",
-    "grill-me",
-    "planning-workflow",
     "tanstack-query",
     "thermo-review",
     "to-issues",
-    "to-orchestrator",
-    "to-prd",
     "triage",
     "typography",
     "vault-pack",
@@ -302,6 +296,13 @@ test("install uses profiles yaml only and does not write preference stubs", () =
   assert.equal(existsSync(join(REPO, "preferences")), false);
 });
 
+test("pstack source tree is gone and draconic install resolves", () => {
+  const r = spawnSync(process.execPath, [join(REPO, "scripts", "check-no-pstack.mjs")], {
+    encoding: "utf8",
+  });
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+});
+
 test("ported life-engine skills keep the management/docs split", () => {
   const r = spawnSync(process.execPath, [join(REPO, "scripts", "check-ported-skills.mjs")], {
     encoding: "utf8",
@@ -310,7 +311,6 @@ test("ported life-engine skills keep the management/docs split", () => {
 });
 
 function skillHasMarkdown(root, name) {
-  if (existsSync(join(root, "pstack", "skills", name, "SKILL.md"))) return true;
   if (existsSync(join(root, "pi", "skills", name, "SKILL.md"))) return true;
   return walkSkillMarkdown(join(root, "skills"), name);
 }

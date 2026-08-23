@@ -1,6 +1,6 @@
 ---
 description: Rebuild recent context on a topic as a tight brief
-agent: poteto
+agent: draconic
 ---
 
 Load skill **recall**. Topic:

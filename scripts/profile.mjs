@@ -21,7 +21,6 @@ import { join } from "node:path";
  *   agents: boolean,
  *   commands: boolean,
  *   templates: boolean,
- *   pstack: boolean,
  * }} Profile
  */
 
@@ -88,7 +87,6 @@ export function loadProfile(srcRoot, name) {
     agents: asBool(raw.agents, "agents"),
     commands: asBool(raw.commands, "commands"),
     templates: asBool(raw.templates, "templates"),
-    pstack: asBool(raw.pstack, "pstack"),
   };
 }
 

@@ -1,6 +1,6 @@
 ---
 description: Motivation archaeology: why was this built this way
-agent: poteto
+agent: draconic
 ---
 
 Load skill **why**. Answer:

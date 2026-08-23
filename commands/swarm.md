@@ -1,6 +1,6 @@
 ---
 description: N parallel workers across slices, one report
-agent: poteto
+agent: draconic
 ---
 
 Load skill **swarm**. Fan out:

@@ -1,6 +1,6 @@
 ---
 description: Strip bad comments; spawn comment-sicko
-agent: poteto
+agent: draconic
 ---
 
 Load skill **no-comments**. Scope:

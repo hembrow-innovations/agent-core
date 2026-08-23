@@ -6,14 +6,10 @@ import { fileURLToPath } from "node:url";
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 const EXPECTED = [
-  "skills/workflow/planning-workflow",
-  "skills/workflow/to-prd",
   "skills/workflow/to-issues",
-  "skills/workflow/to-orchestrator",
   "skills/workflow/triage",
   "skills/workflow/verify-issue",
   "skills/engineering/behaviour-contracts",
-  "skills/engineering/grill-me",
   "skills/engineering/diagnose",
   "skills/engineering/write-a-skill",
   "skills/engineering/thermo-review",
@@ -26,13 +22,9 @@ const EXPECTED = [
 ];
 
 const TRACKER_SKILLS = new Set([
-  "planning-workflow",
-  "to-prd",
   "to-issues",
-  "to-orchestrator",
   "triage",
   "verify-issue",
-  "grill-me",
   "vault-pack",
 ]);
 

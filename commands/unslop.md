@@ -1,6 +1,6 @@
 ---
 description: Remove AI tells; tighten prose
-agent: poteto
+agent: draconic
 ---
 
 Load skill **unslop**. Clean up:

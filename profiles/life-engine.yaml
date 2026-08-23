@@ -1,6 +1,5 @@
-mode: poteto
+mode: draconic
 playbooks: all
-pstack: true
 agents: true
 commands: true
 templates: true
@@ -16,16 +15,13 @@ skills:
   - docs
   - figure-it-out
   - frontend-design
-  - grill-me
   - how
   - improve-codebase-architecture
   - interrogate
   - maestro
   - maintain-verification-skill
   - no-comments
-  - planning-workflow
   - playwright-cli
-  - poteto-mode
   - principle-boundary-discipline
   - principle-build-the-lever
   - principle-contracts-have-two-altitudes
@@ -57,7 +53,7 @@ skills:
   - prototype
   - recall
   - reflect
-  - setup-pstack
+  - setup-draconic
   - show-me-your-work
   - swarm
   - tanstack-query
@@ -66,8 +62,6 @@ skills:
   - technical-writing
   - thermo-review
   - to-issues
-  - to-orchestrator
-  - to-prd
   - triage
   - typescript-best-practices
   - typography

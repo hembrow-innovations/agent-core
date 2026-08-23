@@ -1,6 +1,6 @@
 ---
 description: Diátaxis + STE docs/RFC/PR/commit prose
-agent: poteto
+agent: draconic
 ---
 
 Load skill **technical-writing**. Write:
