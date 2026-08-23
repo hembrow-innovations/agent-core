@@ -29,7 +29,6 @@ const DEFAULT_REF = "main";
 
 const CORE_SKILLS = [
   "domain-modeling",
-  "domain-modeling-with-docs",
   "wayfinder",
   "tdd",
   "handoff",
@@ -250,7 +249,7 @@ async function fetchRemoteRoot(ref) {
   return { root: join(extract, entries[0]), cleanup: dir };
 }
 
-/** Find skill dir by name under skills/** or pstack/skills/<name>. Prefer pstack for pstack names when both exist and installing pstack. */
+/** Find skill dir by name under skills/** or pstack/skills/<name>. Prefer pstack for pstack names when both exist and installing pstack. Prefer skills/workflow over skills/engineering when both exist so docs+management overlays win. */
 function findSkillDir(srcRoot, name, preferPstack) {
   const candidates = [];
   const pstackPath = join(srcRoot, "pstack", "skills", name);
@@ -270,6 +269,8 @@ function findSkillDir(srcRoot, name, preferPstack) {
     const p = candidates.find((c) => c.source === "pstack");
     if (p) return p.path;
   }
+  const workflow = candidates.find((c) => c.path.startsWith(join(srcRoot, "skills", "workflow") + "/"));
+  if (workflow) return workflow.path;
   return candidates[0].path;
 }
 

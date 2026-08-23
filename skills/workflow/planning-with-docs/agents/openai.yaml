@@ -1,0 +1,3 @@
+interface:
+  display_name: "Planning rounds"
+  short_description: "File-backed planning interview on a draft plan"

@@ -1,0 +1,3 @@
+interface:
+  display_name: "Wayfinder"
+  short_description: "Decision map as a .draconic/ plan plus issues"
