@@ -29,6 +29,7 @@ const DEFAULT_REF = "main";
 
 const CORE_SKILLS = [
   "domain-modeling",
+  "domain-modeling-with-docs",
   "wayfinder",
   "tdd",
   "handoff",
