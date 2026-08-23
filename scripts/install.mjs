@@ -350,6 +350,7 @@ async function main() {
       console.log("Next: open the project in OpenCode, run /setup-draconic, optionally /create-verification-skill.");
     } else if (plan.runtime === "pi") {
       console.log("Next: run `pi` in the project, trust the folder, then /draconic-mode.");
+      console.log("Pi installs project packages from .pi/settings.json after you trust the folder.");
     }
   } finally {
     if (cleanup) rmSync(cleanup, { recursive: true, force: true });

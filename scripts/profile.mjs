@@ -309,6 +309,53 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
   writeIfMissing(join(target, ".pi", "APPEND_SYSTEM.md"), readFileSync(join(pack, "APPEND_SYSTEM.md"), "utf8"));
   writeIfMissing(join(target, ".pi", "draconic-models.md"), readFileSync(join(pack, "draconic-models.md"), "utf8"));
   writeIfMissing(join(target, ".pi", ".gitignore"), "npm/\ngit/\n");
+  mergePiSettingsPackages(join(target, ".pi", "settings.json"), readPiPackages(pack));
+}
+
+export function readPiPackages(pack) {
+  const file = join(pack, "packages.json");
+  if (!existsSync(file)) return [];
+  let raw;
+  try {
+    raw = JSON.parse(readFileSync(file, "utf8"));
+  } catch (err) {
+    throw new Error(`Pi pack packages.json is not JSON: ${err.message}`);
+  }
+  if (!Array.isArray(raw) || raw.some((item) => typeof item !== "string" || item.trim() === "")) {
+    throw new Error("Pi pack packages.json must be a JSON array of package sources");
+  }
+  return raw.map((item) => item.trim());
+}
+
+export function packageSource(entry) {
+  if (typeof entry === "string") return entry;
+  if (entry && typeof entry === "object" && typeof entry.source === "string") return entry.source;
+  return null;
+}
+
+export function mergePiSettingsPackages(settingsPath, sources) {
+  if (!sources.length) return;
+  let settings = {};
+  if (existsSync(settingsPath)) {
+    try {
+      settings = JSON.parse(readFileSync(settingsPath, "utf8"));
+    } catch (err) {
+      throw new Error(`.pi/settings.json is not JSON: ${err.message}`);
+    }
+    if (settings == null || typeof settings !== "object" || Array.isArray(settings)) {
+      throw new Error(".pi/settings.json must be a JSON object");
+    }
+  }
+  const existing = Array.isArray(settings.packages) ? settings.packages : [];
+  const have = new Set(existing.map(packageSource).filter(Boolean));
+  const next = [...existing];
+  for (const src of sources) {
+    if (!have.has(src)) next.push(src);
+  }
+  if (next.length === existing.length && Array.isArray(settings.packages)) return;
+  settings.packages = next;
+  mkdirSync(dirname(settingsPath), { recursive: true });
+  writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`, "utf8");
 }
 
 function writeIfMissing(dest, body) {
