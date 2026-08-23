@@ -1,3 +1,8 @@
+---
+title: Prototype
+when: "A throwaway sketch to make a design or behavioral decision cheaply, or to settle an empirical fork by observing it instead of asking the human (\"prototype\", \"mock it up\", \"try this layout\", \"sketch it to decide\")."
+---
+
 ### Prototype
 
 **You own the design decision, not the code. The prototype is a throwaway instrument; the real build follows Feature.** For "prototype", "mock it up", "sketch this", "try this layout", or exploring a UI, interaction, or layout before committing. Also for settling an empirical fork (which behavior, which timing, which approach) by observing it run, when you would otherwise ask the human a question a quick sketch could answer for you.

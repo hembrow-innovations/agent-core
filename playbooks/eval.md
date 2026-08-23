@@ -1,3 +1,8 @@
+---
+title: Eval
+when: Testing how a skill, structure, or prompt change affects agent behavior before promoting it.
+---
+
 ### Eval
 
 **You own the experiment design. Plan, blind, run, synthesize.**

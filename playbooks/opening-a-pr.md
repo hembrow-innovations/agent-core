@@ -1,3 +1,8 @@
+---
+title: Opening a PR
+when: Invoked at the end of every other playbook.
+---
+
 ### Opening a PR
 
 Invoked at the end of every other playbook.

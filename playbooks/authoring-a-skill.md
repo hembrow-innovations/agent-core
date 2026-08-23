@@ -1,3 +1,8 @@
+---
+title: Authoring or modifying a skill
+when: Writing or editing a SKILL.md.
+---
+
 ### Authoring or modifying a skill
 
 **You own the skill's voice.** Agent-facing prose has a higher bar than human prose; unhelpful sentences become instructions.

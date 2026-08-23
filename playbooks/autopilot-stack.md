@@ -1,3 +1,8 @@
+---
+title: Autopilot-stack
+when: "A queue of changes built and verified with full autonomy, delivered as one linear reviewed Graphite stack the operator lands herself (\"autopilot-stack\", \"stack them, don't ship\", \"build the stack, I'll land it\")."
+---
+
 ### Autopilot-stack
 
 **You own the stack, never the landing. Build and verify the queue with full autonomy, then hand the operator one linear Graphite stack she reviews and lands herself.** For "autopilot-stack", "stack them, don't ship", "build the stack, I'll land it". The sibling of **Autopilot-full**. The owner loop and the verification gate are the same; only the terminal differs. There a clean verdict authorizes the owner's merge. Here it appends a link to the one reviewed chain, and nothing auto-ships.

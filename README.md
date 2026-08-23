@@ -12,16 +12,17 @@ From the project directory:
 curl -fsSL https://raw.githubusercontent.com/hembrow-innovations/agent-core/main/scripts/install.mjs | node - --profile core
 ```
 
-Profiles:
+Profiles live in `profiles/*.yaml`. A profile lists skills and, when it sets `mode`, which playbooks install copies into `{mode}-mode`.
 
-| Profile  | Contents |
-|----------|----------|
-| `core`   | Engineering/productivity skills + prefs (default) |
-| `web`    | `core` + `playwright-cli` + `react-testing` |
-| `mobile` | `core` + `maestro` + `react-testing` |
-| `pstack` | Full pstack skills + poteto agents/commands + OpenCode templates |
-| `godot`  | `pstack` + `godot-mono` |
-| `full`   | everything |
+| Profile | Contents |
+|---------|----------|
+| `core` | Engineering skills and prefs. Default. No playbook overlay. |
+| `web` | `core` plus `playwright-cli` and `react-testing`. No playbook overlay. |
+| `mobile` | `core` plus `maestro` and `react-testing`. No playbook overlay. |
+| `pstack` | pstack skills, `poteto-mode`, every playbook, agents, commands, templates |
+| `godot` | `pstack` plus `godot-mono` |
+| `full` | Union of core, pstack, and the extra skills. Every playbook. |
+| `life-engine` | `draconic-mode` plus investigation, feature, bug-fix, refactoring, and opening-a-pr |
 
 ```bash
 # pstack / poteto on OpenCode
@@ -38,7 +39,8 @@ node /path/to/agent-core/scripts/install.mjs /path/to/project --profile pstack -
 
 | Source | Destination |
 |--------|-------------|
-| `skills/**/<name>/` or `pstack/skills/<name>/` | `.opencode/skills/<name>/` and `.claude/skills/<name>/` |
+| `skills/**/<name>/`, `pstack/skills/<name>/`, or `pi/skills/<name>/` | `.opencode/skills/<name>/` and `.claude/skills/<name>/` |
+| `playbooks/<id>.md` | `{mode}-mode/playbooks/` when the profile selects playbooks |
 | `agents/*.md` | `.opencode/agent/` (pstack/godot/full) |
 | `commands/*.md` | `.opencode/command/` (pstack/godot/full) |
 | `templates/opencode/*` | `opencode.json`, `.opencode/rules/pstack-models.md`, `WORKFLOW.md`, `PSTACK-INDEX.md` |
@@ -60,11 +62,15 @@ See installed `WORKFLOW.md` and `PSTACK-INDEX.md`.
 ```
 skills/              # SKILL.md playbooks (nested by domain)
 pstack/              # vendored upstream pstack (skills, agents, guide)
+pi/                  # Pi adapter, including draconic-mode
+playbooks/           # playbook library. profiles select from here
+profiles/            # install profiles (*.yaml)
 agents/              # OpenCode agent defs (poteto, poteto-agent, comment-sicko)
 commands/            # OpenCode slash commands
 templates/opencode/  # opencode.json, rules, WORKFLOW, index
 preferences/         # AGENTS.md stub
 scripts/install.mjs
+scripts/profile.mjs
 ```
 
 ## License

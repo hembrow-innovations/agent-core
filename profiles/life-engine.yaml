@@ -1,2 +1,8 @@
-skills:
-  - 
+mode: draconic
+skills: []
+playbooks:
+  - investigation
+  - feature
+  - bug-fix
+  - refactoring
+  - opening-a-pr

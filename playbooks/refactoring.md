@@ -1,3 +1,8 @@
+---
+title: Refactoring
+when: A behavior-preserving change to structure or shape (rename, extract, inline, dedupe, move).
+---
+
 ### Refactoring
 
 **You own the contract. The structure changes; the behavior does not.** For "refactor", "rename", "extract", "inline", "dedupe", "restructure", "move this module", "tidy up this area". Distinct from Feature, which adds behavior, and Bug fix, which corrects it.

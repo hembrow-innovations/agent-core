@@ -1,3 +1,8 @@
+---
+title: Investigation
+when: "Read-only question: how does X work, why was Y built this way, are we sure about Z, should we do X or Y."
+---
+
 ### Investigation
 
 **You own the answer. Plan, route, write.**

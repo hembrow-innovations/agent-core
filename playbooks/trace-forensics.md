@@ -1,3 +1,8 @@
+---
+title: Trace forensics
+when: Diagnose a captured profiling artifact (cpuprofile, trace, spindump, heap snapshot) handed to you after the fact. The deliverable is a diagnosis, not a fix.
+---
+
 ### Trace forensics
 
 **You own the diagnosis from the artifact. Load it, shape it, narrow to the cause, attribute to source.** For a dropped `.cpuprofile`, `Trace-*.json.gz`, `Spindump.txt`, or `.heapsnapshot` paired with "why is this slow / unresponsive / leaking / crashing".

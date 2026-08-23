@@ -1,3 +1,8 @@
+---
+title: Bug fix
+when: A reported defect to reproduce, root-cause, and fix with runtime evidence.
+---
+
 ### Bug fix
 
 **You own this task. Plan, review, verify.** Delegate investigation and the fix to subagents, stay in the lead.

@@ -1,3 +1,8 @@
+---
+title: Autonomous run
+when: "A long task to drive to completion without stopping (\"run until done\", \"/loop until X\")."
+---
+
 ### Autonomous run
 
 **You own the exit condition. Define done, then drive to it without stopping.** For "going to bed" / "run until done" / "/loop until X".

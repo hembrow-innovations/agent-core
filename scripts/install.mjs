@@ -22,103 +22,10 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const REPO = "hembrow-innovations/agent-core";
 const DEFAULT_REF = "main";
-
-const CORE_SKILLS = [
-  "domain-modeling",
-  "wayfinder",
-  "tdd",
-  "handoff",
-  "improve-codebase-architecture",
-  "codebase-design",
-  "setup-matt-pocock-skills",
-  "research",
-  "prototype",
-  "planning",
-  "planning-with-docs",
-  "management",
-  "docs",
-  "unslop",
-  "bro",
-];
-
-/** Skill folder names under pstack/skills (everything with SKILL.md). */
-const PSTACK_SKILL_NAMES = [
-  "architect",
-  "arena",
-  "automate-me",
-  "blast-radius",
-  "bro",
-  "create-verification-skill",
-  "figure-it-out",
-  "how",
-  "interrogate",
-  "maintain-verification-skill",
-  "no-comments",
-  "poteto-mode",
-  "principle-boundary-discipline",
-  "principle-build-the-lever",
-  "principle-encode-lessons-in-structure",
-  "principle-exhaust-the-design-space",
-  "principle-experience-first",
-  "principle-fix-root-causes",
-  "principle-foundational-thinking",
-  "principle-guard-the-context-window",
-  "principle-laziness-protocol",
-  "principle-make-operations-idempotent",
-  "principle-migrate-callers-then-delete-legacy-apis",
-  "principle-minimize-reader-load",
-  "principle-model-the-domain",
-  "principle-never-block-on-the-human",
-  "principle-outcome-oriented-execution",
-  "principle-prove-it-works",
-  "principle-redesign-from-first-principles",
-  "principle-separate-before-serializing-shared-state",
-  "principle-sequence-verifiable-units",
-  "principle-subtract-before-you-add",
-  "principle-type-system-discipline",
-  "recall",
-  "reflect",
-  "setup-pstack",
-  "show-me-your-work",
-  "swarm",
-  "tdd",
-  "teach",
-  "technical-writing",
-  "typescript-best-practices",
-  "unslop",
-  "why",
-];
-
-const PROFILES = {
-  core: { skills: [...CORE_SKILLS], pstack: false, agents: false, commands: false, templates: false },
-  web: { skills: [...CORE_SKILLS, "playwright-cli", "react-testing"], pstack: false, agents: false, commands: false, templates: false },
-  mobile: { skills: [...CORE_SKILLS, "maestro", "react-testing"], pstack: false, agents: false, commands: false, templates: false },
-  pstack: {
-    skills: [...PSTACK_SKILL_NAMES],
-    pstack: true,
-    agents: true,
-    commands: true,
-    templates: true,
-  },
-  godot: {
-    skills: [...PSTACK_SKILL_NAMES, "godot-mono"],
-    pstack: true,
-    agents: true,
-    commands: true,
-    templates: true,
-  },
-  full: {
-    skills: [...new Set([...CORE_SKILLS, ...PSTACK_SKILL_NAMES, "playwright-cli", "maestro", "godot-mono", "react-testing"])],
-    pstack: true,
-    agents: true,
-    commands: true,
-    templates: true,
-  },
-};
 
 const SKILL_DESTS = [".opencode/skills", ".claude/skills"];
 const AGENT_DEST = join(".opencode", "agent");
@@ -129,30 +36,38 @@ const PREF_DESTS = [
   join(".github", "copilot-instructions.md"),
 ];
 
-function usage() {
+function usage(profileNames) {
+  const listed = profileNames?.length ? profileNames.join(" | ") : "see profiles/";
   console.log(`agent-core install
 
 Usage:
   install.mjs [targetDir] [options]
 
 Options:
-  --profile <name>   core (default) | web | mobile | pstack | godot | full
-  --with <skills>    comma-separated skills to add
-  --without <skills> comma-separated skills to remove
-  --ref <git-ref>    GitHub ref when fetching remotely (default: main)
-  --local <path>     Use a local agent-core checkout instead of GitHub
-  --no-agents        Skip OpenCode agents (pstack/godot/full)
-  --no-commands      Skip OpenCode commands
-  --no-templates     Skip opencode.json / WORKFLOW / rules templates
-  -h, --help         Show help
+  --profile <name>         YAML profile in profiles/ (default: core)
+  --with <skills>          comma-separated skills to add
+  --without <skills>       comma-separated skills to remove
+  --playbooks <ids>        replace profile playbook selection
+  --with-playbooks <ids>   add playbook ids
+  --without-playbooks <ids> remove playbook ids
+  --ref <git-ref>          GitHub ref when fetching remotely (default: main)
+  --local <path>           Use a local agent-core checkout instead of GitHub
+  --no-agents              Skip OpenCode agents
+  --no-commands            Skip OpenCode commands
+  --no-templates           Skip opencode.json / WORKFLOW / rules templates
+  -h, --help               Show help
 
-Profiles:
-  core     Matt Pocock-style engineering skills + prefs
-  web      core + playwright-cli + react-testing
-  mobile   core + maestro + react-testing
-  pstack   full pstack (poteto-mode, playbooks, principles) + OpenCode agents/commands
-  godot    pstack + godot-mono skill
-  full     everything
+Profiles (profiles/*.yaml):
+  ${listed}
+  core         engineering skills + prefs
+  web          core + playwright-cli + react-testing
+  mobile       core + maestro + react-testing
+  pstack       pstack skills + poteto-mode playbooks + agents/commands
+  godot        pstack + godot-mono
+  full         everything
+  life-engine  draconic-mode + a short playbook list
+
+Playbooks are selected in the YAML and overlaid into {mode}-mode.
 
 Examples:
   curl -fsSL https://raw.githubusercontent.com/${REPO}/main/scripts/install.mjs | node - --profile pstack
@@ -167,6 +82,9 @@ function parseArgs(argv) {
     profile: "core",
     with: [],
     without: [],
+    playbooks: null,
+    withPlaybooks: [],
+    withoutPlaybooks: [],
     ref: DEFAULT_REF,
     local: null,
     help: false,
@@ -179,8 +97,11 @@ function parseArgs(argv) {
     const a = args.shift();
     if (a === "-h" || a === "--help") out.help = true;
     else if (a === "--profile") out.profile = need(args, a);
-    else if (a === "--with") out.with.push(...need(args, a).split(",").map((s) => s.trim()).filter(Boolean));
-    else if (a === "--without") out.without.push(...need(args, a).split(",").map((s) => s.trim()).filter(Boolean));
+    else if (a === "--with") out.with.push(...csv(need(args, a)));
+    else if (a === "--without") out.without.push(...csv(need(args, a)));
+    else if (a === "--playbooks") out.playbooks = csv(need(args, a));
+    else if (a === "--with-playbooks") out.withPlaybooks.push(...csv(need(args, a)));
+    else if (a === "--without-playbooks") out.withoutPlaybooks.push(...csv(need(args, a)));
     else if (a === "--ref") out.ref = need(args, a);
     else if (a === "--local") out.local = resolve(need(args, a));
     else if (a === "--no-agents") out.noAgents = true;
@@ -192,6 +113,10 @@ function parseArgs(argv) {
   return out;
 }
 
+function csv(value) {
+  return value.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
 function need(args, flag) {
   const v = args.shift();
   if (!v) die(`Missing value for ${flag}`);
@@ -201,21 +126,6 @@ function need(args, flag) {
 function die(msg) {
   console.error(msg);
   process.exit(1);
-}
-
-function resolveProfile(opts) {
-  const base = PROFILES[opts.profile];
-  if (!base) die(`Unknown profile "${opts.profile}". Choose: ${Object.keys(PROFILES).join(", ")}`);
-  const set = new Set(base.skills);
-  for (const s of opts.with) set.add(s);
-  for (const s of opts.without) set.delete(s);
-  return {
-    skills: [...set].sort(),
-    agents: base.agents && !opts.noAgents,
-    commands: base.commands && !opts.noCommands,
-    templates: base.templates && !opts.noTemplates,
-    pstack: base.pstack,
-  };
 }
 
 function detectBundledRoot() {
@@ -249,11 +159,13 @@ async function fetchRemoteRoot(ref) {
   return { root: join(extract, entries[0]), cleanup: dir };
 }
 
-/** Find skill dir by name under skills/** or pstack/skills/<name>. Prefer pstack for pstack names when both exist and installing pstack. Prefer skills/workflow over skills/engineering when both exist so docs+management overlays win. */
+/** Find skill dir by name under skills/**, pstack/skills/<name>, or pi/skills/<name>. Prefer pstack when both exist and installing pstack. Prefer skills/workflow over skills/engineering when both exist so docs+management overlays win. */
 function findSkillDir(srcRoot, name, preferPstack) {
   const candidates = [];
   const pstackPath = join(srcRoot, "pstack", "skills", name);
   if (existsSync(join(pstackPath, "SKILL.md"))) candidates.push({ path: pstackPath, source: "pstack" });
+  const piPath = join(srcRoot, "pi", "skills", name);
+  if (existsSync(join(piPath, "SKILL.md"))) candidates.push({ path: piPath, source: "pi" });
 
   const skillsRoot = join(srcRoot, "skills");
   if (existsSync(skillsRoot)) {
@@ -384,16 +296,49 @@ function installPrefs(srcRoot, target) {
   }
 }
 
+async function loadProfileModule(srcRoot) {
+  const href = pathToFileURL(join(srcRoot, "scripts", "profile.mjs")).href;
+  return import(href);
+}
+
+function planFromProfile(profile, opts, available, resolvePlaybookIds) {
+  const set = new Set(profile.skills);
+  if (profile.mode) set.add(`${profile.mode}-mode`);
+  for (const s of opts.with) set.add(s);
+  for (const s of opts.without) set.delete(s);
+  return {
+    skills: [...set].sort(),
+    playbookIds: resolvePlaybookIds(profile, opts, available),
+    overlayPlaybooks:
+      profile.playbooks.kind !== "omit" ||
+      opts.playbooks != null ||
+      opts.withPlaybooks.length > 0,
+    agents: profile.agents && !opts.noAgents,
+    commands: profile.commands && !opts.noCommands,
+    templates: profile.templates && !opts.noTemplates,
+    pstack: profile.pstack,
+    mode: profile.mode,
+  };
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
-  if (opts.help) {
-    usage();
-    return;
-  }
-
-  const plan = resolveProfile(opts);
   let srcRoot = opts.local || detectBundledRoot();
   let cleanup = null;
+
+  if (opts.help) {
+    let names = null;
+    if (srcRoot) {
+      try {
+        const mod = await loadProfileModule(srcRoot);
+        names = mod.listProfiles(srcRoot);
+      } catch {
+        names = null;
+      }
+    }
+    usage(names);
+    return;
+  }
 
   if (!srcRoot) {
     const remote = await fetchRemoteRoot(opts.ref);
@@ -404,12 +349,32 @@ async function main() {
   }
 
   try {
+    const {
+      loadProfile,
+      listPlaybookIds,
+      resolvePlaybookIds,
+      installModePlaybooks,
+    } = await loadProfileModule(srcRoot);
+
+    let profile;
+    try {
+      profile = loadProfile(srcRoot, opts.profile);
+    } catch (err) {
+      die(err.message);
+    }
+
+    const plan = planFromProfile(profile, opts, listPlaybookIds(srcRoot), resolvePlaybookIds);
     if (!existsSync(opts.target)) die(`Target does not exist: ${opts.target}`);
     console.log(`Installing into ${opts.target}`);
     console.log(`Profile: ${opts.profile}`);
     console.log(`Skills (${plan.skills.length}): ${plan.skills.join(", ")}`);
 
     for (const name of plan.skills) copySkill(srcRoot, name, opts.target, plan.pstack);
+    if (plan.overlayPlaybooks) {
+      if (!plan.mode) die("Playbook overlay requires profile.mode");
+      installModePlaybooks(srcRoot, opts.target, plan.mode, plan.playbookIds);
+      console.log(`  playbooks (${plan.playbookIds.length}) → ${plan.mode}-mode/playbooks`);
+    }
     if (plan.agents) installAgents(srcRoot, opts.target);
     if (plan.commands) installCommands(srcRoot, opts.target);
     if (plan.templates) installTemplates(srcRoot, opts.target);

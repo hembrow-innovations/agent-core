@@ -1,3 +1,8 @@
+---
+title: Feature
+when: New or changed behavior, built from a named data shape.
+---
+
 ### Feature
 
 **You own the design. Plan, review, verify.** Delegate implementation; stay in the lead.

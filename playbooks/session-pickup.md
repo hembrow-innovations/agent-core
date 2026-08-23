@@ -1,3 +1,8 @@
+---
+title: Session pickup
+when: "Resuming or taking over a prior agent's in-flight work from a transcript, cloud-agent URL, or pushed branch."
+---
+
 ### Session pickup
 
 **You own the resume point. Read the prior trail, don't redo it.** For "take over this", "resume this conversation", "continue from <transcript path>", "you're taking over", "pick up where X left off", a cloud-agent URL handoff, or a pushed branch you're meant to continue.

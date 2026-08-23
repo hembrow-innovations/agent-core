@@ -1,3 +1,8 @@
+---
+title: Shipping
+when: The half after Babysit. Independently verifying a green stack, then landing the contiguous verified run with Graphite merge-when-ready.
+---
+
 ### Shipping
 
 **You own what lands. Verify each PR independently, land only the verified run from the root, then keep your hands off the queue.** For "land the stack", "ship it", "enable merge when ready", or the second half of a stack that **Babysit** already drove to green.

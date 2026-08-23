@@ -1,3 +1,8 @@
+---
+title: Visual parity
+when: "Pixel-exact UI equivalence: matching two implementations or migrating a styling system."
+---
+
 ### Visual parity
 
 **You own pixel-exact equivalence. The baseline is the spec; you do not touch it.** For "make X match Y exactly", styling-system migrations, porting a UI across frameworks. Equivalence is verified by image diff, not by eye.
