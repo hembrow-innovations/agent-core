@@ -36,7 +36,9 @@ Install writes only that dest. `--harness <id>` overrides the profile value.
 - `.pi/.gitignore` if that file is missing
 - package sources from `pi/packages.json` into `.pi/settings.json`
 
-A missing `pi/APPEND_SYSTEM.md`, `pi/draconic-models.md`, `pi/prompts/`, or `pi/extensions/` is an error.
+`pi/roles/` is required. Install copies each pack `*.md` whose stem matches the role name pattern into `.pi/roles/` only when that dest file is missing, and overwrites `.pi/roles/argv.mjs` every time. Dest role files are not pruned.
+
+A missing `pi/APPEND_SYSTEM.md`, `pi/draconic-models.md`, `pi/prompts/`, `pi/extensions/`, or `pi/roles/` is an error.
 
 `pi/packages.json` is a JSON array of Pi package sources such as `npm:pi-lens`. Install merges those sources into `.pi/settings.json` `packages` and leaves other settings keys alone. An existing object-form entry with the same `source` counts as present. Pi then installs any missing project packages on the next trusted startup.
 

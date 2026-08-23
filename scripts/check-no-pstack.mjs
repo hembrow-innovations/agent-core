@@ -67,12 +67,15 @@ function resolveSkill(name) {
 const piRoot = join(root, "pi");
 if (existsSync(piRoot)) {
   const names = new Set(readdirSync(piRoot).filter((n) => !n.startsWith(".")));
-  const allowed = new Set(["extensions", "APPEND_SYSTEM.md", "draconic-models.md", "prompts", "packages.json"]);
+  const allowed = new Set(["extensions", "APPEND_SYSTEM.md", "draconic-models.md", "prompts", "packages.json", "roles"]);
   for (const need of allowed) {
     if (!names.has(need)) errors.push(`pi/ missing ${need}`);
   }
   const extra = [...names].filter((n) => !allowed.has(n)).sort();
   if (extra.length) errors.push(`pi/ unexpected ${extra.join(", ")}`);
+  for (const rel of ["pi/roles/argv.mjs", "pi/roles/researcher.md", "pi/roles/architect.md", "pi/roles/coder.md"]) {
+    if (!existsSync(join(root, rel))) errors.push(`missing ${rel}`);
+  }
 }
 
 for (const name of listProfiles(root)) {

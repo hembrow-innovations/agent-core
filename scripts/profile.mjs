@@ -274,12 +274,20 @@ export function installModePlaybooks(srcRoot, target, mode, ids, destBases) {
   }
 }
 
+const ROLE_STEM_RE = /^[a-z][a-z0-9-]{0,63}$/;
+const SHIPPED_ROLE_FILES = ["argv.mjs", "researcher.md", "architect.md", "coder.md"];
+
 export function installPiRuntime(srcRoot, target, opts = {}) {
   const pack = join(srcRoot, "pi");
-  const required = ["extensions", "APPEND_SYSTEM.md", "draconic-models.md", "prompts"];
+  const required = ["extensions", "APPEND_SYSTEM.md", "draconic-models.md", "prompts", "roles"];
   for (const name of required) {
     if (!existsSync(join(pack, name))) {
       throw new Error(`Pi pack missing: expected pi/${name}`);
+    }
+  }
+  for (const name of SHIPPED_ROLE_FILES) {
+    if (!existsSync(join(pack, "roles", name))) {
+      throw new Error(`Pi pack missing: expected pi/roles/${name}`);
     }
   }
 
@@ -309,6 +317,18 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
   writeIfMissing(join(target, ".pi", "APPEND_SYSTEM.md"), readFileSync(join(pack, "APPEND_SYSTEM.md"), "utf8"));
   writeIfMissing(join(target, ".pi", "draconic-models.md"), readFileSync(join(pack, "draconic-models.md"), "utf8"));
   writeIfMissing(join(target, ".pi", ".gitignore"), "npm/\ngit/\n");
+
+  const destRoles = join(target, ".pi", "roles");
+  mkdirSync(destRoles, { recursive: true });
+  const packRoles = join(pack, "roles");
+  for (const ent of readdirSync(packRoles, { withFileTypes: true })) {
+    if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
+    const stem = ent.name.slice(0, -3);
+    if (!ROLE_STEM_RE.test(stem)) continue;
+    writeIfMissing(join(destRoles, ent.name), readFileSync(join(packRoles, ent.name), "utf8"));
+  }
+  cpSync(join(packRoles, "argv.mjs"), join(destRoles, "argv.mjs"));
+
   mergePiSettingsPackages(join(target, ".pi", "settings.json"), readPiPackages(pack));
 }
 

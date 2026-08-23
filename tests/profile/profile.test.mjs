@@ -374,6 +374,7 @@ test("installPiRuntime writes boot, models, and profile-filtered prompts", () =>
   writeFileSync(join(root, "pi", "prompts", "how.md"), "how\n");
   writeFileSync(join(root, "pi", "prompts", "why.md"), "why\n");
   writeFileSync(join(root, "pi", "prompts", "orchestrate.md"), "orch\n");
+  writePiRolesPack(root);
 
   const dest = mkdtempSync(join(tmpdir(), "pi-rt-"));
   installPiRuntime(root, dest, { skills: ["how"], playbooks: ["orchestrate"] });
@@ -403,6 +404,7 @@ test("installPiRuntime merges pack packages into settings.json", () => {
     join(root, "pi", "packages.json"),
     JSON.stringify(["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"]),
   );
+  writePiRolesPack(root);
 
   const dest = mkdtempSync(join(tmpdir(), "pi-rt-pkg-"));
   installPiRuntime(root, dest);
@@ -448,6 +450,28 @@ test("mergePiSettingsPackages is idempotent and keeps object-form sources", () =
   assert.equal(packageSource({ source: "npm:pi-lens" }), "npm:pi-lens");
 });
 
+test("installPiRuntime keeps a customized dest role file and replaces argv.mjs", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "pi", "extensions"), { recursive: true });
+  mkdirSync(join(root, "pi", "prompts"), { recursive: true });
+  writeFileSync(join(root, "pi", "extensions", "boot.ts"), "export default function () {}\n");
+  writeFileSync(join(root, "pi", "APPEND_SYSTEM.md"), "boot\n");
+  writeFileSync(join(root, "pi", "draconic-models.md"), "models\n");
+  writePiRolesPack(root);
+
+  const dest = mkdtempSync(join(tmpdir(), "pi-rt-roles-"));
+  installPiRuntime(root, dest);
+  const destResearcher = join(dest, ".pi", "roles", "researcher.md");
+  writeFileSync(destResearcher, "custom researcher\n");
+  writeFileSync(join(dest, ".pi", "roles", "argv.mjs"), "old helper\n");
+  writeFileSync(join(dest, ".pi", "roles", "reviewer.md"), "operator added\n");
+  writeFileSync(join(root, "pi", "roles", "argv.mjs"), "new helper\n");
+  installPiRuntime(root, dest);
+  assert.equal(readFileSync(destResearcher, "utf8"), "custom researcher\n");
+  assert.equal(readFileSync(join(dest, ".pi", "roles", "argv.mjs"), "utf8"), "new helper\n");
+  assert.equal(readFileSync(join(dest, ".pi", "roles", "reviewer.md"), "utf8"), "operator added\n");
+});
+
 test("installPiRuntime dies when the pack is incomplete", () => {
   const root = tempRoot();
   mkdirSync(join(root, "pi", "extensions"), { recursive: true });
@@ -473,6 +497,7 @@ test("install --profile pi writes .pi only", () => {
   assert.match(r.stdout, /Harness: pi/);
   const piSkill = readFileSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md"), "utf8");
   assert.match(piSkill, /Pi runtime adapter/);
+  assert.equal(existsSync(join(dest, ".pi", "roles", "researcher.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-spawn.ts")), true);
   assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-boot.ts")), true);
   const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
@@ -649,6 +674,17 @@ function tempRoot() {
 
 function writeYaml(root, name, body) {
   writeFileSync(join(root, "profiles", `${name}.yaml`), body);
+}
+
+function writePiRolesPack(root) {
+  mkdirSync(join(root, "pi", "roles"), { recursive: true });
+  writeFileSync(join(root, "pi", "roles", "argv.mjs"), "export {}\n");
+  for (const name of ["researcher", "architect", "coder"]) {
+    writeFileSync(
+      join(root, "pi", "roles", `${name}.md`),
+      `---\npurpose: ${name}\n---\n\n${name} body\n`,
+    );
+  }
 }
 
 function snapshotInstall(dest) {
