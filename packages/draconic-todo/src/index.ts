@@ -55,13 +55,10 @@ export default function (pi: ExtensionAPI) {
 				case "write": {
 					const markdown = params.markdown;
 					if (!markdown) {
+						const text = "markdown is required for action write";
 						return {
-							content: [
-								{
-									type: "text" as const,
-									text: "markdown is required for action write",
-								},
-							],
+							content: [{ type: "text" as const, text }],
+							details: { error: text },
 						};
 					}
 					let sessionId: SessionId;
@@ -72,6 +69,7 @@ export default function (pi: ExtensionAPI) {
 							error instanceof Error ? error.message : "invalid session id";
 						return {
 							content: [{ type: "text" as const, text: message }],
+							details: { error: message },
 						};
 					}
 					const sessionPath = resolve(sessionTodoPath(ctx.cwd, sessionId));
@@ -107,13 +105,10 @@ export default function (pi: ExtensionAPI) {
 				}
 				default: {
 					const _exhaustive: never = params.action;
+					const text = `Unknown action: ${String(_exhaustive)}`;
 					return {
-						content: [
-							{
-								type: "text" as const,
-								text: `Unknown action: ${String(_exhaustive)}`,
-							},
-						],
+						content: [{ type: "text" as const, text }],
+						details: { error: text },
 					};
 				}
 			}
