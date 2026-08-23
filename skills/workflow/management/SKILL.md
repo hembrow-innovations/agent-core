@@ -8,7 +8,7 @@ description: How to find, read, and write local project management under `.draco
 `.draconic/` is the local working tree for project management. It holds inbox notes, issues, plans, tasks, the daily journal, and one-off reports. Git ignores the folder. `docs/` is the committed source of truth.
 
 There is no GitHub Issues tracker in this convention. Live work lives here.
-Durable knowledge that should survive a clone is written into `docs/`.
+Durable knowledge that should survive a clone is written into `docs/`. Load the **docs** skill for that tree.
 
 Per-rule detail lives in `rules/<prefix>-*.md`. Copy-ready skeletons live in `templates/`.
 
@@ -105,3 +105,5 @@ templates/<kind>.md
 ```
 
 Read only the rules for the current task. Do not bulk-read `rules/` or every template.
+
+Committed truth (ADR, spec, architecture, guide). Load the **docs** skill.

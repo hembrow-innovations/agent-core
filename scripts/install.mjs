@@ -40,6 +40,7 @@ const CORE_SKILLS = [
   "planning",
   "planning-with-docs",
   "management",
+  "docs",
   "unslop",
   "bro",
 ];
