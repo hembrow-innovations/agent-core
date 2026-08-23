@@ -31,6 +31,7 @@ import { basename, dirname, join } from "node:path";
  *   agents: boolean,
  *   commands: boolean,
  *   templates: boolean,
+ *   extensions: string[],
  * }} Profile
  */
 
@@ -50,6 +51,7 @@ const PROFILE_KEYS = new Set([
   "commands",
   "templates",
   "harness",
+  "extensions",
 ]);
 
 const START = "<!-- playbooks:start -->";
@@ -133,6 +135,7 @@ export function loadProfile(srcRoot, name) {
     agents,
     commands,
     templates,
+    extensions: asStringList(raw.extensions, "extensions"),
   };
 }
 

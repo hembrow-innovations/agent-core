@@ -83,9 +83,20 @@ test("install --profile pi writes skills, pack files, and third-party npm source
   assert.deepEqual(
     JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8"))
       .packages,
-    ["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"],
+    [
+      "npm:pi-lens",
+      "npm:pi-web-access",
+      "npm:pi-subagents",
+      ".pi/vendor/@agentic-core/draconic-todo",
+      ".pi/vendor/@agentic-core/draconic-coms",
+      ".pi/vendor/@agentic-core/draconic-boot",
+    ],
   );
-  assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
+  const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
+  assert.equal(existsSync(join(vendorRoot, "draconic-todo", "src", "index.ts")), true);
+  assert.equal(existsSync(join(vendorRoot, "draconic-coms", "src", "index.ts")), true);
+  assert.equal(existsSync(join(vendorRoot, "draconic-boot", "src", "index.ts")), true);
+  assert.equal(existsSync(join(vendorRoot, "lib")), false);
   assert.equal(existsSync(join(dest, ".opencode")), false);
 });
 

@@ -115,6 +115,7 @@ playbooks:
     agents: false,
     commands: false,
     templates: false,
+    extensions: [],
   });
 
   assert.deepEqual(loadProfile(root, "all").playbooks, { kind: "all" });
@@ -148,6 +149,25 @@ test("loadProfile: unknown key dies", () => {
   const root = tempRoot();
   writeYaml(root, "x", "harness: opencode\nfoo: 1\n");
   assert.throws(() => loadProfile(root, "x"), /Unknown profile key "foo"/);
+});
+
+test("loadProfile: extensions default empty and accept a list", () => {
+  const root = tempRoot();
+  writeYaml(root, "bare", "harness: opencode\nskills: []\n");
+  writeYaml(
+    root,
+    "ext",
+    `harness: pi
+extensions:
+  - draconic-todo
+  - draconic-coms
+`,
+  );
+  assert.deepEqual(loadProfile(root, "bare").extensions, []);
+  assert.deepEqual(loadProfile(root, "ext").extensions, [
+    "draconic-todo",
+    "draconic-coms",
+  ]);
 });
 
 test("loadProfile: agents true on non-opencode dies", () => {
@@ -355,6 +375,16 @@ test("repo agentic-core profile loads", () => {
   assert.deepEqual(missing, []);
 });
 
+test("repo pi profiles list todo, coms, and boot", () => {
+  for (const name of ["pi", "agentic-core", "life-engine-pi"]) {
+    assert.deepEqual(loadProfile(REPO, name).extensions, [
+      "draconic-todo",
+      "draconic-coms",
+      "draconic-boot",
+    ]);
+  }
+});
+
 test("repo pi profile resolves every skill from skills/", () => {
   const p = loadProfile(REPO, "pi");
   assert.equal(p.harness, "pi");
@@ -514,7 +544,11 @@ test("install --profile pi writes .pi only", () => {
   const piSkill = readFileSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md"), "utf8");
   assert.match(piSkill, /Pi runtime adapter/);
   assert.equal(existsSync(join(dest, ".pi", "roles", "researcher.md")), true);
-  assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
+  const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
+  assert.equal(existsSync(join(vendorRoot, "draconic-todo", "src", "index.ts")), true);
+  assert.equal(existsSync(join(vendorRoot, "draconic-coms", "src", "index.ts")), true);
+  assert.equal(existsSync(join(vendorRoot, "draconic-boot", "src", "index.ts")), true);
+  assert.equal(existsSync(join(vendorRoot, "lib")), false);
   const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
   assert.match(append, /draconic-mode on Pi/);
   assert.match(readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"), /feature, refactoring:/);
@@ -522,7 +556,14 @@ test("install --profile pi writes .pi only", () => {
   assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "prompts", "orchestrate.md")), true);
   assert.deepEqual(JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8")), {
-    packages: ["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"],
+    packages: [
+      "npm:pi-lens",
+      "npm:pi-web-access",
+      "npm:pi-subagents",
+      ".pi/vendor/@agentic-core/draconic-todo",
+      ".pi/vendor/@agentic-core/draconic-coms",
+      ".pi/vendor/@agentic-core/draconic-boot",
+    ],
   });
   assert.match(r.stdout, /Pi installs project packages from \.pi\/settings\.json/);
   assert.equal(existsSync(join(dest, "AGENTS.md")), false);
@@ -566,7 +607,9 @@ test("install --profile life-engine-pi writes .pi only", () => {
   assert.match(r.stdout, /Harness: pi/);
   assert.equal(existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "skills", "vault-pack", "SKILL.md")), true);
-  assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
+  const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
+  assert.equal(existsSync(join(vendorRoot, "draconic-todo", "src", "index.ts")), true);
+  assert.equal(existsSync(join(vendorRoot, "lib")), false);
   assert.equal(existsSync(join(dest, ".opencode")), false);
   assert.equal(existsSync(join(dest, ".claude")), false);
   assert.equal(existsSync(join(dest, ".agents")), false);

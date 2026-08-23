@@ -13,6 +13,8 @@ playbooks: all        # omit the key, `all`, or a list of playbook ids
 agents: true          # copy agents/. Default: false. Valid only when harness is opencode
 commands: true        # copy commands/. Default: false. Valid only when harness is opencode
 templates: true       # copy templates/opencode. Default: false. Valid only when harness is opencode
+extensions:           # first-party package folder names. Default: []. Installed when dest harness is pi
+  - draconic-todo
 ```
 
 `harness` selects the dest tree from `HARNESSES` in `scripts/profile.mjs`.
@@ -44,7 +46,7 @@ A missing `pi/APPEND_SYSTEM.md`, `pi/draconic-models.md`, `pi/prompts/`, `pi/ext
 
 A leftover `pi:` key is an error. The message says `use harness: pi`. Missing, empty, or unknown `harness` is an error and names the known ids. Unknown YAML keys are an error. `agents`, `commands`, or `templates` set true on a non-opencode harness is an error.
 
-Boolean keys default to false. `mode` defaults to unset. `skills` defaults to an empty list.
+Boolean keys default to false. `mode` defaults to unset. `skills` and `extensions` default to empty lists. A profile install also vendors `extensions` when the dest harness is `pi`. `--extension` names install on top of that list.
 
 ## Playbooks
 

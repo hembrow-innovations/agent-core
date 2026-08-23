@@ -1,6 +1,10 @@
 harness: pi
 mode: draconic
 playbooks: all
+extensions:
+  - draconic-todo
+  - draconic-coms
+  - draconic-boot
 skills:
   - architect
   - arena

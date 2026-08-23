@@ -33,6 +33,7 @@ type Profile = {
   agents: boolean;
   commands: boolean;
   templates: boolean;
+  extensions: string[];
 };
 
 type Harness = {
@@ -98,6 +99,7 @@ type InstallPlan = {
   runtime: "opencode" | "pi" | null;
   mode: string | null;
   harness: string;
+  extensions: FirstPartyExtension[];
 };
 
 function usage(profileNames: string[] | null): void {
@@ -358,6 +360,25 @@ function resolveHarnessId(opts: InstallRequest, profile: Profile): string {
   return profile.harness;
 }
 
+function resolveExtensions(
+  profileNames: string[],
+  cliNames: readonly FirstPartyExtension[],
+): FirstPartyExtension[] {
+  const out: FirstPartyExtension[] = [];
+  const seen = new Set<FirstPartyExtension>();
+  for (const name of [...profileNames, ...cliNames]) {
+    if (!isFirstPartyExtension(name)) {
+      throw new Error(
+        `Unknown extension: ${name}. Choose: ${FIRST_PARTY_EXTENSIONS.join(", ")}`,
+      );
+    }
+    if (seen.has(name)) continue;
+    seen.add(name);
+    out.push(name);
+  }
+  return out;
+}
+
 function planFromProfile(
   profile: Profile,
   opts: InstallRequest,
@@ -390,6 +411,7 @@ function planFromProfile(
     runtime: harness.runtime,
     mode: profile.mode,
     harness: harnessId,
+    extensions: resolveExtensions(profile.extensions, opts.extensions),
   };
 }
 
@@ -487,9 +509,9 @@ async function run(argv: string[]): Promise<void> {
       playbooks: plan.playbookIds,
     });
     console.log("  pi runtime → .pi");
-    if (opts.extensions.length > 0) {
+    if (plan.extensions.length > 0) {
       try {
-        installVendorExtensions(srcRoot, opts.target, opts.extensions);
+        installVendorExtensions(srcRoot, opts.target, plan.extensions);
       } catch (err) {
         die(err instanceof Error ? err.message : String(err));
       }
