@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import { existsSync, mkdtempSync } from "node:fs";
 import { join } from "node:path";
 import { after, test } from "node:test";
-import {
+import protocolFactory, {
   bindPeer,
   writeRegistryAtomic,
   type BoundPeer,
   type RegistryEntry,
-} from "../pi/extensions/draconic-coms-protocol.ts";
+} from "../../pi/extensions/draconic-coms-protocol.ts";
 
 const comsDir = mkdtempSync("/tmp/draconic-coms-");
 const peers: BoundPeer[] = [];
@@ -27,6 +27,11 @@ async function start(name: string, extra?: { purpose?: string; cwd?: string; mod
   peers.push(peer);
   return peer;
 }
+
+test("protocol module exports a factory so Pi will load the sibling file", () => {
+  assert.equal(typeof protocolFactory, "function");
+  assert.equal(protocolFactory(), undefined);
+});
 
 test("two in-process peers talk over the unix socket protocol", async () => {
   const planner = await start("planner", { purpose: "Plans the work" });

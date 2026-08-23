@@ -19,9 +19,9 @@ import {
   renderPlaybookCatalog,
   resolvePlaybookIds,
   rewriteSkillPlaybooks,
-} from "./profile.mjs";
+} from "../../scripts/profile.mjs";
 
-const REPO = fileURLToPath(new URL("..", import.meta.url));
+const REPO = fileURLToPath(new URL("../..", import.meta.url));
 const CORE_WITHOUT =
   "domain-modeling,wayfinder,tdd,handoff,improve-codebase-architecture,codebase-design,setup-matt-pocock-skills,research,prototype,planning,planning-with-docs,management,docs,unslop";
 

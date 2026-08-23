@@ -8,14 +8,14 @@ import {
   parseReviewThreads,
   resolveChecks,
   resolveContext,
-} from "./github.ts";
+} from "../../skills/workflow/draconic-mode/scripts/watch-pr/github.ts";
 import {
   fakeReader,
   failedCheck,
   passingCheck,
   pendingCheck,
 } from "./fakes.test-helper.ts";
-import { parsePrNumber } from "./types.ts";
+import { parsePrNumber } from "../../skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
 
 const context = {
   owner: "owner",

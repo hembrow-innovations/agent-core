@@ -481,6 +481,10 @@ async function listen(endpoint: string, handler: (socket: Socket) => void): Prom
   });
 }
 
+export default function draconicComsProtocol(): void {
+  // Pi loads every .ts file in .pi/extensions/. This module is a library.
+}
+
 export async function bindPeer(opts: BindPeerOptions): Promise<BoundPeer> {
   const project = opts.project || DEFAULT_PROJECT;
   const maxHops = opts.maxHops ?? defaultMaxHops();

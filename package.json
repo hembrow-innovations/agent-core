@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bash scripts/run-tests.sh"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "0.84.2",

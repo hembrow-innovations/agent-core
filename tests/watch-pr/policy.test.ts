@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { WatcherQueryError } from "./github.ts";
+import { WatcherQueryError } from "../../skills/workflow/draconic-mode/scripts/watch-pr/github.ts";
 import {
   applyQueueSnapshot,
   assessGitHubMerge,
@@ -11,7 +11,7 @@ import {
   readSnapshot,
   runQueued,
   selectTierMajorStackDecision,
-} from "./policy.ts";
+} from "../../skills/workflow/draconic-mode/scripts/watch-pr/policy.ts";
 import {
   fakeReader,
   failedCheck,
@@ -26,8 +26,8 @@ import type {
   ProgressVerdict,
   PullRequestFacts,
   RollupState,
-} from "./types.ts";
-import { parsePrNumber } from "./types.ts";
+} from "../../skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
+import { parsePrNumber } from "../../skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
 
 const context = (number: number): PrContext => ({
   owner: "owner",
