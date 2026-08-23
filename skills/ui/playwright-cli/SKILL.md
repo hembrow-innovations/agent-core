@@ -1,72 +1,93 @@
 ---
 name: playwright-cli
-description: Drive web and desktop UI tests with Playwright (CLI and test runner). Use when writing, running, or debugging Playwright e2e tests.
+description: Drive Expo web and React Native Web with the playwright-cli agent browser (open, click, snapshot, screenshot). Use for interactive debugging, form filling, screenshots, and exploratory RN-web checks. Not Jest/RNTL, not Maestro device E2E, not the committed Playwright suite. Triggers on playwright-cli, npx playwright cli, expo start --web, getByTestId, data-testid.
+metadata:
+  version: "1.0.0"
 ---
 
-# Playwright CLI / e2e
+# Playwright CLI (React Native Web)
 
-Thin playbook for Playwright. Discover project layout at runtime; do not invent paths.
+Progressive rules for the agent browser CLI against Expo web and React Native Web. Discover the repo first. Read only rule files that match the task.
 
-## Prerequisites
+## Discover first
 
-```bash
-# Prefer the project's local binary
-npx playwright --version 2>/dev/null || npx playwright-core --version 2>/dev/null
-ls node_modules/@playwright/test 2>/dev/null
-```
+1. Resolve the binary: `playwright-cli` or `npx playwright cli` (`disc-cli-binary`).
+2. Find how this repo starts web. Read the printed origin. Do not invent host or port.
+3. Read README, justfile, CI, and any project `playwright-cli` skill for seed users and scratch dirs.
+4. Confirm the target is a browser. Native device work is Maestro.
 
-If Playwright isn't installed, check `package.json` and propose adding `@playwright/test` (or the stack the repo already uses). Install browsers only when needed:
+If there is no web target, stop. Do not invent a Playwright suite.
 
-```bash
-npx playwright install
-```
+## Stack caveats
 
-## Discover project conventions
+**Assumes:** A running web origin. Expo web or React Native Web in Chromium, Firefox, or WebKit. This CLI is `playwright-cli` / `npx playwright cli`, not `npx playwright test`.
 
-Before writing or changing tests:
+**Prefer:** snapshot then act by ref; `testID` as `data-testid` / `getByTestId`; `--mobile` for phone chrome; gitignored scratch for screenshots; the project's start script.
 
-1. Find config: `playwright.config.*`, `playwright.config.*.*`
-2. Find tests: paths from config `testDir`, or common dirs `e2e/`, `tests/e2e/`, `**/*.spec.ts`
-3. Read npm/pnpm/yarn scripts and CI for the canonical run command
-4. Match existing fixtures, Page Object (or not) patterns, and assertion style
+**Careful:** Refs expire after navigation. Pressable often has no button role. `Platform.OS` is `web`. Expo Go native is not this CLI.
 
-If none exist, propose a minimal `playwright.config.ts` + test dir and confirm with the user.
+**Do not introduce:** Detox, Appium, Cypress, a committed Playwright suite the repo does not have, or Playwright against iOS or Android. Unit tests stay on Jest and RNTL (`react-testing`). Device E2E stays on Maestro.
 
-## Canonical commands
+A project-local **playwright-cli** skill owns origin, seed login, and scratch paths when present.
 
-```bash
-# Run all e2e (prefer package scripts when present)
-npx playwright test
+## When to apply
 
-# One file / project / headed / debug
-npx playwright test path/to/file.spec.ts
-npx playwright test --project=chromium
-npx playwright test --headed
-npx playwright test --debug
-npx playwright show-report
-```
+Click through Expo web. Fill a form. Capture a screenshot for a human. Inspect console or network on a live RN-web page. Not for unit tests, Maestro YAML, or committed `*.spec.ts`.
 
-For ad-hoc exploration (not committed tests), `npx playwright codegen <url>` is fine.
+## Priority bands
 
-## Authoring rules
+| Pri | Category | Impact | Prefix |
+|-----|----------|--------|--------|
+| 1 | Discover | CRITICAL | `disc-` |
+| 2 | Stack | CRITICAL | `stack-` |
+| 3 | Core loop | CRITICAL | `core-` |
+| 4 | Snapshot | CRITICAL | `snap-` |
+| 5 | Selectors | CRITICAL | `sel-` |
+| 6 | React Native Web | HIGH | `rn-` |
+| 7 | Pitfalls | HIGH | `pitfall-` |
+| 8 | Nav and sessions | HIGH | `nav-` `session-` |
+| 9 | Artifacts | HIGH | `artifact-` |
+| 10 | Network and storage | MEDIUM | `net-` `storage-` |
+| 11 | Inspect | MEDIUM | `inspect-` |
+| 12 | Examples | MEDIUM | `example-` |
+| 13 | Layer | LOW | `layer-` |
 
-- Test user-visible behavior at a stable seam (page/URL/component under test), not private internals.
-- Prefer role/label/text and `getByTestId` over brittle CSS/xpath.
-- Use web-first assertions (`expect(locator).toBeVisible()`, etc.) for auto-waiting.
-- Isolate state: each test sets up what it needs; don't rely on run order.
-- Keep secrets out of the repo; use env vars the project already uses.
+## Quick reference
 
-## Desktop / Electron
+**disc-:** `disc-cli-binary` global vs npx · `disc-project-url` real origin · `disc-match-conventions` scratch and seed
 
-If the project is Electron or another Playwright-driven desktop shell, follow **that repo's** launch config (`_electron`, custom `transport`, etc.). Don't assume a browser base URL.
+**stack-:** `stack-web-not-native` browser only
 
-## Debug loop
+**core-:** `core-install` @playwright/cli · `core-quickstart` open snapshot act close · `core-interact` click fill type · `core-keyboard-mouse` press wheel · `core-find` search snapshot · `core-eval` attributes · `core-raw-output` pipe
 
-1. Reproduce with the project script or `npx playwright test <path>`.
-2. Use trace/report on failure: `npx playwright show-report` / `--trace on`.
-3. Minimize to one failing test; fix app or test; re-run.
-4. Quarantine flakes only with user approval; prefer fixing sync/selectors.
+**snap-:** `snap-after-each-act` refs expire · `snap-target-refs` e15 CSS locator
 
-## Out of scope
+**sel-:** `sel-role-testid` getByRole then getByTestId
 
-Full Playwright docs dump, visual-regression platform setup, and non-Playwright tools unless asked.
+**rn-:** `rn-expo-web-start` expo --web · `rn-testid-web` data-testid · `rn-pressable` no button role · `rn-textinput` fill · `rn-router` Expo Router paths · `rn-mobile-profile` --mobile
+
+**pitfall-:** `pitfall-no-invent-url` · `pitfall-no-native-device` · `pitfall-no-commit-auth`
+
+**nav- / session-:** `nav-history` · `nav-open-options` · `nav-windows-ampersand` · `session-tabs` · `session-named`
+
+**artifact-:** `artifact-gitignored` · `artifact-snapshot-over-screenshot`
+
+**net- / storage-:** `net-route-mock` · `storage-state`
+
+**inspect-:** `inspect-console-requests` · `inspect-run-code` · `inspect-trace-video`
+
+**example-:** `example-form` · `example-debug`
+
+**layer-:** `layer-unit-not-cli` Jest RNTL · `layer-not-committed-suite` not playwright test
+
+## How to use
+
+1. Discover the repo (binary, origin, scripts).
+2. Pick **1–N** rule ids (higher priority first).
+3. `Read` only `rules/<id>.md` (relative to this skill directory).
+4. Do **not** bulk-read `rules/` or load all of `AGENTS.md` unless stuck or asked.
+5. Reviewing or refactoring: walk categories top-down until covered.
+
+## Full reference
+
+Command catalog and official docs: `AGENTS.md` (reference only; prefer `rules/` + this router).
