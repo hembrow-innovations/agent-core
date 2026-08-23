@@ -11,7 +11,10 @@ import {
   installPiRuntime,
   listProfiles,
   loadProfile,
+  mergePiSettingsPackages,
+  packageSource,
   parseProfileYaml,
+  readPiPackages,
   readPlaybookMeta,
   renderPlaybookCatalog,
   resolvePlaybookIds,
@@ -306,6 +309,35 @@ test("repo life-engine profile loads", () => {
   assert.deepEqual(missing, []);
 });
 
+test("repo life-engine-pi profile loads", () => {
+  const p = loadProfile(REPO, "life-engine-pi");
+  assert.equal(p.mode, "draconic");
+  assert.deepEqual(p.playbooks, { kind: "all" });
+  assert.equal(p.agents, false);
+  assert.equal(p.commands, false);
+  assert.equal(p.templates, false);
+  assert.equal(p.harness, "pi");
+  const ported = [
+    "behaviour-contracts",
+    "diagnose",
+    "frontend-design",
+    "tanstack-query",
+    "thermo-review",
+    "to-issues",
+    "triage",
+    "typography",
+    "vault-pack",
+    "vercel-react-best-practices",
+    "verify-issue",
+    "webapp-testing",
+    "write-a-skill",
+    "comment-sicko",
+  ];
+  for (const name of ported) assert.ok(p.skills.includes(name), name);
+  const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
+  assert.deepEqual(missing, []);
+});
+
 test("repo pi profile resolves every skill from skills/", () => {
   const p = loadProfile(REPO, "pi");
   assert.equal(p.harness, "pi");
@@ -324,6 +356,11 @@ test("repo pi profile resolves every skill from skills/", () => {
   assert.equal(existsSync(join(REPO, "pi", "APPEND_SYSTEM.md")), true);
   assert.equal(existsSync(join(REPO, "pi", "draconic-models.md")), true);
   assert.equal(existsSync(join(REPO, "pi", "prompts", "draconic-mode.md")), true);
+  assert.deepEqual(readPiPackages(join(REPO, "pi")), [
+    "npm:pi-lens",
+    "npm:pi-web-access",
+    "npm:pi-subagents",
+  ]);
 });
 
 test("installPiRuntime writes boot, models, and profile-filtered prompts", () => {
@@ -352,6 +389,62 @@ test("installPiRuntime writes boot, models, and profile-filtered prompts", () =>
   assert.equal(readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"), "custom\n");
   assert.equal(readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"), "picked\n");
   assert.equal(existsSync(join(dest, ".pi", "prompts", "why.md")), false);
+});
+
+test("installPiRuntime merges pack packages into settings.json", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "pi", "extensions"), { recursive: true });
+  mkdirSync(join(root, "pi", "prompts"), { recursive: true });
+  writeFileSync(join(root, "pi", "extensions", "boot.ts"), "export default function () {}\n");
+  writeFileSync(join(root, "pi", "APPEND_SYSTEM.md"), "boot\n");
+  writeFileSync(join(root, "pi", "draconic-models.md"), "models\n");
+  writeFileSync(
+    join(root, "pi", "packages.json"),
+    JSON.stringify(["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"]),
+  );
+
+  const dest = mkdtempSync(join(tmpdir(), "pi-rt-pkg-"));
+  installPiRuntime(root, dest);
+  assert.deepEqual(JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8")), {
+    packages: ["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"],
+  });
+
+  writeFileSync(
+    join(dest, ".pi", "settings.json"),
+    `${JSON.stringify(
+      {
+        theme: "dark",
+        packages: [{ source: "npm:pi-lens", extensions: [] }, "npm:custom"],
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  installPiRuntime(root, dest);
+  assert.deepEqual(JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8")), {
+    theme: "dark",
+    packages: [
+      { source: "npm:pi-lens", extensions: [] },
+      "npm:custom",
+      "npm:pi-web-access",
+      "npm:pi-subagents",
+    ],
+  });
+});
+
+test("readPiPackages rejects a bad pack list", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "pi"), { recursive: true });
+  writeFileSync(join(root, "pi", "packages.json"), "{}\n");
+  assert.throws(() => readPiPackages(join(root, "pi")), /must be a JSON array/);
+});
+
+test("mergePiSettingsPackages is idempotent and keeps object-form sources", () => {
+  const dest = join(mkdtempSync(join(tmpdir(), "pi-merge-")), "settings.json");
+  mergePiSettingsPackages(dest, ["npm:pi-lens"]);
+  mergePiSettingsPackages(dest, ["npm:pi-lens"]);
+  assert.deepEqual(JSON.parse(readFileSync(dest, "utf8")), { packages: ["npm:pi-lens"] });
+  assert.equal(packageSource({ source: "npm:pi-lens" }), "npm:pi-lens");
 });
 
 test("installPiRuntime dies when the pack is incomplete", () => {
@@ -387,11 +480,33 @@ test("install --profile pi writes .pi only", () => {
   assert.match(readFileSync(join(dest, ".pi", "prompts", "draconic-mode.md"), "utf8"), /\.pi\/skills\/draconic-mode/);
   assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "prompts", "orchestrate.md")), true);
+  assert.deepEqual(JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8")), {
+    packages: ["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"],
+  });
+  assert.match(r.stdout, /Pi installs project packages from \.pi\/settings\.json/);
   assert.equal(existsSync(join(dest, "AGENTS.md")), false);
   assert.equal(existsSync(join(dest, ".opencode")), false);
   assert.equal(existsSync(join(dest, ".claude")), false);
   assert.equal(existsSync(join(dest, ".agents")), false);
   assert.equal(existsSync(join(dest, ".draconic")), false);
+});
+
+test("install --profile life-engine-pi writes .pi only", () => {
+  const dest = mkdtempSync(join(tmpdir(), "install-life-engine-pi-"));
+  const r = spawnSync(
+    process.execPath,
+    [join(REPO, "scripts", "install.mjs"), dest, "--local", REPO, "--profile", "life-engine-pi"],
+    { encoding: "utf8" },
+  );
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.match(r.stdout, /Profile: life-engine-pi/);
+  assert.match(r.stdout, /Harness: pi/);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "vault-pack", "SKILL.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "extensions", "draconic-spawn.ts")), true);
+  assert.equal(existsSync(join(dest, ".opencode")), false);
+  assert.equal(existsSync(join(dest, ".claude")), false);
+  assert.equal(existsSync(join(dest, ".agents")), false);
 });
 
 test("install --profile pi --without how omits the how prompt", () => {

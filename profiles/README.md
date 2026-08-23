@@ -34,8 +34,11 @@ Install writes only that dest. `--harness <id>` overrides the profile value.
 - `pi/prompts/*.md` whose stem is in the installed skill list or playbook list
 - `pi/APPEND_SYSTEM.md` and `pi/draconic-models.md` if those dest files are missing
 - `.pi/.gitignore` if that file is missing
+- package sources from `pi/packages.json` into `.pi/settings.json`
 
 A missing `pi/APPEND_SYSTEM.md`, `pi/draconic-models.md`, `pi/prompts/`, or `pi/extensions/` is an error.
+
+`pi/packages.json` is a JSON array of Pi package sources such as `npm:pi-lens`. Install merges those sources into `.pi/settings.json` `packages` and leaves other settings keys alone. An existing object-form entry with the same `source` counts as present. Pi then installs any missing project packages on the next trusted startup.
 
 A leftover `pi:` key is an error. The message says `use harness: pi`. Missing, empty, or unknown `harness` is an error and names the known ids. Unknown YAML keys are an error. `agents`, `commands`, or `templates` set true on a non-opencode harness is an error.
 

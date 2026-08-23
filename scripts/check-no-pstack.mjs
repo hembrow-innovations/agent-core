@@ -67,7 +67,7 @@ function resolveSkill(name) {
 const piRoot = join(root, "pi");
 if (existsSync(piRoot)) {
   const names = new Set(readdirSync(piRoot).filter((n) => !n.startsWith(".")));
-  const allowed = new Set(["extensions", "APPEND_SYSTEM.md", "draconic-models.md", "prompts"]);
+  const allowed = new Set(["extensions", "APPEND_SYSTEM.md", "draconic-models.md", "prompts", "packages.json"]);
   for (const need of allowed) {
     if (!names.has(need)) errors.push(`pi/ missing ${need}`);
   }

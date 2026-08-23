@@ -58,8 +58,9 @@ Profiles (profiles/*.yaml):
    draconic     draconic-mode playbooks + agents/commands
    godot        draconic + godot-mono
    full         everything
-    life-engine  draconic + life-engine library skills and product principles
-    pi           Pi dest plus the draconic skill list
+     life-engine     draconic + life-engine library skills and product principles
+     life-engine-pi  life-engine skills on the Pi dest
+     pi              Pi dest plus the draconic skill list
 
 Playbooks are selected in the YAML and overlaid into {mode}-mode.
 
@@ -350,6 +351,7 @@ async function main() {
       console.log("Next: open the project in OpenCode, run /setup-draconic, optionally /create-verification-skill.");
     } else if (plan.runtime === "pi") {
       console.log("Next: run `pi` in the project, trust the folder, then /draconic-mode.");
+      console.log("Pi installs project packages from .pi/settings.json after you trust the folder.");
     }
   } finally {
     if (cleanup) rmSync(cleanup, { recursive: true, force: true });
