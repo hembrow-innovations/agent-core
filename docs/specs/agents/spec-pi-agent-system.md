@@ -29,7 +29,7 @@ A lone session and a teammate share one file format and one attach meaning. Appe
 
 A team is a lead plus named living TUI peers. They talk on coms. They share tasks. The human can type into a member. Team UX follows Claude Code agent teams. The mailbox is still coms. Not `~/.claude` inboxes. Not `claude-code-teams-mcp`. Tmux spawn and panes are a separate build. Do not staff teammates with `--mode json -p` or `--mode rpc`.
 
-`APPEND_SYSTEM` points at a short playbook index. The session reads one matched playbook. It may read multiple principle leaves. Skill descriptions may stay in the catalog. Skill bodies load on demand. The dest `draconic-mode` router is not dumped into the transcript.
+`APPEND_SYSTEM` points at a short playbook index. The session reads one matched playbook. It may read multiple **principals** rule files. Skill descriptions may stay in the catalog. Skill bodies load on demand. The dest `draconic-mode` router is not dumped into the transcript.
 
 `tools` on a definition is an allowlist of builtin tools. Boot snapshots the live set, keeps active extension tools, and unions those with the listed builtins. Off or a new process restores the snapshot or the default. Never pass `definition.tools` to `setActiveTools` unchanged.
 
@@ -54,7 +54,7 @@ Teammate spawn. The same file format is appended. `--system-prompt` does not rep
 
 Tool bind. Unknown names are dropped. If no valid builtin names remain, the live set is left alone. Extension tools with `sourceInfo.source` other than `builtin` stay active.
 
-Load. At most one playbook body is in context. Principle leaves may be several. Unread leaves are not a failed step unless the playbook names them.
+Load. At most one playbook body is in context. Principals rules may be several. Unread rules are not a failed step unless the playbook names them.
 
 ## Acceptance
 

@@ -7,4 +7,4 @@ A Feature-shaped ask reads `playbooks/feature.md`.
 A Bug fix reads `playbooks/bug-fix.md`.
 
 Copy the matched playbook steps. Skips stay as `skip: reason`.
-Read principle leaves only when you apply them.
+Read principals rules only when you apply them.

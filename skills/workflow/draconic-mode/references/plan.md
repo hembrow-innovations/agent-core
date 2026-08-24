@@ -1,6 +1,6 @@
 # Plan
 
-Produce a phased implementation plan grounded in the **Principles** section of the `draconic-mode` skill. The plan is the deliverable. Do not implement.
+Produce a phased implementation plan grounded in the **principals** skill. The plan is the deliverable. Do not implement.
 
 Open a todolist with one item per step below.
 
@@ -12,7 +12,7 @@ Plan when the change spans three or more files, introduces architecture, has com
 
 ## 1. Re-read principles
 
-Read the **Principles** section of the `draconic-mode` skill end to end, and the leaf `principle-*` skills it indexes. The principles govern every plan decision; cross-link them.
+Load **principals**. Pick the rule ids this plan needs and read those `rules/<id>.md` files. The principles govern every plan decision; cross-link them.
 
 ## 2. Scope and constraints
 

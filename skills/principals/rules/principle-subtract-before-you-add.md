@@ -1,0 +1,26 @@
+---
+title: Subtract Before You Add
+impact: CRITICAL
+impactDescription: Bolt-ons compound surface area
+tags: [core, diff]
+---
+
+## Subtract Before You Add
+
+**Incorrect:** Add the new path, then maybe clean up later.
+**Correct:** Remove dead weight, stub references, and extra validators. Build on the simpler base.
+
+When evolving a system, remove complexity first, then build. Deletion gives you a simpler base, which makes the next addition smaller and less brittle.
+
+**Why:** Adding to a complex system compounds complexity. Removing first cuts the surface area, reveals the essential structure, and usually makes the next design obvious. Default to subtraction.
+
+Make simplification a continual investment. Leave the design slightly simpler and more capable behind the same or smaller surface than you found it.
+
+**The pattern:**
+- Sequence removal before construction
+- Cut before you polish (get to the minimum before investing in quality)
+- Design for observed usage, not speculative edge cases
+- No speculative validators, parsers, or guards beyond what the spec demands
+- Out-of-spec features drag validators behind them. Persistence, retry-on-startup, and schema migration each need guards to defend their inputs.
+- Simplify prompts (remove redundant instructions, excessive templates)
+- When a reference has no novel content, delete it rather than leaving a stub

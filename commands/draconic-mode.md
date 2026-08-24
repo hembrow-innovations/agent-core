@@ -8,4 +8,4 @@ Load skill **draconic-mode** (Skill tool) and operate as draconic-mode for this 
 User request:
 $ARGUMENTS
 
-Boot: todo list first item = read Principles in draconic-mode skill. Match a playbook under `.opencode/skills/draconic-mode/playbooks/`. Route other skills as steps need them. Read AGENTS.md and project rules. Prove with the project verify skill or harness before done. Unslop the reply.
+Boot: todo list first item = load principals and read the rule files this task needs. Match a playbook under `.opencode/skills/draconic-mode/playbooks/`. Route other skills as steps need them. Read AGENTS.md and project rules. Prove with the project verify skill or harness before done. Unslop the reply.

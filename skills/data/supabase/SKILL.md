@@ -28,7 +28,7 @@ If there is no `supabase/` folder, propose `supabase init` and wait.
 
 **Do not introduce:** Prisma or Drizzle as the schema source if migrations already exist. Do not `link`, `db push`, `db pull`, `functions deploy`, `gen types --project-id`, or put a hosted URL in `.env.local` unless the human named production. Do not put a secret or `service_role` key in a browser, mobile app, or committed file.
 
-A project-local **supabase** skill owns paved paths when present. `principle-rls-is-the-security-boundary` owns the access-control judgment when installed.
+A project-local **supabase** skill owns paved paths when present. The **principals** rule `principle-rls-is-the-security-boundary` owns the access-control judgment when installed.
 
 ## When to apply
 
@@ -37,7 +37,7 @@ Init, start, status, reset. Migrations, seed, RLS. Client env and keys. Edge fun
 ## Priority bands
 
 | Pri | Category | Impact | Prefix |
-|-----|----------|--------|--------|
+| ----- | ---------- | -------- | -------- |
 | 1 | Production gate | CRITICAL | `prod-` |
 | 2 | Discover | CRITICAL | `disc-` |
 | 3 | Pitfalls | CRITICAL | `pitfall-` |
