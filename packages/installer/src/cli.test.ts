@@ -146,8 +146,9 @@ test("install --profile core writes .pi/skills and does not wire this checkout",
 
   const skillRoot = join(dest, ".pi", "skills");
   const folders = readdirSync(skillRoot);
-  assert.ok(folders.includes("bro"), folders.join(", "));
-  assert.equal(existsSync(join(skillRoot, "bro", "SKILL.md")), true);
+  assert.ok(folders.includes("unslop"), folders.join(", "));
+  assert.equal(existsSync(join(skillRoot, "unslop", "SKILL.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "prompts", "bro.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
   assert.equal(existsSync(join(dest, ".opencode")), false);
   assert.equal(

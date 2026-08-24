@@ -16,7 +16,7 @@ extensions:           # first-party package folder names. Default: []
 Install writes `.pi/skills` and the Pi pack into `.pi/`:
 
 - first-party vendor packages from `profile.extensions` into `.pi/vendor/@agentic-core/`
-- `ai/pi/prompts/*.md` whose stem is in the installed skill list or playbook list
+- every `ai/pi/prompts/*.md` except README, into `.pi/prompts/`
 - `ai/pi/APPEND_SYSTEM.md` and `ai/pi/draconic-models.md` if those dest files are missing
 - `.pi/.gitignore` if that file is missing
 - package sources from `ai/pi/packages.json` into `.pi/settings.json`

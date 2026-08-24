@@ -1,7 +1,6 @@
 ---
-name: technical-writing
-description: "Layered technical-writing standard: Diátaxis structure, Google developer style sentences, STE instruction rules, Global English syntax. Use for /technical-writing or when writing or reviewing docs, RFCs, readmes, PR descriptions, or commit messages."
-disable-model-invocation: true
+description: Diátaxis, STE, and Global English for docs and commits
+argument-hint: "[doc]"
 ---
 
 # Technical writing
@@ -128,3 +127,5 @@ Apply to any prose this skill covers. Item 1 applies only to document sets:
 6. Does each thing have exactly one name across the docs?
 7. Would a developer say these words out loud? Replace invented metaphors and fancy synonyms with the plain word or the real symbol name.
 8. Are all symbols, paths, and counts real at this commit, with the commands that regenerate the counts?
+
+$ARGUMENTS

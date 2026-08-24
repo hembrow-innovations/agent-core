@@ -293,7 +293,6 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
   rmSync(join(target, ".pi", "extensions"), { recursive: true, force: true });
   rmSync(join(target, ".pi", "lib"), { recursive: true, force: true });
 
-  const allow = new Set([...(opts.skills ?? []), ...(opts.playbooks ?? [])]);
   const destPrompts = join(target, ".pi", "prompts");
   mkdirSync(destPrompts, { recursive: true });
   const keep = new Set();
@@ -303,8 +302,7 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
       withFileTypes: true,
     })) {
       if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
-      const id = ent.name.slice(0, -3);
-      if (allow.size > 0 && !allow.has(id)) continue;
+      if (ent.name.toLowerCase() === "readme.md") continue;
       keep.add(ent.name);
       cpSync(join(packPrompts, ent.name), join(destPrompts, ent.name));
     }

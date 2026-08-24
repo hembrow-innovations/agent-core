@@ -1,7 +1,6 @@
 ---
-name: create-progressive-skill
-description: "Turn a knowledge pack or guide into a progressive-disclosure skill: small router SKILL.md plus on-demand rules/. Use for /create-progressive-skill or splitting a large guide."
-disable-model-invocation: true
+description: Split a knowledge pack into a router plus rules
+argument-hint: "[brief]"
 ---
 
 # Create a progressive-disclosure skill
@@ -10,7 +9,7 @@ Ship dozens of rules on disk. Put only a small router in context. Deep content i
 
 The user's argument is the brief: a topic, a path to a fat `SKILL.md` or guide, or "split X into a pack".
 
-Layout, checklist, and anti-patterns: [`../create-skill/PROGRESSIVE.md`](../create-skill/PROGRESSIVE.md). Voice and invocation: [`../create-skill/SKILL.md`](../create-skill/SKILL.md). Read both before writing. Exemplar router: skill `vercel-react-best-practices` `SKILL.md` only, not its `rules/`.
+Layout, checklist, and anti-patterns: the **create-skill** skill's `PROGRESSIVE.md`. Voice and invocation: its `SKILL.md`. Read both before writing. Exemplar router: skill `vercel-react-best-practices` `SKILL.md` only, not its `rules/`.
 
 ## 1. Load the spec
 
@@ -64,3 +63,5 @@ If this pack: `pnpm exec agentic-core install . --profile agentic-core`.
 ## Reply
 
 Name, dest path, rule count by priority, stack do-not-introduce list, and the spot-check task → rule ids.
+
+$ARGUMENTS

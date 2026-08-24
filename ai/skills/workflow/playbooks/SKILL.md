@@ -11,14 +11,14 @@ Pick one playbook. Read that rule. Then read the library file for the full steps
 ## Discover first
 
 1. Name the kind: build, fix, read, ship, run, plan, session, author.
-2. Large or cross-cutting work, or a run the human reviews after stepping away, is **figure-it-out**. Not a rule here.
+2. Large or cross-cutting work, or a run the human reviews after stepping away, is `/figure-it-out`. Not a rule here.
 3. One agent that can finish inside the session budget is not Orchestrate.
 
 ## Stack caveats
 
 **Prefer:** one playbook per task. Copy its steps into the todolist verbatim. A skip stays as `skip: <reason>`. Dest steps live at `{mode}-mode/playbooks/<id>.md`.
 
-**Careful:** Feature when figure-it-out is the fit. Babysit when the ask is to land. Perf when the ask is a sustained metric loop. Prototype when the sketch is the ship.
+**Careful:** Feature when `/figure-it-out` is the fit. Babysit when the ask is to land. Perf when the ask is a sustained metric loop. Prototype when the sketch is the ship.
 
 **Do not introduce:** Graphite or `gt` unless the repo already uses it. A Cursor cloud fleet on Pi. A second source of truth for playbook steps. This pack does not replace `ai/playbooks/`.
 

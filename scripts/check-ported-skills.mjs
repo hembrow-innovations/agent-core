@@ -8,7 +8,6 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const EXPECTED = [
 	"ai/skills/workflow/to-issues",
 	"ai/skills/workflow/triage",
-	"ai/skills/workflow/verify-issue",
 	"ai/skills/engineering/behaviour-contracts",
 	"ai/skills/engineering/diagnose",
 	"ai/skills/engineering/create-skill",
@@ -22,12 +21,7 @@ const EXPECTED = [
 	"ai/skills/testing/webapp-testing",
 ];
 
-const TRACKER_SKILLS = new Set([
-	"to-issues",
-	"triage",
-	"verify-issue",
-	"vault-pack",
-]);
+const TRACKER_SKILLS = new Set(["to-issues", "triage", "vault-pack"]);
 
 const errors = [];
 

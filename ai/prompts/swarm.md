@@ -1,7 +1,6 @@
 ---
-name: swarm
-description: "Fan out N parallel workers, drain them, and return one report. Use for /swarm, 'swarm this', or parallel coverage, races, gauntlets, and exploration."
-disable-model-invocation: true
+description: N parallel workers across slices, one report
+argument-hint: "[brief]"
 ---
 
 # Swarm
@@ -44,3 +43,5 @@ Keep a compact result table, one-line evidenced issues, and explicit gaps or dro
 ## Phase D: Report
 
 Return one consolidated in-chat report with the table, issue one-liners, gaps or dropouts, and the race rule when used.
+
+$ARGUMENTS

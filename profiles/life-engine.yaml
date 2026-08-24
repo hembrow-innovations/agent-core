@@ -2,30 +2,20 @@ mode: draconic
 playbooks: all
 skills:
   - architect
-  - arena
-  - automate-me
   - behaviour-contracts
-  - blast-radius
-  - bro
-  - create-progressive-skill
   - create-verification-skill
   - diagnose
   - docs
-  - figure-it-out
   - how
   - improve-codebase-architecture
   - maestro
-  - maintain-verification-skill
   - playwright-cli
   - principals
   - prototype
   - setup-draconic
-  - swarm
   - tanstack-query
   - tanstack-ui
   - tdd
-  - teach
-  - technical-writing
   - thermo-review
   - to-issues
   - triage
@@ -33,7 +23,6 @@ skills:
   - typography
   - unslop
   - vault-pack
-  - verify-issue
   - vitest
   - wayfinder
   - webapp-testing

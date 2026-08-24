@@ -23,4 +23,4 @@ New or changed behavior from a named data shape.
 
 Library: `ai/playbooks/feature.md` (dest: `playbooks/feature.md`).
 
-Notes: A migration across many call sites is figure-it-out. A sketch to decide is `build-prototype`. Structure only is `build-refactoring`.
+Notes: A migration across many call sites is `/figure-it-out`. A sketch to decide is `build-prototype`. Structure only is `build-refactoring`.

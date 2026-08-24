@@ -1,14 +1,13 @@
 ---
-name: automate-me
-description: "Use for \"automate me\", \"create/update/refresh my -mode skill\", \"turn/capture my preferences or working style into a skill\", or wanting agents to follow how the user works. Drafts or revises a personal -mode skill via create-skill + unslop, optionally pulling fresh evidence from recent transcripts."
-disable-model-invocation: true
+description: Draft or revise a personal -mode skill
+argument-hint: "[update|fresh]"
 ---
 
 # Automate me
 
 A guided flow for turning the user's working conventions into a skill agents will follow. The output is one `-mode` skill tailored to them (e.g. `jay-mode`, `priya-mode`).
 
-This skill orchestrates three others: an inline mining pass (see step 1), Cursor's built-in `create-skill` (authoring), and the **unslop** skill (prose discipline). It sequences them; it doesn't replace them.
+This prompt orchestrates three others: an inline mining pass (see step 1), Cursor's built-in `create-skill` (authoring), and the **unslop** skill (prose discipline). It sequences them; it doesn't replace them.
 
 ## Flow
 
@@ -107,3 +106,5 @@ Run a description-optimization loop only if the skill's trigger accuracy turns o
 - The **draconic-mode** skill: example of the output shape.
 - The **unslop** skill: prose discipline for every line.
 - Cursor's built-in `create-skill` skill: skill authoring process and writing guidelines.
+
+$ARGUMENTS

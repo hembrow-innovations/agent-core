@@ -140,4 +140,4 @@ Do not keep a skill whose entire body is a one-shot instruction with no reusable
 
 ## When not to progressive-split
 
-Keep sequential workflow skills as ordered steps in `SKILL.md` (optionally disclose large prompt templates under `references/`). Examples: diagnose phases, verify-issue process, arena/swarm orchestration. Progressive `rules/` fits knowledge packs (many independent patterns), not linear playbooks.
+Keep sequential workflow skills as ordered steps in `SKILL.md` (optionally disclose large prompt templates under `references/`). Examples: diagnose phases. One-shot workflows such as `/verify-issue`, `/arena`, and `/swarm` are prompts. Progressive `rules/` fits knowledge packs (many independent patterns), not linear playbooks.

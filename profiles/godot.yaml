@@ -2,21 +2,11 @@ mode: draconic
 playbooks: all
 skills:
   - architect
-  - arena
-  - automate-me
-  - blast-radius
-  - bro
-  - create-progressive-skill
   - create-verification-skill
-  - figure-it-out
   - how
-  - maintain-verification-skill
   - principals
   - setup-draconic
-  - swarm
   - tdd
-  - teach
-  - technical-writing
   - typescript-best-practices
   - unslop
   - why

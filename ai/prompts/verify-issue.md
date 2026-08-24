@@ -1,14 +1,13 @@
 ---
-name: verify-issue
-description: Forensic audit of one management issue. Every claim checked against code and notes, with UNKNOWN when unproven. Use when the user runs /verify-issue, is suspicious of an issue, wants an adversarial critique, or says "verify this issue", "stress-test this issue", or "is this issue real".
-disable-model-invocation: true
+description: Forensic audit of one management issue
+argument-hint: "<issue-id>"
 ---
 
 # Verify issue
 
 Forensic audit of exactly one tracker note under `.draconic/`. Goal: surface what is true, false, incomplete, or unproven, so a suspicious issue cannot survive on vibes. Evidence only. No edits unless the user explicitly asks to append the report.
 
-Load **management** if layout is unclear. Load **docs** for committed truth. Do not load **triage** to change state. This skill never flips status or tags.
+Load **management** if layout is unclear. Load **docs** for committed truth. Do not load **triage** to change state. This prompt never flips status or tags.
 
 If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, `docs/planning/`, GitHub Issues), that file wins. Do not start a second tree.
 

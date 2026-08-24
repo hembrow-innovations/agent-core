@@ -365,7 +365,6 @@ test("repo life-engine profile loads", () => {
 		"triage",
 		"typography",
 		"vault-pack",
-		"verify-issue",
 		"webapp-testing",
 		"create-skill",
 	];
@@ -388,7 +387,6 @@ test("repo life-engine-pi profile loads", () => {
 		"triage",
 		"typography",
 		"vault-pack",
-		"verify-issue",
 		"webapp-testing",
 		"create-skill",
 	];
@@ -474,7 +472,7 @@ test("repo pi profile resolves every skill from skills/", () => {
 	]);
 });
 
-test("installPiRuntime writes boot, models, and profile-filtered prompts", () => {
+test("installPiRuntime writes boot, models, and every pack prompt", () => {
 	const root = tempRoot();
 	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
 	mkdirSync(join(root, "ai", "pi", "prompts"), { recursive: true });
@@ -501,11 +499,11 @@ test("installPiRuntime writes boot, models, and profile-filtered prompts", () =>
 	);
 	assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), true);
 	assert.equal(existsSync(join(dest, ".pi", "prompts", "orchestrate.md")), true);
-	assert.equal(existsSync(join(dest, ".pi", "prompts", "why.md")), false);
+	assert.equal(existsSync(join(dest, ".pi", "prompts", "why.md")), true);
 
 	writeFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "custom\n");
 	writeFileSync(join(dest, ".pi", "draconic-models.md"), "picked\n");
-	writeFileSync(join(dest, ".pi", "prompts", "why.md"), "stale\n");
+	writeFileSync(join(dest, ".pi", "prompts", "leftover.md"), "stale\n");
 	installPiRuntime(root, dest, { skills: ["how"], playbooks: ["orchestrate"] });
 	assert.equal(
 		readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
@@ -515,7 +513,8 @@ test("installPiRuntime writes boot, models, and profile-filtered prompts", () =>
 		readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"),
 		"picked\n",
 	);
-	assert.equal(existsSync(join(dest, ".pi", "prompts", "why.md")), false);
+	assert.equal(existsSync(join(dest, ".pi", "prompts", "why.md")), true);
+	assert.equal(existsSync(join(dest, ".pi", "prompts", "leftover.md")), false);
 });
 
 test("installPiRuntime merges pack packages into settings.json", () => {
@@ -900,7 +899,7 @@ test("install --profile core writes .pi/skills", () => {
 		{ encoding: "utf8" },
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
-	assert.equal(existsSync(join(dest, ".pi", "skills", "bro", "SKILL.md")), true);
+	assert.equal(existsSync(join(dest, ".pi", "prompts", "bro.md")), true);
 	assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
 	assert.equal(existsSync(join(dest, ".opencode")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
@@ -935,7 +934,6 @@ test("install uses profiles yaml only and does not write preference stubs", () =
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 	assert.match(r.stdout, /Profile: core/);
-	assert.match(r.stdout, /skill bro → \.pi\/skills\/bro/);
 	assert.doesNotMatch(r.stdout, /prefs/);
 	assert.equal(existsSync(join(dest, "AGENTS.md")), false);
 	assert.equal(existsSync(join(dest, "CLAUDE.md")), false);
@@ -943,7 +941,7 @@ test("install uses profiles yaml only and does not write preference stubs", () =
 		existsSync(join(dest, ".github", "copilot-instructions.md")),
 		false,
 	);
-	assert.equal(existsSync(join(dest, ".pi", "skills", "bro", "SKILL.md")), true);
+	assert.equal(existsSync(join(dest, ".pi", "prompts", "bro.md")), true);
 	assert.equal(existsSync(join(dest, ".opencode")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
 	assert.equal(existsSync(join(REPO, "preferences")), false);
