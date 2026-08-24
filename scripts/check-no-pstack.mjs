@@ -1,5 +1,12 @@
 #!/usr/bin/env node
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+} from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
@@ -30,13 +37,20 @@ const banned = [
   /setup-pstack/,
   /poteto-agent/,
 ];
-const scanRoots = ["scripts", "profiles", "agents", "commands", "playbooks"].map((d) => join(root, d));
+const scanRoots = [
+  "scripts",
+  "profiles",
+  "agents",
+  "commands",
+  "playbooks",
+].map((d) => join(root, d));
 for (const dir of scanRoots) {
   walkFiles(dir, (file) => {
     if (file.endsWith(".tsv") || file.endsWith("check-no-pstack.mjs")) return;
     const text = readFileSync(file, "utf8");
     for (const re of banned) {
-      if (re.test(text)) errors.push(`${file.replace(root + "/", "")} matches ${re}`);
+      if (re.test(text))
+        errors.push(`${file.replace(root + "/", "")} matches ${re}`);
     }
   });
 }
@@ -56,7 +70,9 @@ function resolveSkill(name) {
   walkSkillDirs(join(root, "skills"), (dir) => {
     if (basename(dir) === name) candidates.push(dir);
   });
-  const prefer = ["skills/workflow", "skills/setup"].map((rel) => join(root, rel) + "/");
+  const prefer = ["skills/workflow", "skills/setup"].map(
+    (rel) => join(root, rel) + "/",
+  );
   for (const prefix of prefer) {
     const hit = candidates.find((p) => p.startsWith(prefix));
     if (hit) return hit;
@@ -67,13 +83,27 @@ function resolveSkill(name) {
 const piRoot = join(root, "pi");
 if (existsSync(piRoot)) {
   const names = new Set(readdirSync(piRoot).filter((n) => !n.startsWith(".")));
-  const allowed = new Set(["APPEND_SYSTEM.md", "draconic-models.md", "prompts", "packages.json", "roles", "settings.json"]);
+  const allowed = new Set([
+    "APPEND_SYSTEM.md",
+    "draconic-models.md",
+    "prompts",
+    "packages.json",
+    "roles",
+    "agents",
+    "settings.json",
+  ]);
   for (const need of allowed) {
     if (!names.has(need)) errors.push(`pi/ missing ${need}`);
   }
   const extra = [...names].filter((n) => !allowed.has(n)).sort();
   if (extra.length) errors.push(`pi/ unexpected ${extra.join(", ")}`);
-  for (const rel of ["pi/roles/argv.mjs", "pi/roles/researcher.md", "pi/roles/architect.md", "pi/roles/coder.md"]) {
+  for (const rel of [
+    "pi/roles/argv.mjs",
+    "pi/roles/researcher.md",
+    "pi/roles/architect.md",
+    "pi/roles/coder.md",
+    "pi/agents/draconic.md",
+  ]) {
     if (!existsSync(join(root, rel))) errors.push(`missing ${rel}`);
   }
 }
@@ -83,7 +113,8 @@ for (const name of listProfiles(root)) {
   const needed = new Set(profile.skills);
   if (profile.mode) needed.add(`${profile.mode}-mode`);
   for (const skill of [...needed].sort()) {
-    if (!resolveSkill(skill)) errors.push(`profile ${name}: missing skill ${skill}`);
+    if (!resolveSkill(skill))
+      errors.push(`profile ${name}: missing skill ${skill}`);
   }
 }
 
@@ -96,7 +127,14 @@ const dest = mkdtempSync(join(tmpdir(), "check-no-pstack-"));
 try {
   const r = spawnSync(
     process.execPath,
-    [join(root, "packages", "installer", "src", "cli.ts"), "install", dest, "--profile", "draconic", "--no-templates"],
+    [
+      join(root, "packages", "installer", "src", "cli.ts"),
+      "install",
+      dest,
+      "--profile",
+      "draconic",
+      "--no-templates",
+    ],
     { encoding: "utf8" },
   );
   if (r.status !== 0) {
@@ -104,10 +142,24 @@ try {
     console.error(r.stderr);
     process.exit(1);
   }
-  const modeSkill = join(dest, ".opencode", "skills", "draconic-mode", "SKILL.md");
-  const setupSkill = join(dest, ".opencode", "skills", "setup-draconic", "SKILL.md");
+  const modeSkill = join(
+    dest,
+    ".opencode",
+    "skills",
+    "draconic-mode",
+    "SKILL.md",
+  );
+  const setupSkill = join(
+    dest,
+    ".opencode",
+    "skills",
+    "setup-draconic",
+    "SKILL.md",
+  );
   if (!existsSync(modeSkill) || !existsSync(setupSkill)) {
-    console.error("draconic install did not copy draconic-mode and setup-draconic");
+    console.error(
+      "draconic install did not copy draconic-mode and setup-draconic",
+    );
     process.exit(1);
   }
   const body = readFileSync(modeSkill, "utf8");

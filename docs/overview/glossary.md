@@ -6,7 +6,7 @@ domain: system
 area: overview
 tags: [glossary]
 created_at: "2026-08-23"
-updated_at: "2026-08-23"
+updated_at: "2026-08-24"
 ---
 
 # Glossary
@@ -48,3 +48,37 @@ The install-time copy of `packages/lib` inside each vendor copy. Dest has no sib
 
 **This-checkout Pi**:
 The gitignored `.pi/` dest in this repo. It is not auto-wired to `packages/`.
+
+## Agent identity
+
+**Agent definition**:
+A Pi markdown file under `pi/agents/` that names identity, behaviour, and constraints.
+_Avoid_: persona, preset, OpenCode agent, role
+
+**Primary switch**:
+The process-local control that appends one agent definition to the Pi system prompt. A new process attaches the default definition. The last pick does not persist.
+_Avoid_: /draconic-mode, APPEND_SYSTEM, sticky primary
+
+**Default agent definition**:
+The `pi/agents/` file boot appends on a new Pi process.
+_Avoid_: APPEND_SYSTEM, last switch
+
+**Team**:
+A lead Pi session plus named living TUI peers that talk on coms and share tasks.
+_Avoid_: swarm, nicobailon fan-out
+
+**Teammate**:
+A living TUI `pi` in a team. The human can type into it.
+_Avoid_: child, subagent
+
+**Child**:
+A nicobailon `subagent` process. Parent-owned, not a TUI, exits when the task ends.
+_Avoid_: teammate, in-process child
+
+**Skill catalog**:
+The short name and description list Pi injects every turn.
+_Avoid_: skill load
+
+**Skill load**:
+Reading a skill's `SKILL.md` into the transcript.
+_Avoid_: catalog

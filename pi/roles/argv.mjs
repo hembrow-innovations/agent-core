@@ -101,7 +101,9 @@ export function parseRoleFile(path) {
  * @returns {LivingRole}
  */
 export function resolveRole(input, rolesDir) {
-  const path = STEM_RE.test(input) ? join(rolesDir, `${input}.md`) : resolve(input);
+  const path = STEM_RE.test(input)
+    ? join(rolesDir, `${input}.md`)
+    : resolve(input);
   if (!existsSync(path)) {
     throw new RoleFileError({
       code: "not_found",
@@ -127,13 +129,28 @@ export function peerArgv(role, request) {
       role.stem,
       "--purpose",
       role.purpose,
-      "--system-prompt",
-      role.promptPath,
+      "--agent",
+      resolveAgentStem(role),
       "--project",
       request.project,
       ...extra,
     ],
   };
+}
+
+/**
+ * @param {LivingRole} role
+ * @returns {string}
+ */
+function resolveAgentStem(role) {
+  const named = join(
+    dirname(role.promptPath),
+    "..",
+    "agents",
+    `${role.stem}.md`,
+  );
+  if (existsSync(named)) return role.stem;
+  return "draconic";
 }
 
 /**
@@ -199,10 +216,16 @@ export function parseCli(argv, cwd, selfDir) {
       i += 1;
       continue;
     }
-    if (a === "--cname" || a === "--purpose" || a.startsWith("--cname=") || a.startsWith("--purpose=")) {
+    if (
+      a === "--cname" ||
+      a === "--purpose" ||
+      a.startsWith("--cname=") ||
+      a.startsWith("--purpose=")
+    ) {
       throw new RoleFileError({
         code: "forbidden_helper_flag",
-        message: "--cname and --purpose belong to pi; the helper emits them from the role file",
+        message:
+          "--cname and --purpose belong to pi; the helper emits them from the role file",
       });
     }
     if (a.startsWith("-")) {
@@ -317,7 +340,10 @@ function parseRoleText(text, path) {
     }
     throw err;
   }
-  const body = lines.slice(close + 1).join("\n").trim();
+  const body = lines
+    .slice(close + 1)
+    .join("\n")
+    .trim();
   if (!body) {
     throw new RoleFileError({
       code: "empty_prompt",
@@ -336,7 +362,8 @@ function assertSafeExtraArgs(extraPiArgs) {
     if (FORBIDDEN_EXTRA.test(arg)) {
       throw new RoleFileError({
         code: "forbidden_extra_arg",
-        message: "extra args must not contain --system-prompt or --append-system-prompt",
+        message:
+          "extra args must not contain --system-prompt or --append-system-prompt",
       });
     }
   }
@@ -368,7 +395,10 @@ function posixQuote(token) {
 function isMainModule() {
   if (!process.argv[1]) return false;
   try {
-    return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1]);
+    return (
+      realpathSync(fileURLToPath(import.meta.url)) ===
+      realpathSync(process.argv[1])
+    );
   } catch {
     return false;
   }

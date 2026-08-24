@@ -85,7 +85,10 @@ function snapshotRegistry(label) {
       }
     }
   }
-  writeFileSync(join(RUN, `registry-${label}.json`), `${JSON.stringify(snap, null, 2)}\n`);
+  writeFileSync(
+    join(RUN, `registry-${label}.json`),
+    `${JSON.stringify(snap, null, 2)}\n`,
+  );
   return snap;
 }
 
@@ -197,7 +200,10 @@ class RpcSession {
         const pending = this.pending.get(ev.id);
         this.pending.delete(ev.id);
         if (ev.success) pending.resolve(ev);
-        else pending.reject(new Error(`${this.name} ${ev.command} failed: ${ev.error}`));
+        else
+          pending.reject(
+            new Error(`${this.name} ${ev.command} failed: ${ev.error}`),
+          );
       }
       const still = [];
       for (const waiter of this.waiters) {
@@ -266,7 +272,10 @@ class RpcSession {
       timeoutMs,
       "agent_end",
     );
-    const text = await this.request({ type: "get_last_assistant_text" }, 15_000);
+    const text = await this.request(
+      { type: "get_last_assistant_text" },
+      15_000,
+    );
     return text.data?.text ?? "";
   }
 
@@ -295,7 +304,10 @@ function verifyLarder() {
   const result = { ok: false, steps: [], error: null };
   if (!existsSync(bin)) {
     result.error = "larder/larder.mjs missing";
-    writeFileSync(join(RUN, "verify.json"), `${JSON.stringify(result, null, 2)}\n`);
+    writeFileSync(
+      join(RUN, "verify.json"),
+      `${JSON.stringify(result, null, 2)}\n`,
+    );
     return result;
   }
   const defaultStore = join(LARDER, "larder.json");
@@ -320,15 +332,22 @@ function verifyLarder() {
     result.steps.push(step);
     if (ran.status !== 0) {
       result.error = `command failed: node ${args.join(" ")}`;
-      writeFileSync(join(RUN, "verify.json"), `${JSON.stringify(result, null, 2)}\n`);
+      writeFileSync(
+        join(RUN, "verify.json"),
+        `${JSON.stringify(result, null, 2)}\n`,
+      );
       return result;
     }
   }
   const listOut = result.steps.at(-1)?.stdout ?? "";
   const expected = "oats 1 2026-12-01\nrice 1";
   result.ok = listOut === expected;
-  if (!result.ok) result.error = `list output was ${JSON.stringify(listOut)}, expected ${JSON.stringify(expected)}`;
-  writeFileSync(join(RUN, "verify.json"), `${JSON.stringify(result, null, 2)}\n`);
+  if (!result.ok)
+    result.error = `list output was ${JSON.stringify(listOut)}, expected ${JSON.stringify(expected)}`;
+  writeFileSync(
+    join(RUN, "verify.json"),
+    `${JSON.stringify(result, null, 2)}\n`,
+  );
   return result;
 }
 
@@ -365,7 +384,10 @@ async function smoke() {
       card,
       registry,
     };
-    writeFileSync(join(RUN, "smoke.json"), `${JSON.stringify(summary, null, 2)}\n`);
+    writeFileSync(
+      join(RUN, "smoke.json"),
+      `${JSON.stringify(summary, null, 2)}\n`,
+    );
     log(`smoke: ok. bound ${card.name} socket ${card.endpoint}`);
   } finally {
     await probe.close();
@@ -422,9 +444,15 @@ Do not edit .pi/, run/, or .coms/.
     snapshotRegistry("after-workers");
 
     log("role prompt joiner");
-    summary.texts.joinerRole = await joiner.promptAndWait(JOINER_PROMPT, 8 * 60_000);
+    summary.texts.joinerRole = await joiner.promptAndWait(
+      JOINER_PROMPT,
+      8 * 60_000,
+    );
     log("role prompt inspector");
-    summary.texts.inspectorRole = await inspector.promptAndWait(INSPECTOR_PROMPT, 8 * 60_000);
+    summary.texts.inspectorRole = await inspector.promptAndWait(
+      INSPECTOR_PROMPT,
+      8 * 60_000,
+    );
 
     log("start mason");
     mason.start();
@@ -449,15 +477,23 @@ Do not edit .pi/, run/, or .coms/.
     log("verify larder CLI");
     summary.verify = verifyLarder();
     summary.finishedAt = nowIso();
-    writeFileSync(join(RUN, "summary.json"), `${JSON.stringify(summary, null, 2)}\n`);
-    log(`verify ${summary.verify.ok ? "ok" : "failed"} ${summary.verify.error ?? ""}`);
+    writeFileSync(
+      join(RUN, "summary.json"),
+      `${JSON.stringify(summary, null, 2)}\n`,
+    );
+    log(
+      `verify ${summary.verify.ok ? "ok" : "failed"} ${summary.verify.error ?? ""}`,
+    );
   } catch (err) {
     summary.error = err instanceof Error ? err.message : String(err);
     summary.finishedAt = nowIso();
     for (const s of sessions) {
       summary.tools[s.name] = extractToolCalls(s.stdoutPath);
     }
-    writeFileSync(join(RUN, "summary.json"), `${JSON.stringify(summary, null, 2)}\n`);
+    writeFileSync(
+      join(RUN, "summary.json"),
+      `${JSON.stringify(summary, null, 2)}\n`,
+    );
     log(`scenario error: ${summary.error}`);
     throw err;
   } finally {
@@ -466,8 +502,12 @@ Do not edit .pi/, run/, or .coms/.
 }
 
 async function main() {
-  if (!existsSync(join(PLAY, ".pi", "vendor", "@agentic-core", "draconic-coms"))) {
-    throw new Error("playground missing coms package. run: pnpm exec agentic-core install playground --profile pi");
+  if (
+    !existsSync(join(PLAY, ".pi", "vendor", "@agentic-core", "draconic-coms"))
+  ) {
+    throw new Error(
+      "playground missing coms package. run: pnpm exec agentic-core install playground --profile pi",
+    );
   }
   mkdirSync(RUN, { recursive: true });
   mkdirSync(COMS, { recursive: true });

@@ -27,8 +27,8 @@ test("matching flags from one file", () => {
     "researcher",
     "--purpose",
     "Finds evidence",
-    "--system-prompt",
-    join(PACK_ROLES, "researcher.md"),
+    "--agent",
+    "draconic",
   ]);
   assert.equal(argv[7], "--project");
   assert.equal(argv[8], "default");
@@ -36,7 +36,7 @@ test("matching flags from one file", () => {
   assert.equal(role.promptPath, join(PACK_ROLES, "researcher.md"));
 });
 
-test("never emits --name or --append-system-prompt", () => {
+test("never emits --name, --system-prompt, or --append-system-prompt", () => {
   const [cmd] = peerCommands({
     inputs: ["researcher"],
     rolesDir: PACK_ROLES,
@@ -44,6 +44,7 @@ test("never emits --name or --append-system-prompt", () => {
     extraPiArgs: ["--model", "grok-4.6"],
   });
   assert.equal(cmd.argv.includes("--name"), false);
+  assert.equal(cmd.argv.includes("--system-prompt"), false);
   assert.equal(cmd.argv.includes("--append-system-prompt"), false);
   assert.deepEqual(cmd.argv.slice(-2), ["--model", "grok-4.6"]);
 });
@@ -112,15 +113,27 @@ test("extra-args footgun reject", () => {
     project: "default",
   };
   assert.throws(
-    () => peerCommands({ ...request, extraPiArgs: ["--system-prompt", "/tmp/other.md"] }),
+    () =>
+      peerCommands({
+        ...request,
+        extraPiArgs: ["--system-prompt", "/tmp/other.md"],
+      }),
     (err) => err instanceof RoleFileError && err.code === "forbidden_extra_arg",
   );
   assert.throws(
-    () => peerCommands({ ...request, extraPiArgs: ["--append-system-prompt", "extra"] }),
+    () =>
+      peerCommands({
+        ...request,
+        extraPiArgs: ["--append-system-prompt", "extra"],
+      }),
     (err) => err instanceof RoleFileError && err.code === "forbidden_extra_arg",
   );
   assert.throws(
-    () => peerCommands({ ...request, extraPiArgs: ["--system-prompt=/tmp/other.md"] }),
+    () =>
+      peerCommands({
+        ...request,
+        extraPiArgs: ["--system-prompt=/tmp/other.md"],
+      }),
     (err) => err instanceof RoleFileError && err.code === "forbidden_extra_arg",
   );
 });
@@ -136,8 +149,9 @@ test("format is pasteable", () => {
   assert.equal(line.includes("\n"), false);
   assert.match(line, /--cname researcher/);
   assert.match(line, /--purpose 'Finds evidence'/);
-  assert.match(line, /--system-prompt \S+researcher\.md/);
+  assert.match(line, /--agent draconic/);
   assert.doesNotMatch(line, /--name/);
+  assert.doesNotMatch(line, /--system-prompt/);
   assert.doesNotMatch(line, /--append-system-prompt/);
 
   const dir = mkdtempSync(join(tmpdir(), "role-quote-"));
@@ -154,11 +168,16 @@ test("cli prints after copy through a temp dest", () => {
   const dest = mkdtempSync(join(tmpdir(), "role-cli-"));
   cpSync(join(PACK_ROLES, "argv.mjs"), join(dest, "argv.mjs"));
   cpSync(join(PACK_ROLES, "researcher.md"), join(dest, "researcher.md"));
-  const r = spawnSync(process.execPath, [join(dest, "argv.mjs"), "researcher"], {
-    encoding: "utf8",
-  });
+  const r = spawnSync(
+    process.execPath,
+    [join(dest, "argv.mjs"), "researcher"],
+    {
+      encoding: "utf8",
+    },
+  );
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.stdout, /--cname researcher/);
-  assert.match(r.stdout, /--system-prompt \S+researcher\.md/);
+  assert.match(r.stdout, /--agent draconic/);
+  assert.equal(r.stdout.includes("--system-prompt"), false);
   assert.equal(r.stdout.includes("--append-system-prompt"), false);
 });

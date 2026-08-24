@@ -9,6 +9,19 @@ import {
   writeFileSync,
 } from "node:fs";
 import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const LEGACY_APPEND_SYSTEM = readFileSync(
+  join(
+    dirname(fileURLToPath(import.meta.url)),
+    "fixtures",
+    "legacy-append-system.md",
+  ),
+  "utf8",
+);
+
+const STUB_APPEND_SYSTEM =
+  "# Pi runtime\n\nThis file is the required pack stub. Identity is the dest `.pi/agents/` file boot appends.\n";
 
 /** @typedef {{ id: string, title: string, when: string }} PlaybookMeta */
 
@@ -86,7 +99,8 @@ export function parseProfileYaml(text) {
 
     const kv = body.match(/^([^:]+?)\s*:\s*(.*)$/);
     if (!kv) throw new Error(`Cannot parse YAML: ${raw}`);
-    if (indent.length > 0) throw new Error(`Nested maps are not supported: ${raw}`);
+    if (indent.length > 0)
+      throw new Error(`Nested maps are not supported: ${raw}`);
 
     const key = kv[1].trim();
     const rawVal = kv[2];
@@ -123,8 +137,10 @@ export function loadProfile(srcRoot, name) {
   const templates = asBool(raw.templates, "templates");
   if (harness !== "opencode") {
     if (agents) throw new Error(`"agents" is only valid on harness: opencode`);
-    if (commands) throw new Error(`"commands" is only valid on harness: opencode`);
-    if (templates) throw new Error(`"templates" is only valid on harness: opencode`);
+    if (commands)
+      throw new Error(`"commands" is only valid on harness: opencode`);
+    if (templates)
+      throw new Error(`"templates" is only valid on harness: opencode`);
   }
   return {
     name,
@@ -214,7 +230,8 @@ export function readPlaybookMeta(srcRoot, id) {
 export function renderPlaybookCatalog(metas) {
   return metas
     .map((m) => {
-      if (m.when) return `- **${m.title}.** ${m.when} \`playbooks/${m.id}.md\`.`;
+      if (m.when)
+        return `- **${m.title}.** ${m.when} \`playbooks/${m.id}.md\`.`;
       return `- **${m.title}.** \`playbooks/${m.id}.md\`.`;
     })
     .join("\n");
@@ -230,7 +247,11 @@ export function rewriteSkillPlaybooks(skillDir, metas) {
   }
   const catalog = renderPlaybookCatalog(metas);
   const mid = catalog ? `${catalog}\n` : "";
-  writeFileSync(skillPath, `${text.slice(0, i + START.length)}\n${mid}${text.slice(j)}`, "utf8");
+  writeFileSync(
+    skillPath,
+    `${text.slice(0, i + START.length)}\n${mid}${text.slice(j)}`,
+    "utf8",
+  );
 }
 
 export function findSkillDir(srcRoot, name) {
@@ -245,7 +266,9 @@ export function findSkillDir(srcRoot, name) {
   }
 
   if (!candidates.length) return null;
-  const prefer = ["skills/workflow", "skills/setup"].map((rel) => join(srcRoot, rel) + "/");
+  const prefer = ["skills/workflow", "skills/setup"].map(
+    (rel) => join(srcRoot, rel) + "/",
+  );
   for (const prefix of prefer) {
     const hit = candidates.find((p) => p.startsWith(prefix));
     if (hit) return hit;
@@ -266,7 +289,8 @@ export function installModePlaybooks(srcRoot, target, mode, ids, destBases) {
     const pbDir = join(skillDir, "playbooks");
     mkdirSync(pbDir, { recursive: true });
     for (const ent of readdirSync(pbDir, { withFileTypes: true })) {
-      if (ent.isFile() && ent.name.endsWith(".md")) rmSync(join(pbDir, ent.name));
+      if (ent.isFile() && ent.name.endsWith(".md"))
+        rmSync(join(pbDir, ent.name));
     }
     for (const id of ids) {
       const src = join(srcRoot, "playbooks", `${id}.md`);
@@ -278,11 +302,21 @@ export function installModePlaybooks(srcRoot, target, mode, ids, destBases) {
 }
 
 const ROLE_STEM_RE = /^[a-z][a-z0-9-]{0,63}$/;
-const SHIPPED_ROLE_FILES = ["argv.mjs", "researcher.md", "architect.md", "coder.md"];
+const SHIPPED_ROLE_FILES = [
+  "argv.mjs",
+  "researcher.md",
+  "architect.md",
+  "coder.md",
+];
 
 export function installPiRuntime(srcRoot, target, opts = {}) {
   const pack = join(srcRoot, "pi");
-  const required = ["APPEND_SYSTEM.md", "draconic-models.md", "prompts", "roles"];
+  const required = [
+    "APPEND_SYSTEM.md",
+    "draconic-models.md",
+    "prompts",
+    "roles",
+  ];
   for (const name of required) {
     if (!existsSync(join(pack, name))) {
       throw new Error(`Pi pack missing: expected pi/${name}`);
@@ -301,7 +335,9 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
   const destPrompts = join(target, ".pi", "prompts");
   mkdirSync(destPrompts, { recursive: true });
   const keep = new Set();
-  for (const ent of readdirSync(join(pack, "prompts"), { withFileTypes: true })) {
+  for (const ent of readdirSync(join(pack, "prompts"), {
+    withFileTypes: true,
+  })) {
     if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
     const id = ent.name.slice(0, -3);
     if (allow.size > 0 && !allow.has(id)) continue;
@@ -313,8 +349,15 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
     if (!keep.has(ent.name)) rmSync(join(destPrompts, ent.name));
   }
 
-  writeIfMissing(join(target, ".pi", "APPEND_SYSTEM.md"), readFileSync(join(pack, "APPEND_SYSTEM.md"), "utf8"));
-  writeIfMissing(join(target, ".pi", "draconic-models.md"), readFileSync(join(pack, "draconic-models.md"), "utf8"));
+  writeIfMissingOrLegacy(
+    join(target, ".pi", "APPEND_SYSTEM.md"),
+    readFileSync(join(pack, "APPEND_SYSTEM.md"), "utf8"),
+    [LEGACY_APPEND_SYSTEM, STUB_APPEND_SYSTEM],
+  );
+  writeIfMissing(
+    join(target, ".pi", "draconic-models.md"),
+    readFileSync(join(pack, "draconic-models.md"), "utf8"),
+  );
   writeIfMissing(join(target, ".pi", ".gitignore"), "npm/\ngit/\n");
 
   const destRoles = join(target, ".pi", "roles");
@@ -324,11 +367,32 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
     if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
     const stem = ent.name.slice(0, -3);
     if (!ROLE_STEM_RE.test(stem)) continue;
-    writeIfMissing(join(destRoles, ent.name), readFileSync(join(packRoles, ent.name), "utf8"));
+    writeIfMissing(
+      join(destRoles, ent.name),
+      readFileSync(join(packRoles, ent.name), "utf8"),
+    );
   }
   cpSync(join(packRoles, "argv.mjs"), join(destRoles, "argv.mjs"));
 
-  mergePiSettingsPackages(join(target, ".pi", "settings.json"), readPiPackages(pack));
+  const packAgents = join(pack, "agents");
+  if (existsSync(packAgents)) {
+    const destAgents = join(target, ".pi", "agents");
+    mkdirSync(destAgents, { recursive: true });
+    for (const ent of readdirSync(packAgents, { withFileTypes: true })) {
+      if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
+      const stem = ent.name.slice(0, -3);
+      if (!ROLE_STEM_RE.test(stem)) continue;
+      writeIfMissing(
+        join(destAgents, ent.name),
+        readFileSync(join(packAgents, ent.name), "utf8"),
+      );
+    }
+  }
+
+  mergePiSettingsPackages(
+    join(target, ".pi", "settings.json"),
+    readPiPackages(pack),
+  );
 }
 
 export function readPiPackages(pack) {
@@ -340,15 +404,21 @@ export function readPiPackages(pack) {
   } catch (err) {
     throw new Error(`Pi pack packages.json is not JSON: ${err.message}`);
   }
-  if (!Array.isArray(raw) || raw.some((item) => typeof item !== "string" || item.trim() === "")) {
-    throw new Error("Pi pack packages.json must be a JSON array of package sources");
+  if (
+    !Array.isArray(raw) ||
+    raw.some((item) => typeof item !== "string" || item.trim() === "")
+  ) {
+    throw new Error(
+      "Pi pack packages.json must be a JSON array of package sources",
+    );
   }
   return raw.map((item) => item.trim());
 }
 
 export function packageSource(entry) {
   if (typeof entry === "string") return entry;
-  if (entry && typeof entry === "object" && typeof entry.source === "string") return entry.source;
+  if (entry && typeof entry === "object" && typeof entry.source === "string")
+    return entry.source;
   return null;
 }
 
@@ -361,7 +431,11 @@ export function mergePiSettingsPackages(settingsPath, sources) {
     } catch (err) {
       throw new Error(`.pi/settings.json is not JSON: ${err.message}`);
     }
-    if (settings == null || typeof settings !== "object" || Array.isArray(settings)) {
+    if (
+      settings == null ||
+      typeof settings !== "object" ||
+      Array.isArray(settings)
+    ) {
       throw new Error(".pi/settings.json must be a JSON object");
     }
   }
@@ -371,7 +445,8 @@ export function mergePiSettingsPackages(settingsPath, sources) {
   for (const src of sources) {
     if (!have.has(src)) next.push(src);
   }
-  if (next.length === existing.length && Array.isArray(settings.packages)) return;
+  if (next.length === existing.length && Array.isArray(settings.packages))
+    return;
   settings.packages = next;
   mkdirSync(dirname(settingsPath), { recursive: true });
   writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`, "utf8");
@@ -381,6 +456,17 @@ function writeIfMissing(dest, body) {
   if (existsSync(dest)) return;
   mkdirSync(dirname(dest), { recursive: true });
   writeFileSync(dest, body, "utf8");
+}
+
+function writeIfMissingOrLegacy(dest, body, legacyBodies) {
+  if (!existsSync(dest)) {
+    mkdirSync(dirname(dest), { recursive: true });
+    writeFileSync(dest, body, "utf8");
+    return;
+  }
+  if (legacyBodies.includes(readFileSync(dest, "utf8"))) {
+    writeFileSync(dest, body, "utf8");
+  }
 }
 
 function walkSkillDirs(root, visit) {
@@ -437,8 +523,10 @@ function stripComment(line) {
 }
 
 function rejectUnknown(line, raw) {
-  if (/(^|\s)[&*][A-Za-z_]/.test(line)) throw new Error(`YAML anchors are not supported: ${raw}`);
-  if (/:\s*[|>][-+]?\s*$/.test(line)) throw new Error(`Block scalars are not supported: ${raw}`);
+  if (/(^|\s)[&*][A-Za-z_]/.test(line))
+    throw new Error(`YAML anchors are not supported: ${raw}`);
+  if (/:\s*[|>][-+]?\s*$/.test(line))
+    throw new Error(`Block scalars are not supported: ${raw}`);
   if (/\{/.test(line) && !inQuotes(line, line.indexOf("{"))) {
     throw new Error(`Nested maps are not supported: ${raw}`);
   }
@@ -468,9 +556,12 @@ function parseScalar(s, raw) {
       .map((part) => parseScalar(part.trim(), raw))
       .filter((item) => item !== "" && item != null);
   }
-  if (s.startsWith("{")) throw new Error(`Nested maps are not supported: ${raw}`);
-  if (s.startsWith("&") || s.startsWith("*")) throw new Error(`YAML anchors are not supported: ${raw}`);
-  if (s.startsWith("|") || s.startsWith(">")) throw new Error(`Block scalars are not supported: ${raw}`);
+  if (s.startsWith("{"))
+    throw new Error(`Nested maps are not supported: ${raw}`);
+  if (s.startsWith("&") || s.startsWith("*"))
+    throw new Error(`YAML anchors are not supported: ${raw}`);
+  if (s.startsWith("|") || s.startsWith(">"))
+    throw new Error(`Block scalars are not supported: ${raw}`);
   return unquote(s);
 }
 

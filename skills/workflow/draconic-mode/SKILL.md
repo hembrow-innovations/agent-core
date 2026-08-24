@@ -181,7 +181,7 @@ This pack also runs on **Pi**. Map leftover OpenCode or Cursor wording as follow
 | `Comment Sicko` | `subagent` agent `reviewer`, or apply comment-sicko yourself |
 | `generalPurpose` | `subagent` |
 | Slash `/foo` | Prompt `/foo` or `/skill:foo` |
-| Sticky primary agent | `.pi/APPEND_SYSTEM.md` keeps draconic on for the session |
+| Sticky identity | dest `.pi/agents/` default file. Boot appends it. |
 | Todos / todolist | `draconic_todo` |
 | AskQuestion | Ask in prose, only for product or preference |
 | MCP | `git`, `gh`, and project CLIs. Skip missing sources and say so |
