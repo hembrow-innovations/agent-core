@@ -42,7 +42,7 @@ const STUB_APPEND_SYSTEM =
  *   playbooks: PlaybookSelection,
  *   harness: HarnessId,
  *   agents: boolean,
- *   commands: boolean,
+ *   prompts: string[],
  *   templates: boolean,
  *   extensions: string[],
  * }} Profile
@@ -61,7 +61,7 @@ const PROFILE_KEYS = new Set([
   "skills",
   "playbooks",
   "agents",
-  "commands",
+  "prompts",
   "templates",
   "harness",
   "extensions",
@@ -132,6 +132,9 @@ export function loadProfile(srcRoot, name) {
   if (Object.hasOwn(raw, "pi")) {
     throw new Error(`Profile "${name}" has leftover "pi:". use harness: pi`);
   }
+  if (Object.hasOwn(raw, "commands")) {
+    throw new Error(`Profile "${name}" has leftover "commands:". use prompts:`);
+  }
   for (const key of Object.keys(raw)) {
     if (!PROFILE_KEYS.has(key)) {
       throw new Error(`Unknown profile key "${key}"`);
@@ -139,12 +142,12 @@ export function loadProfile(srcRoot, name) {
   }
   const harness = parseHarness(raw.harness);
   const agents = asBool(raw.agents, "agents");
-  const commands = asBool(raw.commands, "commands");
+  const prompts = asStringList(raw.prompts, "prompts");
   const templates = asBool(raw.templates, "templates");
   if (harness !== "opencode") {
     if (agents) throw new Error(`"agents" is only valid on harness: opencode`);
-    if (commands)
-      throw new Error(`"commands" is only valid on harness: opencode`);
+    if (prompts.length)
+      throw new Error(`"prompts" is only valid on harness: opencode`);
     if (templates)
       throw new Error(`"templates" is only valid on harness: opencode`);
   }
@@ -155,7 +158,7 @@ export function loadProfile(srcRoot, name) {
     playbooks: toPlaybooks(raw.playbooks),
     harness,
     agents,
-    commands,
+    prompts,
     templates,
     extensions: asStringList(raw.extensions, "extensions"),
   };
@@ -168,6 +171,39 @@ export function listProfiles(srcRoot) {
     .filter((n) => n.endsWith(".yaml") && !/^readme\.yaml$/i.test(n))
     .map((n) => n.slice(0, -5))
     .sort();
+}
+
+export function listPromptIds(srcRoot) {
+  const dir = join(packRoot(srcRoot), "prompts");
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((n) => n.endsWith(".md") && !/^readme\.md$/i.test(n))
+    .map((n) => n.slice(0, -3))
+    .sort();
+}
+
+export function installPrompts(srcRoot, target, ids) {
+  const srcDir = join(packRoot(srcRoot), "prompts");
+  const destDir = join(target, ".opencode", "command");
+  const seen = new Set();
+  const files = [];
+  for (const id of ids) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const src = join(srcDir, `${id}.md`);
+    if (!existsSync(src)) throw new Error(`Unknown prompt "${id}"`);
+    files.push({ id, src });
+  }
+  mkdirSync(destDir, { recursive: true });
+  const keep = new Set(files.map((f) => `${f.id}.md`));
+  for (const { id, src } of files) {
+    cpSync(src, join(destDir, `${id}.md`));
+  }
+  for (const ent of readdirSync(destDir, { withFileTypes: true })) {
+    if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
+    if (!keep.has(ent.name)) rmSync(join(destDir, ent.name));
+  }
+  return files.map((f) => f.id);
 }
 
 export function listPlaybookIds(srcRoot) {

@@ -2,8 +2,29 @@ harness: opencode
 mode: draconic
 playbooks: all
 agents: true
-commands: true
 templates: true
+prompts:
+  - architect
+  - arena
+  - blast-radius
+  - create-progressive-skill
+  - draconic-mode
+  - figure-it-out
+  - how
+  - interrogate
+  - no-comments
+  - orchestrate
+  - recall
+  - reflect
+  - setup-draconic
+  - show-me-your-work
+  - swarm
+  - tdd
+  - teach
+  - technical-writing
+  - unslop
+  - why
+  - wizard
 skills:
   - architect
   - arena

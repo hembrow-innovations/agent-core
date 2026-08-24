@@ -16,7 +16,9 @@ import {
   findSkillDir,
   installModePlaybooks,
   installPiRuntime,
+  installPrompts,
   listProfiles,
+  listPromptIds,
   loadProfile,
   mergePiSettingsPackages,
   packageSource,
@@ -126,7 +128,7 @@ playbooks:
     playbooks: { kind: "omit" },
     harness: "opencode",
     agents: false,
-    commands: false,
+    prompts: [],
     templates: false,
     extensions: [],
   });
@@ -156,6 +158,12 @@ test("loadProfile: leftover pi dies", () => {
   const root = tempRoot();
   writeYaml(root, "old", "harness: pi\npi: false\nskills: []\n");
   assert.throws(() => loadProfile(root, "old"), /use harness: pi/);
+});
+
+test("loadProfile: leftover commands dies", () => {
+  const root = tempRoot();
+  writeYaml(root, "old", "harness: opencode\ncommands: true\n");
+  assert.throws(() => loadProfile(root, "old"), /use prompts:/);
 });
 
 test("loadProfile: unknown harness dies", () => {
@@ -199,6 +207,29 @@ test("loadProfile: agents true on non-opencode dies", () => {
     () => loadProfile(root, "x"),
     /"agents" is only valid on harness: opencode/,
   );
+});
+
+test("loadProfile: prompts on non-opencode dies", () => {
+  const root = tempRoot();
+  writeYaml(root, "x", "harness: pi\nprompts:\n  - wizard\n");
+  assert.throws(
+    () => loadProfile(root, "x"),
+    /"prompts" is only valid on harness: opencode/,
+  );
+});
+
+test("loadProfile: prompts list is like skills", () => {
+  const root = tempRoot();
+  writeYaml(
+    root,
+    "listed",
+    `harness: opencode
+prompts:
+  - wizard
+  - how
+`,
+  );
+  assert.deepEqual(loadProfile(root, "listed").prompts, ["wizard", "how"]);
 });
 
 test("listProfiles skips README", () => {
@@ -348,6 +379,38 @@ test("installModePlaybooks: selected files only, second run converges", () => {
   }
 });
 
+test("installPrompts: selected files only, second run converges, unknown dies", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "ai", "prompts"), { recursive: true });
+  writeFileSync(join(root, "ai", "prompts", "wizard.md"), "wizard\n");
+  writeFileSync(join(root, "ai", "prompts", "how.md"), "how\n");
+  writeFileSync(join(root, "ai", "prompts", "README.md"), "skip\n");
+
+  const dest = mkdtempSync(join(tmpdir(), "prompts-"));
+  mkdirSync(join(dest, ".opencode", "command"), { recursive: true });
+  writeFileSync(join(dest, ".opencode", "command", "stale.md"), "gone\n");
+
+  const first = installPrompts(root, dest, ["wizard"]);
+  assert.deepEqual(first, ["wizard"]);
+  assert.deepEqual(readdirSync(join(dest, ".opencode", "command")).sort(), [
+    "wizard.md",
+  ]);
+  assert.equal(
+    readFileSync(join(dest, ".opencode", "command", "wizard.md"), "utf8"),
+    "wizard\n",
+  );
+
+  installPrompts(root, dest, ["wizard"]);
+  assert.deepEqual(readdirSync(join(dest, ".opencode", "command")).sort(), [
+    "wizard.md",
+  ]);
+
+  assert.throws(
+    () => installPrompts(root, dest, ["nope"]),
+    /Unknown prompt "nope"/,
+  );
+});
+
 test("readPlaybookMeta: frontmatter and heading fallback", () => {
   const root = tempRoot();
   mkdirSync(join(root, "ai", "playbooks"), { recursive: true });
@@ -376,7 +439,7 @@ test("repo life-engine profile loads", () => {
   assert.equal(p.mode, "draconic");
   assert.deepEqual(p.playbooks, { kind: "all" });
   assert.equal(p.agents, true);
-  assert.equal(p.commands, true);
+  assert.deepEqual(p.prompts, listPromptIds(REPO));
   assert.equal(p.templates, true);
   assert.equal(p.harness, "opencode");
   const ported = [
@@ -403,7 +466,7 @@ test("repo life-engine-pi profile loads", () => {
   assert.equal(p.mode, "draconic");
   assert.deepEqual(p.playbooks, { kind: "all" });
   assert.equal(p.agents, false);
-  assert.equal(p.commands, false);
+  assert.deepEqual(p.prompts, []);
   assert.equal(p.templates, false);
   assert.equal(p.harness, "pi");
   const ported = [
@@ -431,7 +494,7 @@ test("repo agentic-core profile loads", () => {
   assert.equal(p.mode, "draconic");
   assert.deepEqual(p.playbooks, { kind: "all" });
   assert.equal(p.agents, false);
-  assert.equal(p.commands, false);
+  assert.deepEqual(p.prompts, []);
   assert.equal(p.templates, false);
   assert.equal(p.harness, "pi");
   const needed = [
@@ -453,6 +516,14 @@ test("repo agentic-core profile loads", () => {
   for (const name of banned) assert.equal(p.skills.includes(name), false, name);
   const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
   assert.deepEqual(missing, []);
+});
+
+test("repo opencode profiles list every pack prompt", () => {
+  const prompts = listPromptIds(REPO);
+  assert.ok(prompts.includes("wizard"));
+  for (const name of ["draconic", "full", "godot", "life-engine"]) {
+    assert.deepEqual(loadProfile(REPO, name).prompts, prompts, name);
+  }
 });
 
 test("repo pi profiles list todo, coms, boot, and teams", () => {
@@ -491,7 +562,7 @@ test("repo pi profile resolves every skill from skills/", () => {
   const p = loadProfile(REPO, "pi");
   assert.equal(p.harness, "pi");
   assert.equal(p.agents, false);
-  assert.equal(p.commands, false);
+  assert.deepEqual(p.prompts, []);
   assert.equal(p.templates, false);
   assert.equal(p.mode, "draconic");
   const needed = [...p.skills, `${p.mode}-mode`];

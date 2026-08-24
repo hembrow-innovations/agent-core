@@ -41,7 +41,7 @@ The folders are:
 - `ai/skills/` is the markdown skill library.
 - `ai/playbooks/` is the playbook library.
 - `ai/pi/` holds prompts, roles, `APPEND_SYSTEM`, and the third-party package list. It has no `extensions/` and no `lib/`.
-- `ai/agents/` and `ai/commands/` are the OpenCode pack.
+- `ai/agents/` and `ai/prompts/` are the OpenCode pack.
 - `ai/plugins/`, `ai/hooks/`, `ai/keybinds/`, `ai/mcp/`, and `ai/themes/` are empty stubs.
 - `profiles/` is the install profile list. Pi profiles gain an `extensions` list.
 

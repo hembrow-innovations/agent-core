@@ -31,7 +31,7 @@ type Profile = {
   playbooks: PlaybookSelection;
   harness: string;
   agents: boolean;
-  commands: boolean;
+  prompts: string[];
   templates: boolean;
   extensions: string[];
 };
@@ -46,6 +46,8 @@ type ProfileModule = {
   loadProfile: (srcRoot: string, name: string) => Profile;
   listProfiles: (srcRoot: string) => string[];
   listPlaybookIds: (srcRoot: string) => string[];
+  listPromptIds: (srcRoot: string) => string[];
+  installPrompts: (srcRoot: string, target: string, ids: string[]) => string[];
   resolvePlaybookIds: (
     profile: Profile,
     opts: {
@@ -80,7 +82,7 @@ type InstallRequest = {
   withPlaybooks: string[];
   withoutPlaybooks: string[];
   noAgents: boolean;
-  noCommands: boolean;
+  noPrompts: boolean;
   noTemplates: boolean;
   harness: string | null;
   extensions: FirstPartyExtension[];
@@ -93,7 +95,7 @@ type InstallPlan = {
   playbookIds: string[];
   overlayPlaybooks: boolean;
   agents: boolean;
-  commands: boolean;
+  prompts: string[];
   templates: boolean;
   skillDests: string[];
   runtime: "opencode" | "pi" | null;
@@ -120,7 +122,7 @@ Options:
   --with-playbooks <ids>   add playbook ids
   --without-playbooks <ids> remove playbook ids
   --no-agents              Skip OpenCode agents
-  --no-commands            Skip OpenCode commands
+  --no-prompts             Skip OpenCode prompts
   --no-templates           Skip opencode.json / WORKFLOW / rules templates
   --harness <id>           Override profile harness (opencode | claude | pi | agents)
   -h, --help               Show help
@@ -154,7 +156,7 @@ function parseArgs(argv: string[]): CliRequest {
     withPlaybooks: [],
     withoutPlaybooks: [],
     noAgents: false,
-    noCommands: false,
+    noPrompts: false,
     noTemplates: false,
     harness: null,
     extensions: [],
@@ -173,7 +175,7 @@ function parseArgs(argv: string[]): CliRequest {
     else if (a === "--without-playbooks")
       out.withoutPlaybooks.push(...csv(need(args, a)));
     else if (a === "--no-agents") out.noAgents = true;
-    else if (a === "--no-commands") out.noCommands = true;
+    else if (a === "--no-prompts") out.noPrompts = true;
     else if (a === "--no-templates") out.noTemplates = true;
     else if (a === "--harness") out.harness = need(args, a);
     else if (a === "--extension") {
@@ -245,6 +247,8 @@ function isProfileModule(value: unknown): value is ProfileModule {
     isFn(value.loadProfile) &&
     isFn(value.listProfiles) &&
     isFn(value.listPlaybookIds) &&
+    isFn(value.listPromptIds) &&
+    isFn(value.installPrompts) &&
     isFn(value.resolvePlaybookIds) &&
     isFn(value.installModePlaybooks) &&
     isFn(value.installPiRuntime) &&
@@ -306,13 +310,6 @@ function installAgents(srcRoot: string, target: string): void {
   const dest = join(target, AGENT_DEST);
   const n = copyMarkdownTree(src, dest, "agent");
   if (!n) console.log("  agents: none");
-}
-
-function installCommands(srcRoot: string, target: string): void {
-  const src = join(srcRoot, "ai", "commands");
-  const dest = join(target, COMMAND_DEST);
-  const n = copyMarkdownTree(src, dest, "command");
-  if (!n) console.log("  commands: none");
 }
 
 function installTemplates(srcRoot: string, target: string): void {
@@ -405,7 +402,7 @@ function planFromProfile(
       opts.playbooks != null ||
       opts.withPlaybooks.length > 0,
     agents: opencode && profile.agents && !opts.noAgents,
-    commands: opencode && profile.commands && !opts.noCommands,
+    prompts: opencode && !opts.noPrompts ? [...profile.prompts].sort() : [],
     templates: opencode && profile.templates && !opts.noTemplates,
     skillDests: [...harness.skillDests],
     runtime: harness.runtime,
@@ -452,6 +449,7 @@ async function run(argv: string[]): Promise<void> {
     HARNESSES,
     loadProfile,
     listPlaybookIds,
+    installPrompts,
     resolvePlaybookIds,
     installModePlaybooks,
     installPiRuntime,
@@ -501,7 +499,17 @@ async function run(argv: string[]): Promise<void> {
     );
   }
   if (plan.agents) installAgents(srcRoot, opts.target);
-  if (plan.commands) installCommands(srcRoot, opts.target);
+  if (plan.prompts.length) {
+    let ids: string[];
+    try {
+      ids = installPrompts(srcRoot, opts.target, plan.prompts);
+    } catch (err) {
+      die(err instanceof Error ? err.message : String(err));
+    }
+    for (const id of ids) {
+      console.log(`  prompt ${id} → ${COMMAND_DEST}/${id}.md`);
+    }
+  }
   if (plan.templates) installTemplates(srcRoot, opts.target);
   if (plan.runtime === "pi") {
     installPiRuntime(srcRoot, opts.target, {

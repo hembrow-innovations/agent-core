@@ -119,12 +119,12 @@ Keep each rule scannable (~20–80 lines). Prefer one clear before/after over es
 - Foreign-stack examples with no adapter layer for this repo
 - Vague `description` → skill never loads, or loads constantly
 
-## Skills vs commands
+## Skills vs prompts
 
 - **Skill**: reusable knowledge pack or multi-step workflow the agent loads mid-task via Skill tool.
-- **Command** (`.opencode/commands/<name>.md`): user-invoked single-shot entry (`/name`). Thin wrappers may `Load skill **x**` then run; pure one-liners live only as commands (no skill folder).
+- **Prompt** (`ai/prompts/<name>.md`, dest `.opencode/command/<name>.md`): user-invoked single-shot entry (`/name`). Thin wrappers may `Load skill **x**` then run; pure one-liners live only as prompts (no skill folder).
 
-Do not keep a skill whose entire body is a one-shot instruction with no reusable knowledge. Move it to commands.
+Do not keep a skill whose entire body is a one-shot instruction with no reusable knowledge. Move it to prompts.
 
 ## Checklist for a progressive pack
 

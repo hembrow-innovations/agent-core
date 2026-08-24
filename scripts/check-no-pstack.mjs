@@ -41,7 +41,7 @@ const scanRoots = [
   "scripts",
   "profiles",
   "ai/agents",
-  "ai/commands",
+  "ai/prompts",
   "ai/playbooks",
 ].map((d) => join(root, d));
 for (const dir of scanRoots) {
@@ -118,6 +118,10 @@ for (const name of listProfiles(root)) {
     if (!resolveSkill(skill))
       errors.push(`profile ${name}: missing skill ${skill}`);
   }
+  for (const prompt of profile.prompts) {
+    if (!existsSync(join(root, "ai", "prompts", `${prompt}.md`)))
+      errors.push(`profile ${name}: missing prompt ${prompt}`);
+  }
 }
 
 if (errors.length) {
@@ -167,6 +171,20 @@ try {
   const body = readFileSync(modeSkill, "utf8");
   if (!body.includes("OpenCode runtime adapter")) {
     console.error("installed draconic-mode is missing the OpenCode adapter");
+    process.exit(1);
+  }
+  const commandDir = join(dest, ".opencode", "command");
+  const destPrompts = existsSync(commandDir)
+    ? readdirSync(commandDir)
+        .filter((n) => n.endsWith(".md"))
+        .map((n) => n.slice(0, -3))
+        .sort()
+    : [];
+  const listed = [...loadProfile(root, "draconic").prompts].sort();
+  if (JSON.stringify(destPrompts) !== JSON.stringify(listed)) {
+    console.error(
+      `draconic install prompts ${destPrompts.join(",")} != ${listed.join(",")}`,
+    );
     process.exit(1);
   }
   for (const extra of [".pi", ".claude", ".agents"]) {

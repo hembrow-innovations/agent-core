@@ -7,7 +7,7 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
 - `ai/skills/` is the skill library.
 - `ai/playbooks/` is the playbook library.
 - `ai/pi/` is the Pi runtime pack.
-- `ai/agents/` and `ai/commands/` are the OpenCode pack.
+- `ai/agents/` and `ai/prompts/` are the OpenCode pack.
 - `profiles/` is the install profiles.
 - `scripts/` is the checks and the profile module.
 - `packages/installer/` is the `agentic-core` CLI.
