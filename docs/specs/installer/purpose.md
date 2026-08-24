@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [purpose]
 created_at: "2026-08-23"
-updated_at: "2026-08-23"
+updated_at: "2026-08-24"
 ---
 
 # Installer purpose
@@ -24,7 +24,7 @@ Install a self-contained vendor tree a dest project can commit and run without t
 - One extension install with `--extension`
 - Repeatable `--extension`
 - `--harness` override of the profile harness
-- Lib bundled into each extension at install time
+- Vendor copy of each named first-party package
 - Vendor copy at `.pi/vendor/@agentic-core/<name>`
 - Dest-relative paths written into dest settings
 - Overwrite of the vendor copy on re-run
@@ -52,7 +52,7 @@ The dest tree is `.pi/vendor/` plus dest settings.
 ## Authority
 
 - Behaviour: [[spec-installer]]
-- Decisions: [[adr-2]]
+- Decisions: [[adr-2]], [[adr-3]]
 - Layout: [[architecture-pack-and-packages]]
 
 ## Open product questions

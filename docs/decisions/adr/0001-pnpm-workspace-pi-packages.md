@@ -8,7 +8,7 @@ domain: packages
 area: decisions
 tags: [pnpm, packages]
 created_at: "2026-08-23"
-updated_at: "2026-08-23"
+updated_at: "2026-08-24"
 ---
 
 # ADR-0001: pnpm workspace for first-party Pi packages
@@ -51,3 +51,4 @@ Workspace tests and imports can use `@agentic-core/*`. Install can treat each ex
 - [[architecture-pack-and-packages]]
 - [[spec-installer]]
 - [[plan-2-pnpm-pi-packages]]
+- [[adr-3]] removes `packages/lib`

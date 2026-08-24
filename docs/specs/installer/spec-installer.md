@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [spec]
 created_at: "2026-08-23"
-updated_at: "2026-08-23"
+updated_at: "2026-08-24"
 ---
 
 # Installer spec
@@ -32,7 +32,7 @@ A profile install also installs that profile's `extensions` list.
 `--harness` overrides the harness on the profile.
 Pi profiles `pi`, `agentic-core`, and `life-engine-pi` all list the todo, coms, and boot extensions.
 
-When the dest harness is `pi`, the dest receives a lib-bundled copy at `.pi/vendor/@agentic-core/<name>`.
+When the dest harness is `pi`, the dest receives a vendor copy at `.pi/vendor/@agentic-core/<name>`.
 Dest settings gain a dest-relative path to that folder.
 Re-running install overwrites the vendor copy.
 The dest has no sibling lib package.
@@ -62,7 +62,7 @@ Repeated `--extension` flags install each named extension.
 `--profile` and `--extension` may be used together. Extra extensions install on top of the profile list.
 `--harness <id>` selects the dest tree. It overrides the profile. Vendor write happens only for harness `pi`.
 
-Install bundles `packages/lib` into each extension. Dest does not receive a vendor lib package.
+Install copies each named first-party package as it is. Dest does not receive a vendor lib package.
 
 The package `@agentic-core/draconic-todo` lands at `.pi/vendor/@agentic-core/draconic-todo`. The same shape holds for `draconic-coms` and `draconic-boot`.
 

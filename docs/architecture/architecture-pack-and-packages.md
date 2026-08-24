@@ -7,7 +7,7 @@ domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-08-23"
+updated_at: "2026-08-24"
 ---
 
 # Pack and packages
@@ -16,7 +16,7 @@ updated_at: "2026-08-23"
 
 This repo is a pnpm workspace. It is the only place you install from. A dest project never depends on this checkout at runtime. The installer copies a self-contained tree the dest can commit.
 
-The source pack is this checkout's markdown library and profiles. Workspace packages are the TypeScript products under `packages/`. The dest tree is the copied project layout after install. The vendor copy is the lib-bundled first-party package under `.pi/vendor/`.
+The source pack is this checkout's markdown library and profiles. Workspace packages are the TypeScript products under `packages/`. The dest tree is the copied project layout after install. The vendor copy is the first-party package under `.pi/vendor/`.
 
 See [[glossary]] for the names used here.
 
@@ -28,7 +28,7 @@ That mix left dest coupled to loose files. It also left a sibling lib that dest 
 
 The settled layout keeps the markdown pack. It moves first-party extensions into workspace packages. Dest receives a vendor copy. Dest has no live path back to this checkout.
 
-[[adr-1]] and [[adr-2]] record those choices.
+[[adr-1]], [[adr-2]], and [[adr-3]] record those choices.
 
 ## Design
 
@@ -54,12 +54,11 @@ The folders are:
 - `packages/draconic-todo` is `@agentic-core/draconic-todo`.
 - `packages/draconic-coms` is `@agentic-core/draconic-coms`.
 - `packages/draconic-boot` is `@agentic-core/draconic-boot`.
-- `packages/lib` is a source package for imports and tests.
 - `packages/installer` is the install CLI.
 
 Protocol code lives inside the coms package. `draconic-coms-protocol` is not a product extension.
 
-Lib is not copied as a sibling package. Install time bundles lib into each extension. Dest has no sibling lib package.
+Session checklist persistence lives in the todo package. There is no `packages/lib`.
 
 There is no npm publish. There is no git package source.
 
@@ -71,7 +70,7 @@ A dest project never depends on this checkout at runtime.
 
 ### Vendor copy
 
-Each first-party extension lands as a copied, lib-bundled package at `.pi/vendor/@agentic-core/<name>`. Settings gain a dest-relative path to that folder. The target commits `.pi/vendor/` and those settings. Re-running install overwrites the copy.
+Each first-party extension lands as a copied package at `.pi/vendor/@agentic-core/<name>`. Settings gain a dest-relative path to that folder. The target commits `.pi/vendor/` and those settings. Re-running install overwrites the copy.
 
 First-party extensions do not copy from `pi/extensions/`. That folder is not part of the pack.
 
@@ -111,7 +110,7 @@ This cut has no uninstall.
 
 Install is the only path from workspace packages to a dest. A dest never keeps a live path back to this checkout.
 
-Lib tests and imports stay in the workspace. Dest never sees a sibling lib package.
+Todo tests and imports stay in the workspace. Dest never sees a sibling lib package.
 
 The pack does not keep `pi/extensions/` or `pi/lib/`. Profiles keep their current language. They add an `extensions` list on Pi profiles.
 

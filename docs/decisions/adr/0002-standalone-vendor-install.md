@@ -8,7 +8,7 @@ domain: pack
 area: decisions
 tags: [installer, vendor]
 created_at: "2026-08-23"
-updated_at: "2026-08-23"
+updated_at: "2026-08-24"
 ---
 
 # ADR-0002: dest vendor copy with lib bundled
@@ -50,3 +50,4 @@ Dest can commit a self-contained vendor tree. Settings point only at dest-relati
 - [[spec-installer]]
 - [[guides-install-from-this-repo]]
 - [[plan-2-pnpm-pi-packages]]
+- [[adr-3]] drops the lib bundle. Dest vendor is a package copy.
