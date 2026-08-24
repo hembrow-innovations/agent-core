@@ -5,12 +5,15 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
 ## Rules
 
 - Markdown: never tables — use `- **{text}**: {text}`
+- for scripting only use js/mjs
 
 ## Source
 
+- `ai/agents/` is the agent library.
 - `ai/skills/` is the skill library.
 - `ai/playbooks/` is the playbook library.
-- `ai/pi/` is the Pi runtime pack.
+- `ai/prompts/` is the prompt/command library.
+- `ai/pi/` is the Pi runtime pack. (prompts,skills,agents,roles, don't live in this directory)
 - `profiles/` is the install profiles.
 - `scripts/` is the checks and the profile module.
 - `packages/installer/` is the `agentic-core` CLI.
@@ -38,4 +41,4 @@ pnpm run typecheck
 
 The local profile is `profiles/agentic-core.yaml`. It is the skill list for developing this pack, not an export profile.
 
-Run `pi` in this directory. Trust the folder. Then `/draconic-mode`.
+Run `pi` in this directory. Trust the folder.
