@@ -46,6 +46,8 @@ export function buildPiArgv(request: SpawnRequest): string[] {
 		request.team,
 		"--name",
 		request.name,
+		"--agent",
+		request.name,
 	];
 	if (request.model) argv.push("--model", request.model);
 	return argv;

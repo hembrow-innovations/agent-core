@@ -13,7 +13,7 @@ const request = {
 	cwd: "/work/demo",
 };
 
-test("buildPiArgv includes coms flags and never --mode rpc", () => {
+test("buildPiArgv includes coms flags, --agent, and never --mode rpc", () => {
 	const argv = buildPiArgv(request);
 	assert.deepEqual(argv, [
 		"pi",
@@ -24,6 +24,8 @@ test("buildPiArgv includes coms flags and never --mode rpc", () => {
 		"--project",
 		"demo",
 		"--name",
+		"researcher",
+		"--agent",
 		"researcher",
 	]);
 	assert.ok(!argv.includes("--mode"));

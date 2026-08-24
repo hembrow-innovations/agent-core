@@ -22,7 +22,7 @@ A lead Pi session can spawn named teammate TUIs in tmux panes. They talk on exis
 - Source lives in `packages/draconic-teams`. Dest receives a vendor copy.
 - `/team` plus tools for create, spawn, status, tasks, and shutdown.
 - Default spawn is `tmux split-window`. Windows sit behind a flag.
-- Spawned `pi` gets `--cname`, `--purpose`, `--project <team>`, `--name`.
+- Spawned `pi` gets `--cname`, `--purpose`, `--project <team>`, `--name`, `--agent <name>`. Boot uses that dest file when it exists. Otherwise the default file.
 - Team name is the coms `--project`. Member name is `--cname`.
 - Runtime is `$PI_TEAMS_DIR/<team>/` or `~/.pi/teams/<team>/`.
 - Spawn is a reconcile. A second spawn of the same name adopts a live pane or replaces a dead one.
