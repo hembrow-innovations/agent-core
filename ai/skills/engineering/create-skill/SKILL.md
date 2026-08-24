@@ -1,5 +1,5 @@
 ---
-name: write-a-skill
+name: create-skill
 description: Reference for writing and editing skills well. The vocabulary and principles that make a skill predictable. Use when writing or editing a skill, or when another skill needs that vocabulary.
 disable-model-invocation: true
 ---
