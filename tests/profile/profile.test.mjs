@@ -382,14 +382,13 @@ test("repo life-engine profile loads", () => {
   const ported = [
     "behaviour-contracts",
     "diagnose",
-    "frontend-design",
     "tanstack-query",
+    "tanstack-ui",
     "thermo-review",
     "to-issues",
     "triage",
     "typography",
     "vault-pack",
-    "vercel-react-best-practices",
     "verify-issue",
     "webapp-testing",
     "write-a-skill",
@@ -410,14 +409,13 @@ test("repo life-engine-pi profile loads", () => {
   const ported = [
     "behaviour-contracts",
     "diagnose",
-    "frontend-design",
     "tanstack-query",
+    "tanstack-ui",
     "thermo-review",
     "to-issues",
     "triage",
     "typography",
     "vault-pack",
-    "vercel-react-best-practices",
     "verify-issue",
     "webapp-testing",
     "write-a-skill",
@@ -450,6 +448,7 @@ test("repo agentic-core profile loads", () => {
     "playwright-cli",
     "supabase",
     "frontend-design",
+    "tanstack-ui",
   ];
   for (const name of banned) assert.equal(p.skills.includes(name), false, name);
   const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));

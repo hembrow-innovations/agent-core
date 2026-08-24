@@ -14,6 +14,7 @@ const EXPECTED = [
   "ai/skills/engineering/write-a-skill",
   "ai/skills/engineering/thermo-review",
   "ai/skills/ui/frontend-design",
+  "ai/skills/ui/tanstack-ui",
   "ai/skills/ui/typography",
   "ai/skills/ui/vercel-react-best-practices",
   "ai/skills/data/tanstack-query",

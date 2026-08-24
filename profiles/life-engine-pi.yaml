@@ -18,7 +18,6 @@ skills:
   - diagnose
   - docs
   - figure-it-out
-  - frontend-design
   - how
   - improve-codebase-architecture
   - interrogate
@@ -34,6 +33,7 @@ skills:
   - show-me-your-work
   - swarm
   - tanstack-query
+  - tanstack-ui
   - tdd
   - teach
   - technical-writing
@@ -44,7 +44,6 @@ skills:
   - typography
   - unslop
   - vault-pack
-  - vercel-react-best-practices
   - verify-issue
   - vitest
   - wayfinder

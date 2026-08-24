@@ -5,7 +5,7 @@ description: Product font face load and swap across web, desktop, and mobile. Us
 
 # Typography (product face)
 
-Face load and swap only. Scales and tokens live in **docs**. Layout and CVA live in **frontend-design**.
+Face load and swap only. Scales and tokens live in **docs**. Layout and CVA live in **tanstack-ui** (or **frontend-design**).
 
 ## Discover first
 
