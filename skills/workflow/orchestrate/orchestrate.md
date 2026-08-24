@@ -1,6 +1,6 @@
 ---
 description: Standing coordinator. Stacked units from planning docs
-argument-hint: "[brief]"
+disable-model-invocation: true
 ---
 Read `.pi/skills/draconic-mode/SKILL.md` and open playbook `orchestrate` (and multi-phase-plan as needed).
 
