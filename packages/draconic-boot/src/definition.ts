@@ -35,8 +35,6 @@ export class AgentDefinitionError extends Error {
   }
 }
 
-export const DEFAULT_AGENT_NAME = "draconic" as AgentName;
-
 export function parseAgentDefinition(text: string): AgentDefinition {
   const { fields, body } = splitAgentMarkdown(text);
   const seen: string[] = [];

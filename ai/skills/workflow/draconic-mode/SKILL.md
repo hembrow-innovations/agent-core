@@ -1,6 +1,6 @@
 ---
 name: draconic-mode
-description: Draconic agent style for concise detailed responses, deliberate delegates, unslopped prose, simple code, and verified work. Use for /draconic-mode or any non-trivial engineering task.
+description: Draconic agent style for concise detailed responses, deliberate delegates, unslopped prose, simple code, and verified work. Use only when the user invokes /draconic-mode or /agent draconic.
 disable-model-invocation: true
 ---
 
@@ -110,7 +110,7 @@ This pack runs on Pi. Dest is `.pi/`.
 - **Skill load.** `read` the skill's `SKILL.md`, or the user typed `/skill:name`. Descriptions are in the system prompt. Playbooks live under `.pi/skills/draconic-mode/playbooks/`.
 - **Delegates.** `subagent` with a standalone task. `generalPurpose` is also `subagent`.
 - **Slash `/foo`.** Prompt `/foo` or `/skill:foo`.
-- **Sticky identity.** Dest `.pi/agents/` default file. Boot appends it.
+- **Identity.** Opt-in dest `.pi/agents/` file. `/agent <name>` or `--agent <name>`. Cold start attaches nothing.
 - **Todos.** `draconic_todo`.
 - **AskQuestion.** Ask in prose, only for product or preference.
 - **MCP.** `git`, `gh`, and project CLIs. Skip missing sources and say so.

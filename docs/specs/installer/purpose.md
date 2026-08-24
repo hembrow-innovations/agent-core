@@ -29,7 +29,7 @@ Install a self-contained vendor tree a dest project can commit and run without t
 - Dest-relative paths written into dest settings
 - Overwrite of the vendor copy on re-run
 - Merge of third-party `npm:` sources the way they merge today
-- Copy of skills, playbooks, prompts, and roles the way they copy today
+- Copy of agents, skills, playbooks, and prompts the way they copy today
 
 ## Out of scope
 

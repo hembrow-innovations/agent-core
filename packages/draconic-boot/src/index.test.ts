@@ -24,7 +24,7 @@ function writeAgent(
 	);
 }
 
-function writeDefaultAgent(cwd: string, body = DEFAULT_BODY) {
+function writePackAgent(cwd: string, body = DEFAULT_BODY) {
 	writeAgent(cwd, "draconic", body);
 }
 
@@ -88,19 +88,19 @@ function ui(statuses: Status[], notices: string[] = []) {
 	};
 }
 
-test("session_start paints the default agent name", async () => {
+test("session_start paints off when no agent is selected", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-chip-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
 	const { statuses, handlers } = loadBoot();
 	const sessionStart = handlers.get("session_start");
 	assert.equal(typeof sessionStart, "function");
 	await sessionStart?.({} as never, { cwd, ui: ui(statuses) } as never);
-	assert.deepEqual(statuses, [["agent", "draconic"]]);
+	assert.deepEqual(statuses, [["agent", "off"]]);
 });
 
-test("before_agent_start appends the default body", async () => {
+test("before_agent_start does not append when no agent is selected", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-append-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
 	const { statuses, handlers } = loadBoot();
 	const before = handlers.get("before_agent_start");
 	assert.equal(typeof before, "function");
@@ -108,15 +108,13 @@ test("before_agent_start appends the default body", async () => {
 		{ systemPrompt: "base" } as never,
 		{ cwd, ui: ui(statuses) } as never,
 	);
-	assert.deepEqual(result, {
-		systemPrompt: `base\n\n${DEFAULT_BODY}`,
-	});
-	assert.deepEqual(statuses, [["agent", "draconic"]]);
+	assert.equal(result, undefined);
+	assert.deepEqual(statuses, [["agent", "off"]]);
 });
 
 test("boot writes no dest flag file", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-nopersist-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
 	const beforeFiles = readdirSync(join(cwd, ".pi"), { recursive: true }).sort();
 	const { statuses, handlers } = loadBoot();
 	await handlers.get("session_start")?.(
@@ -135,7 +133,7 @@ test("boot writes no dest flag file", async () => {
 
 test("/agent other appends that file on the next turn", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-switch-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
 	writeAgent(cwd, "researcher", "Find evidence.");
 	const { statuses, notices, handlers, commands } = loadBoot();
 	const agent = commands.get("agent");
@@ -149,9 +147,9 @@ test("/agent other appends that file on the next turn", async () => {
 	assert.deepEqual(statuses.at(-1), ["agent", "researcher"]);
 });
 
-test("/agent default returns the default file", async () => {
+test("/agent default clears the agent", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-default-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
 	writeAgent(cwd, "researcher", "Find evidence.");
 	const { statuses, notices, handlers, commands } = loadBoot();
 	const ctx = { cwd, ui: ui(statuses, notices) };
@@ -161,27 +159,30 @@ test("/agent default returns the default file", async () => {
 		{ systemPrompt: "base" } as never,
 		ctx as never,
 	);
-	assert.deepEqual(result, { systemPrompt: `base\n\n${DEFAULT_BODY}` });
-	assert.deepEqual(statuses.at(-1), ["agent", "draconic"]);
+	assert.equal(result, undefined);
+	assert.deepEqual(statuses.at(-1), ["agent", "off"]);
+	assert.match(notices.join("\n"), /agent off/);
 });
 
 test("unknown /agent name keeps the current file", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-unknown-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
+	writeAgent(cwd, "researcher", "Find evidence.");
 	const { statuses, notices, handlers, commands } = loadBoot();
 	const ctx = { cwd, ui: ui(statuses, notices) };
+	await commands.get("agent")?.("researcher", ctx);
 	await commands.get("agent")?.("missing", ctx);
 	const result = await handlers.get("before_agent_start")?.(
 		{ systemPrompt: "base" } as never,
 		ctx as never,
 	);
-	assert.deepEqual(result, { systemPrompt: `base\n\n${DEFAULT_BODY}` });
+	assert.deepEqual(result, { systemPrompt: "base\n\nFind evidence." });
 	assert.match(notices.join("\n"), /unknown agent: missing/);
 });
 
 test("/agent writes no dest settings or flag file", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-switch-disk-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
 	writeAgent(cwd, "researcher", "Find evidence.");
 	const beforeFiles = readdirSync(join(cwd, ".pi"), { recursive: true }).sort();
 	const { statuses, notices, commands } = loadBoot();
@@ -197,7 +198,7 @@ test("/agent writes no dest settings or flag file", async () => {
 
 test("--agent flag selects that file for this process", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-flag-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
 	writeAgent(cwd, "researcher", "Find evidence.");
 	const boot = loadBoot();
 	boot.flags.agent = "researcher";
@@ -215,7 +216,7 @@ test("--agent flag selects that file for this process", async () => {
 
 test("tools allowlist keeps coms and subagent", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-tools-keep-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
 	writeAgent(cwd, "reader", "Read only.", "tools: [read]");
 	const boot = loadBoot();
 	const ctx = { cwd, ui: ui(boot.statuses, boot.notices) };
@@ -225,7 +226,7 @@ test("tools allowlist keeps coms and subagent", async () => {
 
 test("unknown tool names do not throw", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-tools-unknown-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
 	writeAgent(cwd, "reader", "Read only.", "tools: [read, not-a-tool]");
 	const boot = loadBoot();
 	await boot.commands.get("agent")?.("reader", {
@@ -237,7 +238,7 @@ test("unknown tool names do not throw", async () => {
 
 test("empty valid tools list leaves the live set", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-tools-empty-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
 	writeAgent(cwd, "empty", "No tools.", "tools: [not-a-tool]");
 	const boot = loadBoot();
 	await boot.commands.get("agent")?.("empty", {
@@ -252,9 +253,9 @@ test("empty valid tools list leaves the live set", async () => {
 	]);
 });
 
-test("return-to-default restores the tools snapshot", async () => {
+test("return-to-off restores the tools snapshot", async () => {
 	const cwd = mkdtempSync(join(tmpdir(), "boot-tools-restore-"));
-	writeDefaultAgent(cwd);
+	writePackAgent(cwd);
 	writeAgent(cwd, "reader", "Read only.", "tools: [read]");
 	const boot = loadBoot();
 	const ctx = { cwd, ui: ui(boot.statuses, boot.notices) };

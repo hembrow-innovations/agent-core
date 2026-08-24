@@ -16,7 +16,7 @@ The language of this checkout. Source pack, dest copy, and the install path betw
 ## Language
 
 **Pack**:
-The source tree in this checkout. Pi markdown lives under `ai/`. Profiles stay at the root. First-party packages live under `packages/`. It is the only install source.
+The source tree in this checkout. Agent, skill, playbook, and prompt libraries live under `ai/`. The Pi runtime pack lives in `ai/pi/`. Profiles stay at the root. Checks and the profile module live in `scripts/`. First-party packages live under `packages/`. It is the only install source.
 _Avoid_: monorepo-of-skills
 
 **Dest**:
@@ -49,16 +49,16 @@ The gitignored `.pi/` dest in this repo. It is not auto-wired to `packages/`.
 ## Agent identity
 
 **Agent definition**:
-A Pi markdown file under `ai/pi/agents/` that names identity, behaviour, and constraints. Dest copies it to `.pi/agents/`.
+A Pi markdown file under `ai/agents/` that names identity, behaviour, and constraints. Dest holds it at `.pi/agents/`.
 _Avoid_: persona, preset, OpenCode agent, role
 
 **Primary switch**:
-The process-local control that appends one agent definition to the Pi system prompt. A new process attaches the default definition. The last pick does not persist.
-_Avoid_: /draconic-mode, APPEND_SYSTEM, sticky primary
+The process-local control that appends one agent definition to the Pi system prompt. A new process attaches nothing. The last pick does not persist.
+_Avoid_: /draconic-mode, APPEND_SYSTEM, sticky primary, default agent
 
-**Default agent definition**:
-The dest `.pi/agents/` file boot appends on a new Pi process.
-_Avoid_: APPEND_SYSTEM, last switch
+**Opt-in agent**:
+A dest `.pi/agents/` file boot appends only after `/agent` or `--agent`.
+_Avoid_: default agent, sticky primary, APPEND_SYSTEM
 
 **Team**:
 A lead Pi session plus named living TUI peers that talk on coms and share tasks. Spec: [[spec-tmux-agent-teams]].

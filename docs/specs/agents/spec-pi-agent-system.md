@@ -8,7 +8,7 @@ domain: agents
 area: agents
 tags: [spec, pi]
 created_at: "2026-08-24"
-updated_at: "2026-08-24"
+updated_at: "2026-08-25"
 ---
 
 # Pi agent system
@@ -21,9 +21,9 @@ Define how a Pi session gets an identity, how a team of living sessions works, a
 
 Pi only.
 
-Identity is a markdown file under `pi/agents/`. Install copies it to `.pi/agents/`. The file may name skills, tools, and model. The body is Pi-safe.
+Identity is a markdown file under `ai/agents/`. Dest holds it at `.pi/agents/`. The file may name skills, tools, and model. The body is Pi-safe.
 
-`draconic-boot` is the switch. It appends the chosen file with `before_agent_start`. A command picks the name for this process. A new process does not restore the last pick. It attaches the default definition. See [[0003-default-agent-definition]].
+`draconic-boot` is the switch. It appends the chosen file with `before_agent_start`. A command or `--agent` flag picks the name for this process. A new process attaches nothing. The last pick is not restored. See [[0007-agent-attach-is-opt-in]].
 
 A lone session and a teammate share one file format and one attach meaning. Append. Spawn and switch differ only in how they name the file. Nicobailon children keep their own format.
 
@@ -46,9 +46,9 @@ Quality is proven by evals and tests on the real Pi session.
 
 ## Behaviour
 
-Cold start. Boot appends the default agent definition. The chip shows that name.
+Cold start. Boot appends nothing. The chip shows `off`.
 
-Switch. The command appends a different file for this process. Off returns to the default definition, not to an empty prompt.
+Switch. The command appends a dest file for this process. Off and default clear it. The next turn has no pack identity.
 
 Teammate spawn. The same file format is appended. `--system-prompt` does not replace the default coding-assistant prompt as the identity path.
 
@@ -58,7 +58,7 @@ Load. At most one playbook body is in context. Principals rules may be several. 
 
 ## Acceptance
 
-- A new Pi process in a trusted folder gets the default `pi/agents/` file, not the last switch, and not the old always-on `APPEND_SYSTEM` persona
+- A new Pi process in a trusted folder attaches no dest `.pi/agents/` file. `/agent` and `--agent` are the only attach path. The last switch is not restored. `APPEND_SYSTEM` is not a persona
 - `/agent` or the boot command changes the appended file for this process only
 - A teammate pane can receive coms and still has coms tools after a `tools` allowlist
 - A multi-step task reads the playbook index and one playbook, not dest `draconic-mode/SKILL.md` in full

@@ -431,13 +431,13 @@ test("repo pi profiles list todo, coms, boot, and teams", () => {
 	}
 });
 
-test("always-on text points at one playbook, not the dest router", () => {
+test("always-on text does not dump dest draconic-mode", () => {
 	const append = readFileSync(
 		join(REPO, "ai", "pi", "APPEND_SYSTEM.md"),
 		"utf8",
 	);
 	const agent = readFileSync(
-		join(REPO, "ai", "pi", "agents", "draconic.md"),
+		join(REPO, "ai", "agents", "draconic", "draconic.md"),
 		"utf8",
 	);
 	for (const text of [append, agent]) {
@@ -445,11 +445,8 @@ test("always-on text points at one playbook, not the dest router", () => {
 			text,
 			/Read `\.pi\/skills\/draconic-mode\/SKILL\.md` in full/,
 		);
+		assert.doesNotMatch(text, /running draconic-mode on Pi/);
 	}
-	assert.match(
-		append,
-		/Investigation-shaped ask reads `playbooks\/investigation\.md`/,
-	);
 });
 
 test("repo pi profile resolves every skill from skills/", () => {
@@ -652,7 +649,7 @@ test("installPiRuntime writes dest agents and leaves a custom file alone", () =>
 	const root = tempRoot();
 	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
 	mkdirSync(join(root, "ai", "pi", "prompts"), { recursive: true });
-	mkdirSync(join(root, "ai", "pi", "agents"), { recursive: true });
+	mkdirSync(join(root, "ai", "agents", "draconic"), { recursive: true });
 	writeFileSync(
 		join(root, "ai", "pi", "extensions", "boot.ts"),
 		"export default function () {}\n",
@@ -660,7 +657,7 @@ test("installPiRuntime writes dest agents and leaves a custom file alone", () =>
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
 	writeFileSync(join(root, "ai", "pi", "draconic-models.md"), "models\n");
 	writeFileSync(
-		join(root, "ai", "pi", "agents", "draconic.md"),
+		join(root, "ai", "agents", "draconic", "draconic.md"),
 		"---\nname: draconic\n---\n\npack body\n",
 	);
 	writePiRolesPack(root);
@@ -675,7 +672,7 @@ test("installPiRuntime writes dest agents and leaves a custom file alone", () =>
 
 	writeFileSync(destAgent, "custom agent\n");
 	writeFileSync(
-		join(root, "ai", "pi", "agents", "draconic.md"),
+		join(root, "ai", "agents", "draconic", "draconic.md"),
 		"---\nname: draconic\n---\n\nnew pack body\n",
 	);
 	installPiRuntime(root, dest);
@@ -774,7 +771,6 @@ test("install --profile pi writes .pi only", () => {
 		append,
 		/Read `\.pi\/skills\/draconic-mode\/SKILL\.md` in full/,
 	);
-	assert.match(append, /playbooks\/investigation\.md/);
 	assert.match(
 		readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"),
 		/feature, refactoring:/,

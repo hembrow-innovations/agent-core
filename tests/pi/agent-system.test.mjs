@@ -11,7 +11,7 @@ const REPO = fileURLToPath(new URL("../..", import.meta.url));
 const INSTALLER = join(REPO, "packages", "installer", "src", "cli.ts");
 const FULL_READ = /Read `\.pi\/skills\/draconic-mode\/SKILL\.md` in full/;
 
-test("cold start dest has the default agent file", () => {
+test("cold start dest ships the opt-in agent file", () => {
   const dest = mkdtempSync(join(tmpdir(), "agent-system-cold-"));
   const r = spawnSync(
     process.execPath,
@@ -29,19 +29,19 @@ test("cold start dest has the default agent file", () => {
   assert.doesNotMatch(append, FULL_READ);
 });
 
-test("load path names investigation.md and not the dest router", () => {
+test("pack append and agent files do not dump dest draconic-mode", () => {
   const append = readFileSync(
     join(REPO, "ai", "pi", "APPEND_SYSTEM.md"),
     "utf8",
   );
   const agent = readFileSync(
-    join(REPO, "ai", "pi", "agents", "draconic.md"),
+    join(REPO, "ai", "agents", "draconic", "draconic.md"),
     "utf8",
   );
   for (const text of [append, agent]) {
     assert.doesNotMatch(text, FULL_READ);
+    assert.doesNotMatch(text, /running draconic-mode on Pi/);
   }
-  assert.match(append, /playbooks\/investigation\.md/);
 });
 
 test("teammate argv appends a pi/agents file", () => {
@@ -52,6 +52,6 @@ test("teammate argv appends a pi/agents file", () => {
   assert.equal(argv.includes("--cname"), true);
   assert.equal(argv.includes("--purpose"), true);
   assert.equal(argv.includes("--project"), true);
-  assert.equal(argv[argv.indexOf("--agent") + 1], "draconic");
+  assert.equal(argv.includes("--agent"), false);
   assert.doesNotMatch(argv.join(" "), /--mode rpc/);
 });

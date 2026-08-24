@@ -122,6 +122,7 @@ export function resolveRole(input, rolesDir) {
 export function peerArgv(role, request) {
   const extra = request.extraPiArgs ?? [];
   assertSafeExtraArgs(extra);
+  const agent = resolveAgentStem(role);
   return {
     argv: [
       "pi",
@@ -129,8 +130,7 @@ export function peerArgv(role, request) {
       role.stem,
       "--purpose",
       role.purpose,
-      "--agent",
-      resolveAgentStem(role),
+      ...(agent ? ["--agent", agent] : []),
       "--project",
       request.project,
       ...extra,
@@ -140,7 +140,7 @@ export function peerArgv(role, request) {
 
 /**
  * @param {LivingRole} role
- * @returns {string}
+ * @returns {string | undefined}
  */
 function resolveAgentStem(role) {
   const named = join(
@@ -150,7 +150,7 @@ function resolveAgentStem(role) {
     `${role.stem}.md`,
   );
   if (existsSync(named)) return role.stem;
-  return "draconic";
+  return undefined;
 }
 
 /**

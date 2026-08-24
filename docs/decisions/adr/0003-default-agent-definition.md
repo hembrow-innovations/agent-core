@@ -2,16 +2,18 @@
 id: "adr-3"
 title: "ADR-0003: default agent definition on each Pi start"
 kind: adr
-description: "A new Pi process attaches the default pi/agents/ file. The last switch does not persist."
-status: accepted
+description: "A new Pi process attaches the default dest .pi/agents/ file. The last switch does not persist."
+status: superseded
 domain: agents
 area: decisions
 tags: [pi, agents]
 created_at: "2026-08-24"
-updated_at: "2026-08-24"
+updated_at: "2026-08-25"
 ---
 
 # ADR-0003: default agent definition on each Pi start
+
+Superseded by [[0007-agent-attach-is-opt-in]]. Cold start attaches nothing.
 
 ## Context
 
@@ -21,9 +23,9 @@ The destination still needs an identity on the first turn. An empty coding-assis
 
 ## Decision
 
-Each new Pi process attaches the default agent definition from `pi/agents/`. The primary switch can change the file for that process. The next process starts on the default again. The last pick is not written to disk.
+Each new Pi process attaches the default agent definition from dest `.pi/agents/`. The pack file lives in `ai/agents/`. The primary switch can change the file for that process. The next process starts on the default again. The last pick is not written to disk.
 
-The default is a `pi/agents/` file, not `APPEND_SYSTEM.md` and not a compiled string inside boot.
+The default is a dest `.pi/agents/` file, not `APPEND_SYSTEM.md` and not a compiled string inside boot.
 
 ## Alternatives considered
 
@@ -43,3 +45,5 @@ A teammate that was switched mid-process comes back as the default after restart
 
 - [[glossary]]
 - [[spec-pi-agent-system]]
+- [[0006-source-libraries-beside-pi-runtime]]
+- [[0007-agent-attach-is-opt-in]]

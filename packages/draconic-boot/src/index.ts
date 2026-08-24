@@ -4,11 +4,7 @@ import type {
   ExtensionAPI,
   ExtensionContext,
 } from "@earendil-works/pi-coding-agent";
-import {
-  DEFAULT_AGENT_NAME,
-  parseAgentDefinition,
-  type AgentDefinition,
-} from "./definition.ts";
+import { parseAgentDefinition, type AgentDefinition } from "./definition.ts";
 
 function agentFile(cwd: string, name: string): string {
   return join(cwd, ".pi", "agents", `${name}.md`);
@@ -83,8 +79,13 @@ export default function (pi: ExtensionAPI) {
   let selected: string | null = null;
   let toolsSnapshot: string[] | null = null;
 
-  function currentStem(): string {
-    return selected ?? DEFAULT_AGENT_NAME;
+  function currentStem(): string | null {
+    return selected;
+  }
+
+  function loadCurrent(cwd: string): AgentDefinition | undefined {
+    const stem = currentStem();
+    return stem ? loadAgent(cwd, stem) : undefined;
   }
 
   function applyDefinition(
@@ -92,24 +93,23 @@ export default function (pi: ExtensionAPI) {
     def: AgentDefinition | undefined,
   ): void {
     toolsSnapshot = bindActiveTools(pi, def, toolsSnapshot);
-    paint(ctx, def?.name ?? currentStem());
+    paint(ctx, def?.name ?? "off");
   }
 
-  function selectDefault(ctx: ExtensionContext): void {
+  function selectNone(ctx: ExtensionContext): void {
     selected = null;
-    const def = loadAgent(ctx.cwd, DEFAULT_AGENT_NAME);
-    applyDefinition(ctx, def);
-    notify(ctx, `agent ${def?.name ?? DEFAULT_AGENT_NAME}`);
+    applyDefinition(ctx, undefined);
+    notify(ctx, "agent off");
   }
 
   pi.on("session_start", (_event, ctx) => {
     const flagged = flagString(pi, "agent");
     if (flagged && loadAgent(ctx.cwd, flagged)) selected = flagged;
-    applyDefinition(ctx, loadAgent(ctx.cwd, currentStem()));
+    applyDefinition(ctx, loadCurrent(ctx.cwd));
   });
 
   pi.on("before_agent_start", (event, ctx) => {
-    const def = loadAgent(ctx.cwd, currentStem());
+    const def = loadCurrent(ctx.cwd);
     applyDefinition(ctx, def);
     if (!def) return;
     return {
@@ -118,11 +118,12 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerCommand("agent", {
-    description: "Select a dest .pi/agents file for this process",
+    description:
+      "Select a dest .pi/agents file for this process. off clears it",
     async handler(args, ctx) {
       const raw = args.trim();
       if (raw === "" || raw === "default" || raw === "off") {
-        selectDefault(ctx);
+        selectNone(ctx);
         return;
       }
       const def = loadAgent(ctx.cwd, raw);

@@ -1,6 +1,4 @@
-# Draconic
-
-Pi runtime:
+# Pi runtime
 
 - No Skill tool. Read the file.
 - No Task tool. Use `subagent` for fan-out. If that tool is missing, do the work in this session and review your own diff.

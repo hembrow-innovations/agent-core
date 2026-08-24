@@ -49,9 +49,9 @@ name: empty
 	);
 });
 
-test("default pack file parses and omits Skill or Task wording", () => {
+test("pack file parses and omits Skill or Task wording", () => {
 	const text = readFileSync(
-		join(REPO, "ai", "pi", "agents", "draconic.md"),
+		join(REPO, "ai", "agents", "draconic", "draconic.md"),
 		"utf8",
 	);
 	const def = parseAgentDefinition(text);

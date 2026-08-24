@@ -85,7 +85,6 @@ if (existsSync(piRoot)) {
     "prompts",
     "packages.json",
     "roles",
-    "agents",
     "settings.json",
   ]);
   const required = new Set(allowed);
@@ -100,7 +99,7 @@ if (existsSync(piRoot)) {
     "ai/pi/roles/researcher.md",
     "ai/pi/roles/architect.md",
     "ai/pi/roles/coder.md",
-    "ai/pi/agents/draconic.md",
+    "ai/agents/draconic/draconic.md",
   ]) {
     if (!existsSync(join(root, rel))) errors.push(`missing ${rel}`);
   }

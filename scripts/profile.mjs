@@ -21,7 +21,7 @@ const LEGACY_APPEND_SYSTEM = readFileSync(
 );
 
 const STUB_APPEND_SYSTEM =
-  "# Pi runtime\n\nThis file is the required pack stub. Identity is the dest `.pi/agents/` file boot appends.\n";
+  "# Pi runtime\n\nThis file is the required pack stub. Identity is a dest `.pi/agents/` file. Boot appends it only after /agent or --agent.\n";
 
 /** @typedef {{ id: string, title: string, when: string }} PlaybookMeta */
 
@@ -336,18 +336,19 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
   }
   cpSync(join(packRoles, "argv.mjs"), join(destRoles, "argv.mjs"));
 
-  const packAgents = join(pack, "agents");
+  const packAgents = join(packRoot(srcRoot), "agents");
   if (existsSync(packAgents)) {
     const destAgents = join(target, ".pi", "agents");
     mkdirSync(destAgents, { recursive: true });
     for (const ent of readdirSync(packAgents, { withFileTypes: true })) {
-      if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
-      const stem = ent.name.slice(0, -3);
+      if (!ent.isDirectory()) continue;
+      const stem = ent.name;
       if (!ROLE_STEM_RE.test(stem)) continue;
-      writeIfMissing(
-        join(destAgents, ent.name),
-        readFileSync(join(packAgents, ent.name), "utf8"),
-      );
+      const src = join(packAgents, stem, `${stem}.md`);
+      if (!existsSync(src)) continue;
+      const body = readFileSync(src, "utf8");
+      if (!body.trim()) continue;
+      writeIfMissing(join(destAgents, `${stem}.md`), body);
     }
   }
 
@@ -424,6 +425,7 @@ function isLegacyAppendSystem(text) {
   return (
     text === LEGACY_APPEND_SYSTEM ||
     text === STUB_APPEND_SYSTEM ||
+    /^# Draconic\n/.test(text) ||
     /You are running draconic-mode on Pi/.test(text) ||
     /Read `\.pi\/skills\/draconic-mode\/SKILL\.md` in full/.test(text)
   );

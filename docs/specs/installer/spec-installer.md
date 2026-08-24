@@ -35,7 +35,7 @@ Dest settings gain a dest-relative path to that folder.
 Re-running install overwrites the vendor copy.
 The dest has no sibling lib package.
 
-Skills, playbooks, prompts, roles, and third-party `npm:` sources still merge the way they do today.
+Agents, skills, playbooks, prompts, and third-party `npm:` sources still merge the way they do today.
 First-party extensions never copy from `pi/extensions/`.
 
 The dest must commit `.pi/vendor/` and the settings that point at it.

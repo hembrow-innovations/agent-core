@@ -16,7 +16,7 @@ updated_at: "2026-08-25"
 
 This repo is a pnpm workspace. It is the only place you install from. A dest project never depends on this checkout at runtime. The installer copies a self-contained tree the dest can commit.
 
-The source pack is this checkout's markdown library and profiles. Workspace packages are the TypeScript products under `packages/`. The dest tree is the copied project layout after install. The vendor copy is the lib-bundled first-party package under `.pi/vendor/`.
+The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus the Pi runtime pack and profiles. `scripts/` holds the checks and the profile module. Workspace packages are the TypeScript products under `packages/`. The dest tree is the copied project layout after install. The vendor copy is the lib-bundled first-party package under `.pi/vendor/`.
 
 See [[glossary]] for the names used here.
 
@@ -28,23 +28,27 @@ That mix left dest coupled to loose files. It also left a sibling lib that dest 
 
 The settled layout keeps the markdown pack. It moves first-party extensions into workspace packages. Dest receives a vendor copy. Dest has no live path back to this checkout.
 
-[[adr-1]], [[adr-2]], and [[adr-4]] record those choices.
+[[0001-pnpm-workspace-pi-packages]], [[0002-standalone-vendor-install]], [[0004-source-pack-under-ai]], [[0005-pi-only-dest]], and [[0006-source-libraries-beside-pi-runtime]] record those choices.
 
 ## Design
 
 ### Source pack
 
-The source pack stays in this checkout, under `ai/`. Skills do not become packages. `profiles/` stays at the checkout root.
+The source pack stays in this checkout, under `ai/`. Skills do not become packages. `profiles/` and `scripts/` stay at the checkout root.
 
 The folders are:
 
-- `ai/skills/` is the markdown skill library.
+- `ai/agents/` is the agent library.
+- `ai/skills/` is the skill library.
 - `ai/playbooks/` is the playbook library.
-- `ai/pi/` holds prompts, roles, `APPEND_SYSTEM`, and the third-party package list. It has no `extensions/` and no `lib/`.
-- `ai/plugins/`, `ai/hooks/`, `ai/keybinds/`, `ai/mcp/`, and `ai/themes/` are empty stubs.
-- `profiles/` is the install profile list.
+- `ai/prompts/` is the prompt/command library.
+- `ai/pi/` is the Pi runtime pack. Prompts, skills, agents, and roles do not live here. It has no `extensions/` and no `lib/`.
+- `profiles/` is the install profiles.
+- `scripts/` is the checks and the profile module.
 
-Skills, playbooks, prompts, roles, and `npm:pi-lens` style sources still copy the way they do today.
+Leftover empty stub dirs under `ai/` are not libraries.
+
+Skills, playbooks, prompts, and third-party `npm:pi-lens` sources still copy into dest `.pi/`.
 
 ### Workspace packages
 
@@ -67,7 +71,7 @@ There is no npm publish. There is no git package source.
 
 ### Dest tree
 
-The dest tree is what a target project commits after install. It holds the copied skills, playbooks, prompts, and roles under `.pi/`. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
+The dest tree is what a target project commits after install. It holds the copied agents, skills, playbooks, and prompts under `.pi/`. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
 
 A dest project never depends on this checkout at runtime.
 
@@ -114,7 +118,7 @@ Install is the only path from workspace packages to a dest. A dest never keeps a
 
 Lib tests and imports stay in the workspace. Dest never sees a sibling lib package.
 
-The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. Profiles list skills, playbooks, and extensions. They do not name a dest. See [[0005-pi-only-dest]].
+The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. It also does not keep prompts, skills, agents, or roles under `ai/pi/`. Profiles list skills, playbooks, and extensions. They do not name a dest. See [[0005-pi-only-dest]] and [[0006-source-libraries-beside-pi-runtime]].
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.
 

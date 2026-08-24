@@ -8,7 +8,7 @@ domain: pack
 area: decisions
 tags: [pack, layout]
 created_at: "2026-08-24"
-updated_at: "2026-08-24"
+updated_at: "2026-08-25"
 ---
 
 # ADR-0004: Source pack lives under ai/
@@ -54,8 +54,11 @@ Keep the pack at root. That leaves the original clutter.
 
 Edit `ai/skills/`, then reinstall. Checks and the profile module resolve pack files through `ai/`. Dest projects do not see this path.
 
+The folder list above is stale. [[0006-source-libraries-beside-pi-runtime]] names the libraries and keeps `ai/pi/` as runtime only.
+
 ## Relationships
 
 - [[glossary]]
 - [[architecture-pack-and-packages]]
 - [[0001-pnpm-workspace-pi-packages]]
+- [[0006-source-libraries-beside-pi-runtime]]

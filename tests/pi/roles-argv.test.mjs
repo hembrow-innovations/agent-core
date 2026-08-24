@@ -21,17 +21,16 @@ const PACK_ROLES = join(REPO, "ai", "pi", "roles");
 test("matching flags from one file", () => {
   const role = parseRoleFile(join(PACK_ROLES, "researcher.md"));
   const { argv } = peerArgv(role, { project: "default", extraPiArgs: [] });
-  assert.deepEqual(argv.slice(0, 7), [
+  assert.deepEqual(argv.slice(0, 5), [
     "pi",
     "--cname",
     "researcher",
     "--purpose",
     "Finds evidence",
-    "--agent",
-    "draconic",
   ]);
-  assert.equal(argv[7], "--project");
-  assert.equal(argv[8], "default");
+  assert.equal(argv.includes("--agent"), false);
+  assert.equal(argv[5], "--project");
+  assert.equal(argv[6], "default");
   assert.equal(role.stem, "researcher");
   assert.equal(role.promptPath, join(PACK_ROLES, "researcher.md"));
 });
@@ -149,7 +148,7 @@ test("format is pasteable", () => {
   assert.equal(line.includes("\n"), false);
   assert.match(line, /--cname researcher/);
   assert.match(line, /--purpose 'Finds evidence'/);
-  assert.match(line, /--agent draconic/);
+  assert.doesNotMatch(line, /--agent/);
   assert.doesNotMatch(line, /--name/);
   assert.doesNotMatch(line, /--system-prompt/);
   assert.doesNotMatch(line, /--append-system-prompt/);
@@ -162,6 +161,23 @@ test("format is pasteable", () => {
     peerArgv(parseRoleFile(path), { project: "default", extraPiArgs: [] }),
   );
   assert.match(quoted, /--purpose 'It'\\''s quoted'/);
+});
+
+test("matching dest agent file is passed as --agent", () => {
+  const dest = mkdtempSync(join(tmpdir(), "role-agent-"));
+  mkdirSync(join(dest, "agents"), { recursive: true });
+  mkdirSync(join(dest, "roles"), { recursive: true });
+  writeFileSync(
+    join(dest, "roles", "researcher.md"),
+    "---\npurpose: Finds evidence\n---\n\nbody\n",
+  );
+  writeFileSync(
+    join(dest, "agents", "researcher.md"),
+    "---\nname: researcher\n---\n\nFind evidence.\n",
+  );
+  const role = parseRoleFile(join(dest, "roles", "researcher.md"));
+  const { argv } = peerArgv(role, { project: "default", extraPiArgs: [] });
+  assert.equal(argv[argv.indexOf("--agent") + 1], "researcher");
 });
 
 test("cli prints after copy through a temp dest", () => {
@@ -177,7 +193,7 @@ test("cli prints after copy through a temp dest", () => {
   );
   assert.equal(r.status, 0, r.stderr);
   assert.match(r.stdout, /--cname researcher/);
-  assert.match(r.stdout, /--agent draconic/);
+  assert.equal(r.stdout.includes("--agent"), false);
   assert.equal(r.stdout.includes("--system-prompt"), false);
   assert.equal(r.stdout.includes("--append-system-prompt"), false);
 });
