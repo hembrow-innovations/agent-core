@@ -13,6 +13,7 @@ export const FIRST_PARTY_EXTENSIONS = [
   "draconic-todo",
   "draconic-coms",
   "draconic-boot",
+  "draconic-teams",
 ] as const;
 
 export type FirstPartyExtension = (typeof FIRST_PARTY_EXTENSIONS)[number];

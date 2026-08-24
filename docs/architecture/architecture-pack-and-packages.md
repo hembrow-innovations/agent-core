@@ -7,7 +7,7 @@ domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-08-23"
+updated_at: "2026-08-24"
 ---
 
 # Pack and packages
@@ -54,6 +54,7 @@ The folders are:
 - `packages/draconic-todo` is `@agentic-core/draconic-todo`.
 - `packages/draconic-coms` is `@agentic-core/draconic-coms`.
 - `packages/draconic-boot` is `@agentic-core/draconic-boot`.
+- `packages/draconic-teams` is `@agentic-core/draconic-teams`.
 - `packages/lib` is a source package for imports and tests.
 - `packages/installer` is the install CLI.
 
@@ -87,7 +88,7 @@ pnpm exec agentic-core install <target> --profile pi --harness pi
 
 `--harness` overrides the profile. `--extension` can repeat.
 
-A profile install copies the pack for that profile. It also installs that profile's `extensions` list. Pi profiles `pi`, `agentic-core`, and `life-engine-pi` all list `draconic-todo`, `draconic-coms`, and `draconic-boot`.
+A profile install copies the pack for that profile. It also installs that profile's `extensions` list. Pi profiles `pi`, `agentic-core`, and `life-engine-pi` all list `draconic-todo`, `draconic-coms`, `draconic-boot`, and `draconic-teams`.
 
 An extension install names a first-party package for the vendor tree. Vendor write happens only when the dest harness is `pi`.
 

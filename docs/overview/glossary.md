@@ -30,10 +30,10 @@ A named install set in `profiles/`. Selected with `--profile`.
 The dest agent runtime. One of `opencode`, `claude`, `pi`, or `agents`. `--harness` overrides the profile.
 
 **Workspace package**:
-A TypeScript package under `packages/`. Folders are `draconic-todo`, `draconic-coms`, `draconic-boot`, `lib`, and `installer`.
+A TypeScript package under `packages/`. Folders are `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, `lib`, and `installer`.
 
 **First-party extension**:
-A product extension among the workspace packages. The three are `@agentic-core/draconic-todo`, `@agentic-core/draconic-coms`, and `@agentic-core/draconic-boot`.
+A product extension among the workspace packages. The four are `@agentic-core/draconic-todo`, `@agentic-core/draconic-coms`, `@agentic-core/draconic-boot`, and `@agentic-core/draconic-teams`.
 _Avoid_: loose extension file
 
 **Vendor copy**:
@@ -64,7 +64,7 @@ The `pi/agents/` file boot appends on a new Pi process.
 _Avoid_: APPEND_SYSTEM, last switch
 
 **Team**:
-A lead Pi session plus named living TUI peers that talk on coms and share tasks.
+A lead Pi session plus named living TUI peers that talk on coms and share tasks. Spec: [[spec-tmux-agent-teams]].
 _Avoid_: swarm, nicobailon fan-out
 
 **Teammate**:

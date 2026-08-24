@@ -1,0 +1,580 @@
+import type {
+	ExtensionAPI,
+	ExtensionContext,
+} from "@earendil-works/pi-coding-agent";
+import { Type } from "typebox";
+import { sendComsPrompt } from "./coms-send.ts";
+import {
+	addBlockedBy,
+	claimTask,
+	completeTask,
+	createTask,
+	createTeam,
+	defaultTeamsDir,
+	findMember,
+	getTask,
+	listTasks,
+	parseMemberName,
+	readTeam,
+	type Task,
+	type Team,
+	upsertMember,
+} from "./store.ts";
+import { applySpawn, killPane } from "./tmux.ts";
+
+function flagString(pi: ExtensionAPI, name: string): string | undefined {
+	const value = pi.getFlag(name);
+	return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+type NotifyType = "info" | "warning" | "error";
+
+function notify(
+	ctx: {
+		hasUI?: boolean;
+		ui: { notify: (message: string, type?: NotifyType) => void };
+	},
+	message: string,
+	type: NotifyType = "info",
+): void {
+	if (ctx.hasUI === false) return;
+	try {
+		ctx.ui.notify(message, type);
+	} catch {
+		// print mode
+	}
+}
+
+function setTeamStatus(ctx: ExtensionContext, text: string | undefined): void {
+	try {
+		ctx.ui.setStatus("team", text);
+	} catch {
+		// print mode
+	}
+}
+
+function toolText(text: string, details: Record<string, unknown>) {
+	return {
+		content: [{ type: "text" as const, text }],
+		details,
+	};
+}
+
+function errorText(err: unknown) {
+	const message = err instanceof Error ? err.message : String(err);
+	return toolText(message, { error: message });
+}
+
+function ownerName(raw: string | undefined): string {
+	const name = raw || "team-lead";
+	try {
+		return parseMemberName(name, { role: "teammate" });
+	} catch {
+		return parseMemberName(name, { role: "lead" });
+	}
+}
+
+function formatTeam(team: Team): string {
+	const lines = team.members.map((member) => {
+		if (member.kind === "lead") return `lead ${member.name}`;
+		return `${member.name} ${member.status} ${member.paneId} ${member.purpose}`;
+	});
+	return `team ${team.name}\n${lines.join("\n")}`;
+}
+
+function formatTask(task: Task): string {
+	const owner = task.owner ?? "-";
+	const blocked =
+		task.blockedBy.length > 0 ? ` blockedBy ${task.blockedBy.join(",")}` : "";
+	return `${task.id} ${task.status} ${owner} ${task.subject}${blocked}`;
+}
+
+export default function (pi: ExtensionAPI) {
+	const teamsDir = () => defaultTeamsDir();
+	let currentTeam = flagString(pi, "project");
+
+	const requireTeam = (): Team => {
+		const name = currentTeam || flagString(pi, "project");
+		if (!name) throw new Error("no team. /team create <name> first.");
+		const team = readTeam({ teamsDir: teamsDir(), name });
+		currentTeam = team.name;
+		return team;
+	};
+
+	pi.on("session_start", async (_event, ctx) => {
+		const project = flagString(pi, "project");
+		if (!project) return;
+		try {
+			const team = readTeam({ teamsDir: teamsDir(), name: project });
+			currentTeam = team.name;
+			setTeamStatus(ctx, `team ${team.name}`);
+		} catch {
+			// no config yet
+		}
+	});
+
+	pi.on("agent_settled", async (_event, ctx) => {
+		const name = flagString(pi, "cname");
+		const project = flagString(pi, "project") || currentTeam;
+		if (!name || !project) return;
+		let team: Team;
+		try {
+			team = readTeam({ teamsDir: teamsDir(), name: project });
+		} catch {
+			return;
+		}
+		const member = findMember(team, name);
+		if (member?.kind !== "teammate") return;
+		try {
+			await sendComsPrompt({
+				project: team.name,
+				senderName: name,
+				senderCwd: ctx.cwd,
+				target: team.leadName,
+				prompt: `idle: ${name} settled`,
+			});
+		} catch {
+			// lead may have gone away
+		}
+	});
+
+	pi.on("session_shutdown", () => {});
+
+	pi.registerTool({
+		name: "team_create",
+		label: "Team create",
+		description:
+			"Create or replace the team roster for this lead session. Team name becomes the coms --project.",
+		promptSnippet: "Create the current team roster.",
+		parameters: Type.Object({
+			name: Type.String({ description: "Team name. Also the coms project." }),
+		}),
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+			try {
+				const team = createTeam({
+					teamsDir: teamsDir(),
+					name: params.name,
+					leadName: ownerName(flagString(pi, "cname")),
+					cwd: ctx.cwd,
+				});
+				currentTeam = team.name;
+				return toolText(formatTeam(team), { team, members: team.members });
+			} catch (err) {
+				return errorText(err);
+			}
+		},
+	});
+
+	pi.registerTool({
+		name: "team_spawn",
+		label: "Team spawn",
+		description:
+			"Reconcile a named teammate pane. A live matching pane is adopted. Requires tmux.",
+		promptSnippet: "Spawn or adopt a named teammate pane.",
+		parameters: Type.Object({
+			name: Type.String({ description: "Teammate name and --cname." }),
+			purpose: Type.String({ description: "What this teammate is for." }),
+			model: Type.Optional(Type.String({ description: "Optional pi --model." })),
+			useWindows: Type.Optional(
+				Type.Boolean({ description: "Open a tmux window instead of a pane." }),
+			),
+		}),
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+			try {
+				const team = requireTeam();
+				const result = await applySpawn({
+					teamsDir: teamsDir(),
+					request: {
+						team: team.name,
+						name: params.name,
+						purpose: params.purpose,
+						cwd: team.cwd || ctx.cwd,
+						model: params.model,
+						useWindows: params.useWindows,
+					},
+				});
+				const next = readTeam({ teamsDir: teamsDir(), name: team.name });
+				return toolText(`${result.action} ${params.name}\n${formatTeam(next)}`, {
+					team: next,
+					members: next.members,
+					action: result.action,
+				});
+			} catch (err) {
+				return errorText(err);
+			}
+		},
+	});
+
+	pi.registerTool({
+		name: "team_status",
+		label: "Team status",
+		description: "Show the current team roster and pane ids.",
+		promptSnippet: "Show the current team roster.",
+		parameters: Type.Object({}),
+		async execute() {
+			try {
+				const team = requireTeam();
+				return toolText(formatTeam(team), { team, members: team.members });
+			} catch (err) {
+				return errorText(err);
+			}
+		},
+	});
+
+	pi.registerTool({
+		name: "team_shutdown",
+		label: "Team shutdown",
+		description:
+			"Ask a teammate to stop over coms, then kill its pane. A missing pane is a no-op.",
+		promptSnippet: "Shut down a named teammate pane.",
+		parameters: Type.Object({
+			name: Type.String({ description: "Teammate name to shut down." }),
+		}),
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+			try {
+				const result = await shutdownMember({
+					teamsDir: teamsDir(),
+					team: requireTeam(),
+					name: params.name,
+					senderName: ownerName(flagString(pi, "cname")),
+					senderCwd: ctx.cwd,
+				});
+				return toolText(`${result.action} ${result.name}`, result);
+			} catch (err) {
+				return errorText(err);
+			}
+		},
+	});
+
+	pi.registerTool({
+		name: "task_create",
+		label: "Task create",
+		description: "Add a pending task on the current team.",
+		promptSnippet: "Create a pending team task.",
+		parameters: Type.Object({
+			subject: Type.String({ description: "Short task subject." }),
+			description: Type.String({ description: "What done looks like." }),
+			blockedBy: Type.Optional(
+				Type.Array(
+					Type.String({ description: "Task id that must complete first." }),
+				),
+			),
+		}),
+		async execute(_toolCallId, params) {
+			try {
+				const team = requireTeam();
+				let task = createTask({
+					teamsDir: teamsDir(),
+					team: team.name,
+					subject: params.subject,
+					description: params.description,
+				});
+				for (const blocker of params.blockedBy ?? []) {
+					task = addBlockedBy({
+						teamsDir: teamsDir(),
+						team: team.name,
+						id: task.id,
+						blocker,
+					});
+				}
+				return toolText(formatTask(task), { task });
+			} catch (err) {
+				return errorText(err);
+			}
+		},
+	});
+
+	pi.registerTool({
+		name: "task_list",
+		label: "Task list",
+		description: "List tasks on the current team.",
+		promptSnippet: "List team tasks.",
+		parameters: Type.Object({}),
+		async execute() {
+			try {
+				const team = requireTeam();
+				const tasks = listTasks({ teamsDir: teamsDir(), team: team.name });
+				if (tasks.length === 0) return toolText("No tasks.", { tasks });
+				return toolText(tasks.map(formatTask).join("\n"), { tasks });
+			} catch (err) {
+				return errorText(err);
+			}
+		},
+	});
+
+	pi.registerTool({
+		name: "task_get",
+		label: "Task get",
+		description: "Get one team task by id.",
+		promptSnippet: "Get a team task by id.",
+		parameters: Type.Object({
+			id: Type.String({ description: "Decimal task id." }),
+		}),
+		async execute(_toolCallId, params) {
+			try {
+				const team = requireTeam();
+				const task = getTask({
+					teamsDir: teamsDir(),
+					team: team.name,
+					id: params.id,
+				});
+				return toolText(formatTask(task), { task });
+			} catch (err) {
+				return errorText(err);
+			}
+		},
+	});
+
+	pi.registerTool({
+		name: "task_claim",
+		label: "Task claim",
+		description:
+			"Claim a pending unblocked task on the current team. Fails if someone else already owns it.",
+		promptSnippet: "Claim a pending unblocked team task.",
+		promptGuidelines: [
+			"Use task_claim when this session should own a pending unblocked task on the current team.",
+		],
+		parameters: Type.Object({
+			id: Type.String({ description: "Decimal task id." }),
+		}),
+		async execute(_toolCallId, params) {
+			try {
+				const team = requireTeam();
+				const task = claimTask({
+					teamsDir: teamsDir(),
+					team: team.name,
+					id: params.id,
+					owner: ownerName(flagString(pi, "cname")),
+				});
+				return toolText(formatTask(task), { task });
+			} catch (err) {
+				return errorText(err);
+			}
+		},
+	});
+
+	pi.registerTool({
+		name: "task_complete",
+		label: "Task complete",
+		description:
+			"Mark a team task completed and drop this id from other tasks' blockedBy lists.",
+		promptSnippet: "Complete a team task.",
+		parameters: Type.Object({
+			id: Type.String({ description: "Decimal task id." }),
+		}),
+		async execute(_toolCallId, params) {
+			try {
+				const team = requireTeam();
+				const task = completeTask({
+					teamsDir: teamsDir(),
+					team: team.name,
+					id: params.id,
+				});
+				return toolText(formatTask(task), { task });
+			} catch (err) {
+				return errorText(err);
+			}
+		},
+	});
+
+	pi.registerCommand("team", {
+		description:
+			"Create a team, spawn a named pane, list status, manage tasks, or shut a pane down. Shut a teammate down with /team shutdown <name> before you leave.",
+		handler: async (args, ctx) => {
+			const text = args.trim();
+			const [verb, ...rest] = text.split(/\s+/);
+			try {
+				if (!verb || verb === "status") {
+					const team = requireTeam();
+					notify(ctx, formatTeam(team));
+					return;
+				}
+				if (verb === "create") {
+					const name = rest[0] || flagString(pi, "project");
+					if (!name) {
+						notify(ctx, "usage: /team create <name>", "warning");
+						return;
+					}
+					const team = createTeam({
+						teamsDir: teamsDir(),
+						name,
+						leadName: ownerName(flagString(pi, "cname")),
+						cwd: ctx.cwd,
+					});
+					currentTeam = team.name;
+					notify(ctx, formatTeam(team));
+					return;
+				}
+				if (verb === "spawn") {
+					const name = rest[0];
+					const purpose = rest.slice(1).join(" ");
+					if (!name || !purpose) {
+						notify(ctx, "usage: /team spawn <name> <purpose...>", "warning");
+						return;
+					}
+					if (!process.env.TMUX) {
+						notify(
+							ctx,
+							"TMUX is empty. Run /team from inside a tmux session.",
+							"error",
+						);
+						return;
+					}
+					const team = requireTeam();
+					const result = await applySpawn({
+						teamsDir: teamsDir(),
+						request: {
+							team: team.name,
+							name,
+							purpose,
+							cwd: team.cwd || ctx.cwd,
+						},
+					});
+					notify(ctx, `${result.action} ${name}`);
+					return;
+				}
+				if (verb === "shutdown") {
+					const name = rest[0];
+					if (!name) {
+						notify(ctx, "usage: /team shutdown <name>", "warning");
+						return;
+					}
+					if (!process.env.TMUX) {
+						notify(
+							ctx,
+							"TMUX is empty. Run /team from inside a tmux session.",
+							"error",
+						);
+						return;
+					}
+					const result = await shutdownMember({
+						teamsDir: teamsDir(),
+						team: requireTeam(),
+						name,
+						senderName: ownerName(flagString(pi, "cname")),
+						senderCwd: ctx.cwd,
+					});
+					notify(ctx, `${result.action} ${result.name}`);
+					return;
+				}
+				if (verb === "task") {
+					await handleTaskCommand({
+						teamsDir: teamsDir(),
+						team: requireTeam(),
+						owner: ownerName(flagString(pi, "cname")),
+						args: rest,
+						notify: (message, type) => notify(ctx, message, type),
+					});
+					return;
+				}
+				notify(ctx, "usage: /team create|spawn|status|task|shutdown", "warning");
+			} catch (err) {
+				notify(ctx, err instanceof Error ? err.message : String(err), "error");
+			}
+		},
+	});
+}
+
+export type ShutdownResult = {
+	action: "requested" | "killed" | "absent";
+	name: string;
+};
+
+async function shutdownMember(input: {
+	teamsDir: string;
+	team: Team;
+	name: string;
+	senderName: string;
+	senderCwd: string;
+}): Promise<ShutdownResult> {
+	const member = findMember(input.team, input.name);
+	if (!member || member.kind !== "teammate") {
+		return { action: "absent", name: input.name };
+	}
+	try {
+		await sendComsPrompt({
+			project: input.team.name,
+			senderName: input.senderName,
+			senderCwd: input.senderCwd,
+			target: input.name,
+			prompt: "Please stop. The lead is shutting this pane down.",
+		});
+	} catch {
+		// teammate may already be gone
+	}
+	await new Promise((resolve) => setTimeout(resolve, 400));
+	const killed = await killPane({ paneId: member.paneId });
+	upsertMember({
+		teamsDir: input.teamsDir,
+		team: input.team.name,
+		member: { ...member, status: "shutdown" },
+	});
+	return { action: killed, name: input.name };
+}
+
+async function handleTaskCommand(input: {
+	teamsDir: string;
+	team: Team;
+	owner: string;
+	args: string[];
+	notify: (message: string, type?: "info" | "warning" | "error") => void;
+}): Promise<void> {
+	const [verb, ...rest] = input.args;
+	if (!verb || verb === "list") {
+		const tasks = listTasks({ teamsDir: input.teamsDir, team: input.team.name });
+		input.notify(
+			tasks.length === 0 ? "No tasks." : tasks.map(formatTask).join("\n"),
+		);
+		return;
+	}
+	if (verb === "create") {
+		const subject = rest.join(" ");
+		if (!subject) {
+			input.notify("usage: /team task create <subject>", "warning");
+			return;
+		}
+		const task = createTask({
+			teamsDir: input.teamsDir,
+			team: input.team.name,
+			subject,
+			description: subject,
+		});
+		input.notify(formatTask(task));
+		return;
+	}
+	if (verb === "get" || verb === "claim" || verb === "complete") {
+		const id = rest[0];
+		if (!id) {
+			input.notify(`usage: /team task ${verb} <id>`, "warning");
+			return;
+		}
+		if (verb === "get") {
+			input.notify(
+				formatTask(
+					getTask({ teamsDir: input.teamsDir, team: input.team.name, id }),
+				),
+			);
+			return;
+		}
+		if (verb === "claim") {
+			input.notify(
+				formatTask(
+					claimTask({
+						teamsDir: input.teamsDir,
+						team: input.team.name,
+						id,
+						owner: input.owner,
+					}),
+				),
+			);
+			return;
+		}
+		input.notify(
+			formatTask(
+				completeTask({ teamsDir: input.teamsDir, team: input.team.name, id }),
+			),
+		);
+		return;
+	}
+	input.notify("usage: /team task create|list|get|claim|complete", "warning");
+}

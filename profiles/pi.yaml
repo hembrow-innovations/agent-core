@@ -5,6 +5,7 @@ extensions:
   - draconic-todo
   - draconic-coms
   - draconic-boot
+  - draconic-teams
 skills:
   - architect
   - arena

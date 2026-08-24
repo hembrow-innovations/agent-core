@@ -453,12 +453,13 @@ test("repo agentic-core profile loads", () => {
   assert.deepEqual(missing, []);
 });
 
-test("repo pi profiles list todo, coms, and boot", () => {
+test("repo pi profiles list todo, coms, boot, and teams", () => {
   for (const name of ["pi", "agentic-core", "life-engine-pi"]) {
     assert.deepEqual(loadProfile(REPO, name).extensions, [
       "draconic-todo",
       "draconic-coms",
       "draconic-boot",
+      "draconic-teams",
     ]);
   }
 });
@@ -775,6 +776,10 @@ test("install --profile pi writes .pi only", () => {
     existsSync(join(vendorRoot, "draconic-boot", "src", "index.ts")),
     true,
   );
+  assert.equal(
+    existsSync(join(vendorRoot, "draconic-teams", "src", "index.ts")),
+    true,
+  );
   assert.equal(existsSync(join(vendorRoot, "lib")), false);
   const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
   assert.doesNotMatch(append, /running draconic-mode on Pi/);
@@ -806,6 +811,7 @@ test("install --profile pi writes .pi only", () => {
         ".pi/vendor/@agentic-core/draconic-todo",
         ".pi/vendor/@agentic-core/draconic-coms",
         ".pi/vendor/@agentic-core/draconic-boot",
+        ".pi/vendor/@agentic-core/draconic-teams",
       ],
     },
   );

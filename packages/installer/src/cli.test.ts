@@ -91,12 +91,14 @@ test("install --profile pi writes skills, pack files, and third-party npm source
       ".pi/vendor/@agentic-core/draconic-todo",
       ".pi/vendor/@agentic-core/draconic-coms",
       ".pi/vendor/@agentic-core/draconic-boot",
+      ".pi/vendor/@agentic-core/draconic-teams",
     ],
   );
   const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
   assert.deepEqual(readdirSync(vendorRoot).sort(), [
     "draconic-boot",
     "draconic-coms",
+    "draconic-teams",
     "draconic-todo",
   ]);
   assert.equal(
@@ -109,6 +111,10 @@ test("install --profile pi writes skills, pack files, and third-party npm source
   );
   assert.equal(
     existsSync(join(vendorRoot, "draconic-boot", "src", "index.ts")),
+    true,
+  );
+  assert.equal(
+    existsSync(join(vendorRoot, "draconic-teams", "src", "index.ts")),
     true,
   );
   assert.equal(existsSync(join(vendorRoot, "lib")), false);
@@ -169,7 +175,7 @@ test("install --profile pi removes leftover dest extension files", () => {
   assert.equal(existsSync(join(dest, ".pi", "lib")), false);
 });
 
-test("install --profile pi --harness pi writes the three vendor packages", () => {
+test("install --profile pi --harness pi writes the four vendor packages", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-pi-harness-"));
   const r = runCli(["install", dest, "--profile", "pi", "--harness", "pi"]);
   assert.equal(r.status, 0, r.stderr || r.stdout);
@@ -187,6 +193,10 @@ test("install --profile pi --harness pi writes the three vendor packages", () =>
   );
   assert.equal(
     existsSync(join(vendorRoot, "draconic-boot", "src", "index.ts")),
+    true,
+  );
+  assert.equal(
+    existsSync(join(vendorRoot, "draconic-teams", "src", "index.ts")),
     true,
   );
 });
@@ -218,7 +228,7 @@ test("install --profile core writes .opencode/skills and does not wire this chec
     assert.doesNotMatch(after, /vendor\/@agentic-core/);
     assert.doesNotMatch(
       after,
-      /packages\/(?:lib|draconic-todo|draconic-coms|draconic-boot)/,
+      /packages\/(?:lib|draconic-todo|draconic-coms|draconic-boot|draconic-teams)/,
     );
   }
 });
