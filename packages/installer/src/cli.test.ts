@@ -246,7 +246,7 @@ function assertNoCheckoutPath(root: string): void {
   }
 }
 
-test("install --extension draconic-todo vendors a lib-bundled dest-relative package", () => {
+test("install --extension draconic-todo vendors a dest-relative package", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-ext-"));
   const r = runCli(["install", dest, "--extension", "draconic-todo"]);
   assert.equal(r.status, 0, r.stderr || r.stdout);
@@ -257,13 +257,11 @@ test("install --extension draconic-todo vendors a lib-bundled dest-relative pack
   assert.deepEqual(readdirSync(vendorRoot), ["draconic-todo"]);
   assert.equal(existsSync(join(dest, ".pi", "skills")), false);
   assert.equal(existsSync(join(vendorRoot, "lib")), false);
-  assert.equal(
-    existsSync(join(vendor, "src", "lib", "draconic-todo-store.ts")),
-    true,
-  );
+  assert.equal(existsSync(join(vendor, "src", "lib")), false);
+  assert.equal(existsSync(join(vendor, "src", "store.ts")), true);
 
   const index = readFileSync(join(vendor, "src", "index.ts"), "utf8");
-  assert.match(index, /from "\.\/lib\/index\.ts"/);
+  assert.match(index, /from "\.\/store\.ts"/);
   assert.doesNotMatch(index, /@agentic-core\/lib/);
 
   const pkg = JSON.parse(
@@ -271,7 +269,7 @@ test("install --extension draconic-todo vendors a lib-bundled dest-relative pack
   ) as {
     dependencies?: Record<string, string>;
   };
-  assert.equal(pkg.dependencies?.["@agentic-core/lib"], undefined);
+  assert.equal(pkg.dependencies, undefined);
 
   const settings = JSON.parse(
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),

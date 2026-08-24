@@ -7,7 +7,7 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { dirname, join } from "node:path";
 
 export const FIRST_PARTY_EXTENSIONS = [
   "draconic-todo",
@@ -18,7 +18,6 @@ export const FIRST_PARTY_EXTENSIONS = [
 export type FirstPartyExtension = (typeof FIRST_PARTY_EXTENSIONS)[number];
 
 const FIRST_PARTY_EXTENSION_SET = new Set<string>(FIRST_PARTY_EXTENSIONS);
-const LIB_FROM = /from\s+(["'])@agentic-core\/lib\1/g;
 
 export function isFirstPartyExtension(
   name: string,
@@ -73,14 +72,6 @@ function writeVendorExtension(
   mkdirSync(destPkg, { recursive: true });
   cpSync(join(srcPkg, "package.json"), join(destPkg, "package.json"));
   copyTsSources(join(srcPkg, "src"), join(destPkg, "src"));
-  rewriteVendorPackageJson(join(destPkg, "package.json"));
-  if (!sourcesImportLib(join(destPkg, "src"))) return;
-  const libIndex = join(destPkg, "src", "lib", "index.ts");
-  copyTsSources(
-    join(srcRoot, "packages", "lib", "src"),
-    join(destPkg, "src", "lib"),
-  );
-  rewriteLibImports(join(destPkg, "src"), libIndex);
 }
 
 function copyTsSources(srcDir: string, destDir: string): void {
@@ -102,65 +93,6 @@ function copyTsSources(srcDir: string, destDir: string): void {
     }
     cpSync(from, to);
   }
-}
-
-function rewriteVendorPackageJson(pkgPath: string): void {
-  const raw: unknown = JSON.parse(readFileSync(pkgPath, "utf8"));
-  if (!isRecord(raw)) throw new Error(`${pkgPath} must be a JSON object`);
-  if (isRecord(raw.dependencies)) {
-    delete raw.dependencies["@agentic-core/lib"];
-    if (Object.keys(raw.dependencies).length === 0) delete raw.dependencies;
-  }
-  writeFileSync(pkgPath, `${JSON.stringify(raw, null, 2)}\n`, "utf8");
-}
-
-function sourcesImportLib(dir: string): boolean {
-  return listTsFiles(dir).some((file) =>
-    fileImportsLib(readFileSync(file, "utf8")),
-  );
-}
-
-function fileImportsLib(text: string): boolean {
-  return /from\s+["']@agentic-core\/lib["']/.test(text);
-}
-
-function rewriteLibImports(srcDir: string, libIndex: string): void {
-  const libDir = dirname(libIndex);
-  for (const file of listTsFiles(srcDir)) {
-    if (
-      file === libIndex ||
-      file.startsWith(`${libDir}/`) ||
-      file.startsWith(`${libDir}\\`)
-    ) {
-      continue;
-    }
-    const text = readFileSync(file, "utf8");
-    if (!fileImportsLib(text)) continue;
-    const specifier = relativeImport(file, libIndex);
-    writeFileSync(
-      file,
-      text.replace(LIB_FROM, `from $1${specifier}$1`),
-      "utf8",
-    );
-    LIB_FROM.lastIndex = 0;
-  }
-}
-
-function relativeImport(fromFile: string, toFile: string): string {
-  let rel = relative(dirname(fromFile), toFile);
-  if (!rel.startsWith(".")) rel = `./${rel}`;
-  return rel.split("\\").join("/");
-}
-
-function listTsFiles(dir: string): string[] {
-  if (!existsSync(dir)) return [];
-  const out: string[] = [];
-  for (const ent of readdirSync(dir, { withFileTypes: true })) {
-    const path = join(dir, ent.name);
-    if (ent.isDirectory()) out.push(...listTsFiles(path));
-    else if (ent.isFile() && ent.name.endsWith(".ts")) out.push(path);
-  }
-  return out;
 }
 
 function mergePackageSources(settingsPath: string, sources: string[]): void {
