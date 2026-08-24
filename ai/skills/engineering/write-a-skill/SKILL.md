@@ -8,7 +8,7 @@ A skill exists to wrangle determinism out of a stochastic system. **Predictabili
 
 **Bold terms** are defined in [`GLOSSARY.md`](GLOSSARY.md); look them up there for the full meaning.
 
-Large knowledge packs (dozens of independent rules) use progressive disclosure: small router `SKILL.md` + on-demand `rules/<id>.md`. Full layout and checklist: [`PROGRESSIVE.md`](PROGRESSIVE.md). Pattern exemplar: `vercel-react-best-practices`.
+Large knowledge packs (dozens of independent rules) use progressive disclosure: small router `SKILL.md` + on-demand `rules/<id>.md`. Full layout and checklist: [`PROGRESSIVE.md`](PROGRESSIVE.md). Pattern exemplar: `vercel-react-best-practices`. Generate one from a brief with **create-progressive-skill**.
 
 ## Invocation
 
