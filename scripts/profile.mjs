@@ -349,10 +349,9 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
     if (!keep.has(ent.name)) rmSync(join(destPrompts, ent.name));
   }
 
-  writeIfMissingOrLegacy(
+  writeAppendSystem(
     join(target, ".pi", "APPEND_SYSTEM.md"),
     readFileSync(join(pack, "APPEND_SYSTEM.md"), "utf8"),
-    [LEGACY_APPEND_SYSTEM, STUB_APPEND_SYSTEM],
   );
   writeIfMissing(
     join(target, ".pi", "draconic-models.md"),
@@ -458,15 +457,24 @@ function writeIfMissing(dest, body) {
   writeFileSync(dest, body, "utf8");
 }
 
-function writeIfMissingOrLegacy(dest, body, legacyBodies) {
+function isLegacyAppendSystem(text) {
+  return (
+    text === LEGACY_APPEND_SYSTEM ||
+    text === STUB_APPEND_SYSTEM ||
+    /You are running draconic-mode on Pi/.test(text) ||
+    /Read `\.pi\/skills\/draconic-mode\/SKILL\.md` in full/.test(text)
+  );
+}
+
+function writeAppendSystem(dest, body) {
   if (!existsSync(dest)) {
     mkdirSync(dirname(dest), { recursive: true });
     writeFileSync(dest, body, "utf8");
     return;
   }
-  if (legacyBodies.includes(readFileSync(dest, "utf8"))) {
-    writeFileSync(dest, body, "utf8");
-  }
+  const current = readFileSync(dest, "utf8");
+  if (current === body || !isLegacyAppendSystem(current)) return;
+  writeFileSync(dest, body, "utf8");
 }
 
 function walkSkillDirs(root, visit) {

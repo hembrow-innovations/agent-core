@@ -88,10 +88,10 @@ test("install --profile pi writes skills, pack files, and third-party npm source
       "npm:pi-lens",
       "npm:pi-web-access",
       "npm:pi-subagents",
-      ".pi/vendor/@agentic-core/draconic-todo",
-      ".pi/vendor/@agentic-core/draconic-coms",
-      ".pi/vendor/@agentic-core/draconic-boot",
-      ".pi/vendor/@agentic-core/draconic-teams",
+      "vendor/@agentic-core/draconic-todo",
+      "vendor/@agentic-core/draconic-coms",
+      "vendor/@agentic-core/draconic-boot",
+      "vendor/@agentic-core/draconic-teams",
     ],
   );
   const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
@@ -225,7 +225,6 @@ test("install --profile core writes .opencode/skills and does not wire this chec
     : null;
   assert.equal(after, before);
   if (after) {
-    assert.doesNotMatch(after, /vendor\/@agentic-core/);
     assert.doesNotMatch(
       after,
       /packages\/(?:lib|draconic-todo|draconic-coms|draconic-boot|draconic-teams)/,
@@ -288,7 +287,7 @@ test("install --extension draconic-todo vendors a lib-bundled dest-relative pack
   ) as { packages?: unknown };
   assert.ok(Array.isArray(settings.packages), "settings.packages");
   assert.deepEqual(settings.packages, [
-    ".pi/vendor/@agentic-core/draconic-todo",
+    "vendor/@agentic-core/draconic-todo",
   ]);
 
   const gitignore = readFileSync(join(dest, ".pi", ".gitignore"), "utf8");
@@ -296,6 +295,28 @@ test("install --extension draconic-todo vendors a lib-bundled dest-relative pack
   assert.doesNotMatch(gitignore, /vendor/);
 
   assertNoCheckoutPath(dest);
+});
+
+test("install rewrites stale .pi/vendor package sources to vendor/", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-vendor-migrate-"));
+  mkdirSync(join(dest, ".pi"), { recursive: true });
+  writeFileSync(
+    join(dest, ".pi", "settings.json"),
+    `${JSON.stringify({
+      packages: [
+        ".pi/vendor/@agentic-core/draconic-todo",
+        "vendor/@agentic-core/draconic-todo",
+      ],
+    }, null, 2)}\n`,
+  );
+  const r = runCli(["install", dest, "--extension", "draconic-todo"]);
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  const settings = JSON.parse(
+    readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
+  ) as { packages?: unknown };
+  assert.deepEqual(settings.packages, [
+    "vendor/@agentic-core/draconic-todo",
+  ]);
 });
 
 test("install --extension can repeat and a second run overwrites vendor", () => {
@@ -330,8 +351,8 @@ test("install --extension can repeat and a second run overwrites vendor", () => 
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   ) as { packages?: unknown };
   assert.deepEqual(settings.packages, [
-    ".pi/vendor/@agentic-core/draconic-todo",
-    ".pi/vendor/@agentic-core/draconic-boot",
+    "vendor/@agentic-core/draconic-todo",
+    "vendor/@agentic-core/draconic-boot",
   ]);
   assertNoCheckoutPath(dest);
 });

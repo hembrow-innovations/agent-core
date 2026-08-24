@@ -28,7 +28,13 @@ export function isFirstPartyExtension(
 }
 
 export function vendorPackageSource(name: FirstPartyExtension): string {
-  return `.pi/vendor/@agentic-core/${name}`;
+  return `vendor/@agentic-core/${name}`;
+}
+
+function canonicalizePackageSource(source: string): string {
+  const match = source.match(/^(?:\.pi\/)?vendor\/@agentic-core\/([a-z0-9-]+)$/);
+  if (!match) return source;
+  return `vendor/@agentic-core/${match[1]}`;
 }
 
 export function installVendorExtensions(
@@ -178,17 +184,35 @@ function mergePackageSources(settingsPath: string, sources: string[]): void {
   const have = new Set<string>();
   const next: unknown[] = [];
   for (const item of existing) {
-    next.push(item);
     const source = packageSource(item);
-    if (source) have.add(source);
+    const canon = source ? canonicalizePackageSource(source) : null;
+    if (canon && have.has(canon)) continue;
+    if (typeof item === "string" && canon) {
+      next.push(canon);
+      have.add(canon);
+      continue;
+    }
+    if (isRecord(item) && canon && typeof item.source === "string") {
+      next.push({ ...item, source: canon });
+      have.add(canon);
+      continue;
+    }
+    next.push(item);
+    if (canon) have.add(canon);
+    else if (source) have.add(source);
   }
   for (const src of sources) {
-    if (have.has(src)) continue;
-    have.add(src);
-    next.push(src);
+    const canon = canonicalizePackageSource(src);
+    if (have.has(canon)) continue;
+    have.add(canon);
+    next.push(canon);
   }
-  if (next.length === existing.length && Array.isArray(settings.packages))
+  if (
+    Array.isArray(settings.packages) &&
+    JSON.stringify(settings.packages) === JSON.stringify(next)
+  ) {
     return;
+  }
   settings.packages = next;
   mkdirSync(dirname(settingsPath), { recursive: true });
   writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`, "utf8");

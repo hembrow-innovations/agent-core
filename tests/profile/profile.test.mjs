@@ -661,6 +661,31 @@ test("installPiRuntime rewrites a dest APPEND_SYSTEM that still matches the old 
   );
 });
 
+test("installPiRuntime rewrites a dest APPEND_SYSTEM that still names the dest router", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "pi", "extensions"), { recursive: true });
+  mkdirSync(join(root, "pi", "prompts"), { recursive: true });
+  writeFileSync(
+    join(root, "pi", "extensions", "boot.ts"),
+    "export default function () {}\n",
+  );
+  writeFileSync(join(root, "pi", "APPEND_SYSTEM.md"), "new stub\n");
+  writeFileSync(join(root, "pi", "draconic-models.md"), "models\n");
+  writePiRolesPack(root);
+
+  const dest = mkdtempSync(join(tmpdir(), "pi-rt-append-variant-"));
+  mkdirSync(join(dest, ".pi"), { recursive: true });
+  writeFileSync(
+    join(dest, ".pi", "APPEND_SYSTEM.md"),
+    `# Draconic\n\nYou are running draconic-mode on Pi for this project.\n\n1. Read \`.pi/skills/draconic-mode/SKILL.md\` in full.\nWrite .draconic/TODO.md.\n`,
+  );
+  installPiRuntime(root, dest);
+  assert.equal(
+    readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
+    "new stub\n",
+  );
+});
+
 test("installPiRuntime writes dest agents and leaves a custom file alone", () => {
   const root = tempRoot();
   mkdirSync(join(root, "pi", "extensions"), { recursive: true });
@@ -808,10 +833,10 @@ test("install --profile pi writes .pi only", () => {
         "npm:pi-lens",
         "npm:pi-web-access",
         "npm:pi-subagents",
-        ".pi/vendor/@agentic-core/draconic-todo",
-        ".pi/vendor/@agentic-core/draconic-coms",
-        ".pi/vendor/@agentic-core/draconic-boot",
-        ".pi/vendor/@agentic-core/draconic-teams",
+        "vendor/@agentic-core/draconic-todo",
+        "vendor/@agentic-core/draconic-coms",
+        "vendor/@agentic-core/draconic-boot",
+        "vendor/@agentic-core/draconic-teams",
       ],
     },
   );
