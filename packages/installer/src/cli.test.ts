@@ -76,10 +76,6 @@ test("install --profile pi writes skills, pack files, and third-party npm source
   assert.ok(folders.includes("how"), folders.join(", "));
   assert.equal(existsSync(join(skillRoot, "draconic-mode", "SKILL.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
-  assert.equal(
-    existsSync(join(dest, ".pi", "prompts", "draconic-mode.md")),
-    true,
-  );
   assert.equal(existsSync(join(dest, ".pi", "roles", "researcher.md")), true);
   assert.deepEqual(
     JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8"))

@@ -18,11 +18,11 @@ import {
   parseVerdict,
   type OpenStoreOptions,
   type Store,
-} from "../../skills/workflow/draconic-mode/scripts/orch/store.ts";
+} from "../../ai/skills/workflow/draconic-mode/scripts/orch/store.ts";
 
 const SCRIPT = join(
   import.meta.dir,
-  "../../skills/workflow/draconic-mode/scripts/orch/orch.ts",
+  "../../ai/skills/workflow/draconic-mode/scripts/orch/orch.ts",
 );
 const directories: string[] = [];
 const handles: Store[] = [];

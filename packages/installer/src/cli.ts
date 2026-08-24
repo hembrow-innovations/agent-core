@@ -223,7 +223,7 @@ function repoRoot(): string {
   const root = resolve(here, "../../..");
   if (
     !existsSync(join(root, "profiles")) ||
-    !existsSync(join(root, "skills"))
+    !existsSync(join(root, "ai", "skills"))
   ) {
     die("agentic-core must run from this checkout");
   }
@@ -302,21 +302,21 @@ function copyMarkdownTree(
 }
 
 function installAgents(srcRoot: string, target: string): void {
-  const src = join(srcRoot, "agents");
+  const src = join(srcRoot, "ai", "agents");
   const dest = join(target, AGENT_DEST);
   const n = copyMarkdownTree(src, dest, "agent");
   if (!n) console.log("  agents: none");
 }
 
 function installCommands(srcRoot: string, target: string): void {
-  const src = join(srcRoot, "commands");
+  const src = join(srcRoot, "ai", "commands");
   const dest = join(target, COMMAND_DEST);
   const n = copyMarkdownTree(src, dest, "command");
   if (!n) console.log("  commands: none");
 }
 
 function installTemplates(srcRoot: string, target: string): void {
-  const tpl = join(srcRoot, "templates", "opencode");
+  const tpl = join(srcRoot, "ai", "templates", "opencode");
   if (!existsSync(tpl)) {
     console.log("  templates: missing pack");
     return;

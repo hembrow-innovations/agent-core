@@ -4,13 +4,13 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
 
 ## Source
 
-- `skills/` is the skill library.
-- `playbooks/` is the playbook library.
-- `pi/` is the Pi runtime pack.
+- `ai/skills/` is the skill library.
+- `ai/playbooks/` is the playbook library.
+- `ai/pi/` is the Pi runtime pack.
+- `ai/agents/` and `ai/commands/` are the OpenCode pack.
 - `profiles/` is the install profiles.
 - `scripts/` is the checks and the profile module.
 - `packages/installer/` is the `agentic-core` CLI.
-- `agents/`, `commands/`, and `templates/` are the OpenCode pack.
 
 ## Dest
 
@@ -22,7 +22,7 @@ After you change a source skill, reinstall:
 pnpm exec agentic-core install . --profile agentic-core
 ```
 
-When you write or edit a skill, read `skills/engineering/write-a-skill/SKILL.md`.
+When you write or edit a skill, read `ai/skills/engineering/write-a-skill/SKILL.md`.
 
 ## Verify
 

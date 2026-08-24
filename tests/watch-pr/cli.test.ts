@@ -1,9 +1,9 @@
 import { describe, expect, it } from "bun:test";
-import { type CliRuntime, main, parseArgs } from "../../skills/workflow/draconic-mode/scripts/watch-pr/cli.ts";
+import { type CliRuntime, main, parseArgs } from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/cli.ts";
 import { fakeReader, passingCheck } from "./fakes.test-helper.ts";
-import { renderJson, renderPretty } from "../../skills/workflow/draconic-mode/scripts/watch-pr/render.ts";
-import type { GitHubReader, WatcherVerdict } from "../../skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
-import { parsePrNumber } from "../../skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
+import { renderJson, renderPretty } from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/render.ts";
+import type { GitHubReader, WatcherVerdict } from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
+import { parsePrNumber } from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
 
 const silentIo = { stdout: () => {}, stderr: () => {} };
 

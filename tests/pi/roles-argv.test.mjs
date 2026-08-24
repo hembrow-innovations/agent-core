@@ -13,10 +13,10 @@ import {
   parseRoleStem,
   peerArgv,
   peerCommands,
-} from "../../pi/roles/argv.mjs";
+} from "../../ai/pi/roles/argv.mjs";
 
 const REPO = fileURLToPath(new URL("../..", import.meta.url));
-const PACK_ROLES = join(REPO, "pi", "roles");
+const PACK_ROLES = join(REPO, "ai", "pi", "roles");
 
 test("matching flags from one file", () => {
   const role = parseRoleFile(join(PACK_ROLES, "researcher.md"));

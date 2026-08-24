@@ -9,5 +9,5 @@
     "target": "esnext",
     "types": ["bun-types"]
   },
-  "include": ["*.ts", "../../../../../tests/watch-pr/*.ts"]
+  "include": ["*.ts", "../../../../../../tests/watch-pr/*.ts"]
 }

@@ -7,7 +7,7 @@ domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-08-24"
+updated_at: "2026-08-25"
 ---
 
 # Pack and packages
@@ -28,20 +28,22 @@ That mix left dest coupled to loose files. It also left a sibling lib that dest 
 
 The settled layout keeps the markdown pack. It moves first-party extensions into workspace packages. Dest receives a vendor copy. Dest has no live path back to this checkout.
 
-[[adr-1]] and [[adr-2]] record those choices.
+[[adr-1]], [[adr-2]], and [[adr-4]] record those choices.
 
 ## Design
 
 ### Source pack
 
-The source pack stays in this checkout. Skills do not become packages.
+The source pack stays in this checkout, under `ai/`. Skills do not become packages. `profiles/` stays at the checkout root.
 
 The folders are:
 
-- `skills/` is the markdown skill library.
-- `playbooks/` is the playbook library.
+- `ai/skills/` is the markdown skill library.
+- `ai/playbooks/` is the playbook library.
+- `ai/pi/` holds prompts, roles, `APPEND_SYSTEM`, and the third-party package list. It has no `extensions/` and no `lib/`.
+- `ai/agents/` and `ai/commands/` are the OpenCode pack.
+- `ai/plugins/`, `ai/hooks/`, `ai/keybinds/`, `ai/mcp/`, and `ai/themes/` are empty stubs.
 - `profiles/` is the install profile list. Pi profiles gain an `extensions` list.
-- `pi/` holds prompts, roles, `APPEND_SYSTEM`, and the third-party package list. It has no `extensions/` and no `lib/`.
 
 Skills, playbooks, prompts, roles, and `npm:pi-lens` style sources still copy the way they do today.
 
@@ -114,7 +116,7 @@ Install is the only path from workspace packages to a dest. A dest never keeps a
 
 Lib tests and imports stay in the workspace. Dest never sees a sibling lib package.
 
-The pack does not keep `pi/extensions/` or `pi/lib/`. Profiles keep their current language. They add an `extensions` list on Pi profiles.
+The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. Profiles keep their current language. They add an `extensions` list on Pi profiles.
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.
 

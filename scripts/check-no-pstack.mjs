@@ -40,9 +40,9 @@ const banned = [
 const scanRoots = [
   "scripts",
   "profiles",
-  "agents",
-  "commands",
-  "playbooks",
+  "ai/agents",
+  "ai/commands",
+  "ai/playbooks",
 ].map((d) => join(root, d));
 for (const dir of scanRoots) {
   walkFiles(dir, (file) => {
@@ -67,10 +67,10 @@ function walkSkillDirs(dir, visit) {
 
 function resolveSkill(name) {
   const candidates = [];
-  walkSkillDirs(join(root, "skills"), (dir) => {
+  walkSkillDirs(join(root, "ai", "skills"), (dir) => {
     if (basename(dir) === name) candidates.push(dir);
   });
-  const prefer = ["skills/workflow", "skills/setup"].map(
+  const prefer = ["ai/skills/workflow", "ai/skills/setup"].map(
     (rel) => join(root, rel) + "/",
   );
   for (const prefix of prefer) {
@@ -80,7 +80,7 @@ function resolveSkill(name) {
   return candidates[0] ?? null;
 }
 
-const piRoot = join(root, "pi");
+const piRoot = join(root, "ai", "pi");
 if (existsSync(piRoot)) {
   const names = new Set(readdirSync(piRoot).filter((n) => !n.startsWith(".")));
   const allowed = new Set([
@@ -92,17 +92,19 @@ if (existsSync(piRoot)) {
     "agents",
     "settings.json",
   ]);
-  for (const need of allowed) {
-    if (!names.has(need)) errors.push(`pi/ missing ${need}`);
+  const required = new Set(allowed);
+  required.delete("prompts");
+  for (const need of required) {
+    if (!names.has(need)) errors.push(`ai/pi/ missing ${need}`);
   }
   const extra = [...names].filter((n) => !allowed.has(n)).sort();
-  if (extra.length) errors.push(`pi/ unexpected ${extra.join(", ")}`);
+  if (extra.length) errors.push(`ai/pi/ unexpected ${extra.join(", ")}`);
   for (const rel of [
-    "pi/roles/argv.mjs",
-    "pi/roles/researcher.md",
-    "pi/roles/architect.md",
-    "pi/roles/coder.md",
-    "pi/agents/draconic.md",
+    "ai/pi/roles/argv.mjs",
+    "ai/pi/roles/researcher.md",
+    "ai/pi/roles/architect.md",
+    "ai/pi/roles/coder.md",
+    "ai/pi/agents/draconic.md",
   ]) {
     if (!existsSync(join(root, rel))) errors.push(`missing ${rel}`);
   }

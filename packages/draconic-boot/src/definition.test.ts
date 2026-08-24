@@ -50,7 +50,10 @@ name: empty
 });
 
 test("default pack file parses and omits Skill or Task wording", () => {
-	const text = readFileSync(join(REPO, "pi", "agents", "draconic.md"), "utf8");
+	const text = readFileSync(
+		join(REPO, "ai", "pi", "agents", "draconic.md"),
+		"utf8",
+	);
 	const def = parseAgentDefinition(text);
 	assert.equal(def.name, "draconic");
 	assert.match(def.body, /You are draconic on Pi/);

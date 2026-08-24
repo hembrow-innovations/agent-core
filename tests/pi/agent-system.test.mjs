@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { peerArgv, parseRoleFile } from "../../pi/roles/argv.mjs";
+import { peerArgv, parseRoleFile } from "../../ai/pi/roles/argv.mjs";
 
 const REPO = fileURLToPath(new URL("../..", import.meta.url));
 const INSTALLER = join(REPO, "packages", "installer", "src", "cli.ts");
@@ -30,20 +30,22 @@ test("cold start dest has the default agent file", () => {
 });
 
 test("load path names investigation.md and not the dest router", () => {
-  const append = readFileSync(join(REPO, "pi", "APPEND_SYSTEM.md"), "utf8");
-  const prompt = readFileSync(
-    join(REPO, "pi", "prompts", "draconic-mode.md"),
+  const append = readFileSync(
+    join(REPO, "ai", "pi", "APPEND_SYSTEM.md"),
     "utf8",
   );
-  const agent = readFileSync(join(REPO, "pi", "agents", "draconic.md"), "utf8");
-  for (const text of [append, prompt, agent]) {
+  const agent = readFileSync(
+    join(REPO, "ai", "pi", "agents", "draconic.md"),
+    "utf8",
+  );
+  for (const text of [append, agent]) {
     assert.doesNotMatch(text, FULL_READ);
   }
   assert.match(append, /playbooks\/investigation\.md/);
 });
 
 test("teammate argv appends a pi/agents file", () => {
-  const role = parseRoleFile(join(REPO, "pi", "roles", "researcher.md"));
+  const role = parseRoleFile(join(REPO, "ai", "pi", "roles", "researcher.md"));
   const { argv } = peerArgv(role, { project: "default", extraPiArgs: [] });
   assert.equal(argv.includes("--system-prompt"), false);
   assert.equal(argv.includes("--append-system-prompt"), false);

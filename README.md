@@ -11,4 +11,4 @@ pi
 
 Trust the folder, then `/draconic-mode`.
 
-Edit `skills/`, `playbooks/`, `pi/`, and `profiles/`. `.pi/` is a generated dest.
+Edit `ai/skills/`, `ai/playbooks/`, `ai/pi/`, and `profiles/`. `.pi/` is a generated dest.

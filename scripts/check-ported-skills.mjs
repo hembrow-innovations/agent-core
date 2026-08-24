@@ -6,19 +6,19 @@ import { fileURLToPath } from "node:url";
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
 const EXPECTED = [
-  "skills/workflow/to-issues",
-  "skills/workflow/triage",
-  "skills/workflow/verify-issue",
-  "skills/engineering/behaviour-contracts",
-  "skills/engineering/diagnose",
-  "skills/engineering/write-a-skill",
-  "skills/engineering/thermo-review",
-  "skills/ui/frontend-design",
-  "skills/ui/typography",
-  "skills/ui/vercel-react-best-practices",
-  "skills/data/tanstack-query",
-  "skills/data/vault-pack",
-  "skills/testing/webapp-testing",
+  "ai/skills/workflow/to-issues",
+  "ai/skills/workflow/triage",
+  "ai/skills/workflow/verify-issue",
+  "ai/skills/engineering/behaviour-contracts",
+  "ai/skills/engineering/diagnose",
+  "ai/skills/engineering/write-a-skill",
+  "ai/skills/engineering/thermo-review",
+  "ai/skills/ui/frontend-design",
+  "ai/skills/ui/typography",
+  "ai/skills/ui/vercel-react-best-practices",
+  "ai/skills/data/tanstack-query",
+  "ai/skills/data/vault-pack",
+  "ai/skills/testing/webapp-testing",
 ];
 
 const TRACKER_SKILLS = new Set([
@@ -55,8 +55,10 @@ for (const rel of EXPECTED) {
     continue;
   }
   const text = readFileSync(skill, "utf8");
-  if (!hasFrontmatterField(text, "name")) errors.push(`${rel}: missing frontmatter name`);
-  if (!hasFrontmatterField(text, "description")) errors.push(`${rel}: missing frontmatter description`);
+  if (!hasFrontmatterField(text, "name"))
+    errors.push(`${rel}: missing frontmatter name`);
+  if (!hasFrontmatterField(text, "description"))
+    errors.push(`${rel}: missing frontmatter description`);
   if (!text.includes(`name: ${name}`) && !text.includes(`name: "${name}"`)) {
     errors.push(`${rel}: name does not match folder`);
   }
@@ -64,8 +66,13 @@ for (const rel of EXPECTED) {
   const files = walk(dir);
   for (const file of files) {
     const body = readFileSync(file, "utf8");
-    if (body.includes("docs/planning") && !/AGENTS\.md|WORKSPACE\.md|override/.test(body)) {
-      errors.push(`${file.replace(ROOT + "/", "")}: docs/planning without AGENTS.md override`);
+    if (
+      body.includes("docs/planning") &&
+      !/AGENTS\.md|WORKSPACE\.md|override/.test(body)
+    ) {
+      errors.push(
+        `${file.replace(ROOT + "/", "")}: docs/planning without AGENTS.md override`,
+      );
     }
   }
 

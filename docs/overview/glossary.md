@@ -6,7 +6,7 @@ domain: system
 area: overview
 tags: [glossary]
 created_at: "2026-08-23"
-updated_at: "2026-08-24"
+updated_at: "2026-08-25"
 ---
 
 # Glossary
@@ -16,7 +16,7 @@ The language of this checkout. Source pack, dest copy, and the install path betw
 ## Language
 
 **Pack**:
-The source tree in this checkout. Skills, playbooks, profiles, and first-party packages live here. It is the only install source.
+The source tree in this checkout. Harness markdown lives under `ai/`. Profiles stay at the root. First-party packages live under `packages/`. It is the only install source.
 _Avoid_: monorepo-of-skills
 
 **Dest**:
@@ -52,7 +52,7 @@ The gitignored `.pi/` dest in this repo. It is not auto-wired to `packages/`.
 ## Agent identity
 
 **Agent definition**:
-A Pi markdown file under `pi/agents/` that names identity, behaviour, and constraints.
+A Pi markdown file under `ai/pi/agents/` that names identity, behaviour, and constraints. Dest copies it to `.pi/agents/`.
 _Avoid_: persona, preset, OpenCode agent, role
 
 **Primary switch**:
@@ -60,7 +60,7 @@ The process-local control that appends one agent definition to the Pi system pro
 _Avoid_: /draconic-mode, APPEND_SYSTEM, sticky primary
 
 **Default agent definition**:
-The `pi/agents/` file boot appends on a new Pi process.
+The dest `.pi/agents/` file boot appends on a new Pi process.
 _Avoid_: APPEND_SYSTEM, last switch
 
 **Team**:

@@ -9,8 +9,8 @@ import type {
   Repository,
   ReviewThread,
   RollupPage,
-} from "../../skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
-import { parsePrNumber } from "../../skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
+} from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
+import { parsePrNumber } from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
 
 export interface FakeReaderOptions {
   readonly facts?: Partial<Omit<PullRequestFacts, "context">>;

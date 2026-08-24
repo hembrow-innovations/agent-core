@@ -70,6 +70,12 @@ const PROFILE_KEYS = new Set([
 const START = "<!-- playbooks:start -->";
 const END = "<!-- playbooks:end -->";
 
+export const PACK_DIR = "ai";
+
+export function packRoot(srcRoot) {
+  return join(srcRoot, PACK_DIR);
+}
+
 export function parseProfileYaml(text) {
   const out = {};
   let pendingKey = null;
@@ -165,7 +171,7 @@ export function listProfiles(srcRoot) {
 }
 
 export function listPlaybookIds(srcRoot) {
-  const dir = join(srcRoot, "playbooks");
+  const dir = join(packRoot(srcRoot), "playbooks");
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
     .filter((n) => n.endsWith(".md") && !/^readme\.md$/i.test(n))
@@ -203,7 +209,7 @@ export function resolvePlaybookIds(profile, opts, available) {
 }
 
 export function readPlaybookMeta(srcRoot, id) {
-  const file = join(srcRoot, "playbooks", `${id}.md`);
+  const file = join(packRoot(srcRoot), "playbooks", `${id}.md`);
   const text = readFileSync(file, "utf8");
   let title = null;
   let when = null;
@@ -256,7 +262,8 @@ export function rewriteSkillPlaybooks(skillDir, metas) {
 
 export function findSkillDir(srcRoot, name) {
   const candidates = [];
-  const skillsRoot = join(srcRoot, "skills");
+  const pack = packRoot(srcRoot);
+  const skillsRoot = join(pack, "skills");
   if (existsSync(skillsRoot)) {
     walkSkillDirs(skillsRoot, (dir) => {
       if (basename(dir) === name && existsSync(join(dir, "SKILL.md"))) {
@@ -267,7 +274,7 @@ export function findSkillDir(srcRoot, name) {
 
   if (!candidates.length) return null;
   const prefer = ["skills/workflow", "skills/setup"].map(
-    (rel) => join(srcRoot, rel) + "/",
+    (rel) => join(pack, rel) + "/",
   );
   for (const prefix of prefer) {
     const hit = candidates.find((p) => p.startsWith(prefix));
@@ -293,7 +300,7 @@ export function installModePlaybooks(srcRoot, target, mode, ids, destBases) {
         rmSync(join(pbDir, ent.name));
     }
     for (const id of ids) {
-      const src = join(srcRoot, "playbooks", `${id}.md`);
+      const src = join(packRoot(srcRoot), "playbooks", `${id}.md`);
       if (!existsSync(src)) throw new Error(`Playbook not found: ${id}`);
       cpSync(src, join(pbDir, `${id}.md`));
     }
@@ -310,21 +317,16 @@ const SHIPPED_ROLE_FILES = [
 ];
 
 export function installPiRuntime(srcRoot, target, opts = {}) {
-  const pack = join(srcRoot, "pi");
-  const required = [
-    "APPEND_SYSTEM.md",
-    "draconic-models.md",
-    "prompts",
-    "roles",
-  ];
+  const pack = join(packRoot(srcRoot), "pi");
+  const required = ["APPEND_SYSTEM.md", "draconic-models.md", "roles"];
   for (const name of required) {
     if (!existsSync(join(pack, name))) {
-      throw new Error(`Pi pack missing: expected pi/${name}`);
+      throw new Error(`Pi pack missing: expected ai/pi/${name}`);
     }
   }
   for (const name of SHIPPED_ROLE_FILES) {
     if (!existsSync(join(pack, "roles", name))) {
-      throw new Error(`Pi pack missing: expected pi/roles/${name}`);
+      throw new Error(`Pi pack missing: expected ai/pi/roles/${name}`);
     }
   }
 
@@ -335,14 +337,17 @@ export function installPiRuntime(srcRoot, target, opts = {}) {
   const destPrompts = join(target, ".pi", "prompts");
   mkdirSync(destPrompts, { recursive: true });
   const keep = new Set();
-  for (const ent of readdirSync(join(pack, "prompts"), {
-    withFileTypes: true,
-  })) {
-    if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
-    const id = ent.name.slice(0, -3);
-    if (allow.size > 0 && !allow.has(id)) continue;
-    keep.add(ent.name);
-    cpSync(join(pack, "prompts", ent.name), join(destPrompts, ent.name));
+  const packPrompts = join(pack, "prompts");
+  if (existsSync(packPrompts)) {
+    for (const ent of readdirSync(packPrompts, {
+      withFileTypes: true,
+    })) {
+      if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
+      const id = ent.name.slice(0, -3);
+      if (allow.size > 0 && !allow.has(id)) continue;
+      keep.add(ent.name);
+      cpSync(join(packPrompts, ent.name), join(destPrompts, ent.name));
+    }
   }
   for (const ent of readdirSync(destPrompts, { withFileTypes: true })) {
     if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
