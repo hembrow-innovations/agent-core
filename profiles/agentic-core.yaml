@@ -1,5 +1,4 @@
 # Develop this repo in Pi. Not an export profile.
-harness: pi
 mode: draconic
 playbooks: all
 extensions:

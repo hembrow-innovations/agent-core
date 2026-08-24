@@ -41,9 +41,8 @@ The folders are:
 - `ai/skills/` is the markdown skill library.
 - `ai/playbooks/` is the playbook library.
 - `ai/pi/` holds prompts, roles, `APPEND_SYSTEM`, and the third-party package list. It has no `extensions/` and no `lib/`.
-- `ai/agents/` and `ai/prompts/` are the OpenCode pack.
 - `ai/plugins/`, `ai/hooks/`, `ai/keybinds/`, `ai/mcp/`, and `ai/themes/` are empty stubs.
-- `profiles/` is the install profile list. Pi profiles gain an `extensions` list.
+- `profiles/` is the install profile list.
 
 Skills, playbooks, prompts, roles, and `npm:pi-lens` style sources still copy the way they do today.
 
@@ -68,7 +67,7 @@ There is no npm publish. There is no git package source.
 
 ### Dest tree
 
-The dest tree is what a target project commits after install. It holds the copied skills, playbooks, prompts, roles, and harness files. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
+The dest tree is what a target project commits after install. It holds the copied skills, playbooks, prompts, and roles under `.pi/`. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
 
 A dest project never depends on this checkout at runtime.
 
@@ -85,14 +84,13 @@ The command is `pnpm exec agentic-core install`.
 ```bash
 pnpm exec agentic-core install <target> --profile pi
 pnpm exec agentic-core install <target> --extension draconic-todo
-pnpm exec agentic-core install <target> --profile pi --harness pi
 ```
 
-`--harness` overrides the profile. `--extension` can repeat.
+`--extension` can repeat. Dest is always `.pi/`.
 
-A profile install copies the pack for that profile. It also installs that profile's `extensions` list. Pi profiles `pi`, `agentic-core`, and `life-engine-pi` all list `draconic-todo`, `draconic-coms`, `draconic-boot`, and `draconic-teams`.
+A profile install copies the pack for that profile. It also installs that profile's `extensions` list. Profiles `pi`, `agentic-core`, and `life-engine-pi` all list `draconic-todo`, `draconic-coms`, `draconic-boot`, and `draconic-teams`.
 
-An extension install names a first-party package for the vendor tree. Vendor write happens only when the dest harness is `pi`.
+An extension install names a first-party package for the vendor tree.
 
 See [[spec-installer]] for flags and outputs. See [[guides-install-from-this-repo]] for how to run it.
 
@@ -116,7 +114,7 @@ Install is the only path from workspace packages to a dest. A dest never keeps a
 
 Lib tests and imports stay in the workspace. Dest never sees a sibling lib package.
 
-The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. Profiles keep their current language. They add an `extensions` list on Pi profiles.
+The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. Profiles list skills, playbooks, and extensions. They do not name a dest. See [[0005-pi-only-dest]].
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.
 

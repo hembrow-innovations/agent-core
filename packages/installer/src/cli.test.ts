@@ -42,6 +42,8 @@ test("usage names pnpm exec agentic-core install and drops curl", () => {
   assert.doesNotMatch(r.stdout, /scripts\/install\.mjs/);
   assert.doesNotMatch(r.stdout, /--local/);
   assert.doesNotMatch(r.stdout, /--ref/);
+  assert.doesNotMatch(r.stdout, /--harness/);
+  assert.match(r.stdout, /Dest is always \.pi\//);
 });
 
 test("unknown command, remote flags, and unknown --extension die", () => {
@@ -68,7 +70,7 @@ test("install --profile pi writes skills, pack files, and third-party npm source
   const r = runCli(["install", dest, "--profile", "pi"]);
   assert.equal(r.status, 0, r.stderr || r.stdout);
   assert.match(r.stdout, /Profile: pi/);
-  assert.match(r.stdout, /Harness: pi/);
+  assert.doesNotMatch(r.stdout, /Harness:/);
 
   const skillRoot = join(dest, ".pi", "skills");
   const folders = readdirSync(skillRoot);
@@ -118,47 +120,6 @@ test("install --profile pi writes skills, pack files, and third-party npm source
   assertNoCheckoutPath(dest);
 });
 
-test("install --profile pi --harness opencode writes .opencode/skills and skips vendor", () => {
-  const dest = mkdtempSync(join(tmpdir(), "installer-pi-opencode-"));
-  const r = runCli([
-    "install",
-    dest,
-    "--profile",
-    "pi",
-    "--harness",
-    "opencode",
-  ]);
-  assert.equal(r.status, 0, r.stderr || r.stdout);
-  assert.match(r.stdout, /Profile: pi/);
-  assert.match(r.stdout, /Harness: opencode/);
-
-  assert.equal(existsSync(join(dest, ".opencode", "skills")), true);
-  assert.equal(
-    existsSync(join(dest, ".opencode", "skills", "draconic-mode", "SKILL.md")),
-    true,
-  );
-  assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
-  assertNoCheckoutPath(dest);
-});
-
-test("install --profile core --harness agents writes .agents/skills", () => {
-  const dest = mkdtempSync(join(tmpdir(), "installer-agents-"));
-  const r = runCli([
-    "install",
-    dest,
-    "--profile",
-    "core",
-    "--harness",
-    "agents",
-  ]);
-  assert.equal(r.status, 0, r.stderr || r.stdout);
-  assert.equal(
-    existsSync(join(dest, ".agents", "skills", "bro", "SKILL.md")),
-    true,
-  );
-  assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
-});
-
 test("install --profile pi removes leftover dest extension files", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-pi-stale-"));
   mkdirSync(join(dest, ".pi", "extensions"), { recursive: true });
@@ -171,33 +132,7 @@ test("install --profile pi removes leftover dest extension files", () => {
   assert.equal(existsSync(join(dest, ".pi", "lib")), false);
 });
 
-test("install --profile pi --harness pi writes the four vendor packages", () => {
-  const dest = mkdtempSync(join(tmpdir(), "installer-pi-harness-"));
-  const r = runCli(["install", dest, "--profile", "pi", "--harness", "pi"]);
-  assert.equal(r.status, 0, r.stderr || r.stdout);
-  assert.match(r.stdout, /Profile: pi/);
-  assert.match(r.stdout, /Harness: pi/);
-
-  const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
-  assert.equal(
-    existsSync(join(vendorRoot, "draconic-todo", "src", "index.ts")),
-    true,
-  );
-  assert.equal(
-    existsSync(join(vendorRoot, "draconic-coms", "src", "index.ts")),
-    true,
-  );
-  assert.equal(
-    existsSync(join(vendorRoot, "draconic-boot", "src", "index.ts")),
-    true,
-  );
-  assert.equal(
-    existsSync(join(vendorRoot, "draconic-teams", "src", "index.ts")),
-    true,
-  );
-});
-
-test("install --profile core writes .opencode/skills and does not wire this checkout", () => {
+test("install --profile core writes .pi/skills and does not wire this checkout", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-core-"));
   const checkoutSettingsPath = join(REPO, ".pi", "settings.json");
   const before = existsSync(checkoutSettingsPath)
@@ -207,14 +142,18 @@ test("install --profile core writes .opencode/skills and does not wire this chec
   const r = runCli(["install", dest, "--profile", "core"]);
   assert.equal(r.status, 0, r.stderr || r.stdout);
   assert.match(r.stdout, /Profile: core/);
-  assert.match(r.stdout, /Harness: opencode/);
+  assert.doesNotMatch(r.stdout, /Harness:/);
 
-  const skillRoot = join(dest, ".opencode", "skills");
+  const skillRoot = join(dest, ".pi", "skills");
   const folders = readdirSync(skillRoot);
   assert.ok(folders.includes("bro"), folders.join(", "));
   assert.equal(existsSync(join(skillRoot, "bro", "SKILL.md")), true);
-  assert.equal(existsSync(join(dest, ".pi")), false);
-  assert.equal(existsSync(join(dest, ".pi", "vendor")), false);
+  assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
+  assert.equal(existsSync(join(dest, ".opencode")), false);
+  assert.equal(
+    existsSync(join(dest, ".pi", "vendor", "@agentic-core", "draconic-todo")),
+    false,
+  );
 
   const after = existsSync(checkoutSettingsPath)
     ? readFileSync(checkoutSettingsPath, "utf8")

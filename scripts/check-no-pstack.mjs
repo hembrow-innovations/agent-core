@@ -37,13 +37,9 @@ const banned = [
   /setup-pstack/,
   /poteto-agent/,
 ];
-const scanRoots = [
-  "scripts",
-  "profiles",
-  "ai/agents",
-  "ai/prompts",
-  "ai/playbooks",
-].map((d) => join(root, d));
+const scanRoots = ["scripts", "profiles", "ai/playbooks"].map((d) =>
+  join(root, d),
+);
 for (const dir of scanRoots) {
   walkFiles(dir, (file) => {
     if (file.endsWith(".tsv") || file.endsWith("check-no-pstack.mjs")) return;
@@ -118,10 +114,6 @@ for (const name of listProfiles(root)) {
     if (!resolveSkill(skill))
       errors.push(`profile ${name}: missing skill ${skill}`);
   }
-  for (const prompt of profile.prompts) {
-    if (!existsSync(join(root, "ai", "prompts", `${prompt}.md`)))
-      errors.push(`profile ${name}: missing prompt ${prompt}`);
-  }
 }
 
 if (errors.length) {
@@ -139,7 +131,6 @@ try {
       dest,
       "--profile",
       "draconic",
-      "--no-templates",
     ],
     { encoding: "utf8" },
   );
@@ -148,20 +139,8 @@ try {
     console.error(r.stderr);
     process.exit(1);
   }
-  const modeSkill = join(
-    dest,
-    ".opencode",
-    "skills",
-    "draconic-mode",
-    "SKILL.md",
-  );
-  const setupSkill = join(
-    dest,
-    ".opencode",
-    "skills",
-    "setup-draconic",
-    "SKILL.md",
-  );
+  const modeSkill = join(dest, ".pi", "skills", "draconic-mode", "SKILL.md");
+  const setupSkill = join(dest, ".pi", "skills", "setup-draconic", "SKILL.md");
   if (!existsSync(modeSkill) || !existsSync(setupSkill)) {
     console.error(
       "draconic install did not copy draconic-mode and setup-draconic",
@@ -169,25 +148,15 @@ try {
     process.exit(1);
   }
   const body = readFileSync(modeSkill, "utf8");
-  if (!body.includes("OpenCode runtime adapter")) {
-    console.error("installed draconic-mode is missing the OpenCode adapter");
+  if (!body.includes("Pi runtime adapter")) {
+    console.error("installed draconic-mode is missing the Pi adapter");
     process.exit(1);
   }
-  const commandDir = join(dest, ".opencode", "command");
-  const destPrompts = existsSync(commandDir)
-    ? readdirSync(commandDir)
-        .filter((n) => n.endsWith(".md"))
-        .map((n) => n.slice(0, -3))
-        .sort()
-    : [];
-  const listed = [...loadProfile(root, "draconic").prompts].sort();
-  if (JSON.stringify(destPrompts) !== JSON.stringify(listed)) {
-    console.error(
-      `draconic install prompts ${destPrompts.join(",")} != ${listed.join(",")}`,
-    );
+  if (body.includes("OpenCode runtime adapter")) {
+    console.error("installed draconic-mode still has the OpenCode adapter");
     process.exit(1);
   }
-  for (const extra of [".pi", ".claude", ".agents"]) {
+  for (const extra of [".opencode", ".claude", ".agents"]) {
     if (existsSync(join(dest, extra))) {
       console.error(`draconic install wrote ${extra}`);
       process.exit(1);

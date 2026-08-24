@@ -19,9 +19,9 @@ Define how a Pi session gets an identity, how a team of living sessions works, a
 
 ## Requirements
 
-Pi only. OpenCode keeps its own primary agents.
+Pi only.
 
-Identity is a markdown file under `pi/agents/`. Install copies it to `.pi/agents/`. The file may name skills, tools, and model. The body is Pi-safe. It does not paste OpenCode Skill or Task wording.
+Identity is a markdown file under `pi/agents/`. Install copies it to `.pi/agents/`. The file may name skills, tools, and model. The body is Pi-safe.
 
 `draconic-boot` is the switch. It appends the chosen file with `before_agent_start`. A command picks the name for this process. A new process does not restore the last pick. It attaches the default definition. See [[0003-default-agent-definition]].
 
@@ -37,7 +37,7 @@ Quality is proven by evals and tests on the real Pi session.
 
 ## Non-goals
 
-- The same identity mechanism on OpenCode
+- A dest other than `.pi/`
 - Wrapping Claude Code's MCP or its file inbox
 - Company OS and RPC teammates
 - Official presets or an open-agents fork

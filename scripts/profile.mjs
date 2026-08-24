@@ -27,44 +27,26 @@ const STUB_APPEND_SYSTEM =
 
 /** @typedef {{ kind: 'all' } | { kind: 'list', ids: string[] } | { kind: 'omit' }} PlaybookSelection */
 
-/** @typedef {'opencode' | 'claude' | 'pi' | 'agents'} HarnessId */
-
-/** @typedef {{
- *   skillDests: string[],
- *   runtime: 'opencode' | 'pi' | null,
- * }} Harness
- */
+export const SKILL_DEST = ".pi/skills";
 
 /** @typedef {{
  *   name: string,
  *   mode: string | null,
  *   skills: string[],
  *   playbooks: PlaybookSelection,
- *   harness: HarnessId,
- *   agents: boolean,
- *   prompts: string[],
- *   templates: boolean,
  *   extensions: string[],
  * }} Profile
  */
 
-/** @type {Record<HarnessId, Harness>} */
-export const HARNESSES = {
-  opencode: { skillDests: [".opencode/skills"], runtime: "opencode" },
-  claude: { skillDests: [".claude/skills"], runtime: null },
-  pi: { skillDests: [".pi/skills"], runtime: "pi" },
-  agents: { skillDests: [".agents/skills"], runtime: null },
-};
+const PROFILE_KEYS = new Set(["mode", "skills", "playbooks", "extensions"]);
 
-const PROFILE_KEYS = new Set([
-  "mode",
-  "skills",
-  "playbooks",
-  "agents",
-  "prompts",
-  "templates",
-  "harness",
-  "extensions",
+const LEFTOVER_KEYS = new Map([
+  ["harness", 'leftover "harness:". dest is always .pi'],
+  ["pi", 'leftover "pi:". dest is always .pi'],
+  ["agents", 'leftover "agents:". dest is always .pi'],
+  ["prompts", 'leftover "prompts:". dest is always .pi'],
+  ["templates", 'leftover "templates:". dest is always .pi'],
+  ["commands", 'leftover "commands:". dest is always .pi'],
 ]);
 
 const START = "<!-- playbooks:start -->";
@@ -129,37 +111,18 @@ export function loadProfile(srcRoot, name) {
     throw new Error(`Unknown profile "${name}". Choose: ${listed}`);
   }
   const raw = parseProfileYaml(readFileSync(file, "utf8"));
-  if (Object.hasOwn(raw, "pi")) {
-    throw new Error(`Profile "${name}" has leftover "pi:". use harness: pi`);
-  }
-  if (Object.hasOwn(raw, "commands")) {
-    throw new Error(`Profile "${name}" has leftover "commands:". use prompts:`);
-  }
   for (const key of Object.keys(raw)) {
+    const leftover = LEFTOVER_KEYS.get(key);
+    if (leftover) throw new Error(`Profile "${name}" has ${leftover}`);
     if (!PROFILE_KEYS.has(key)) {
       throw new Error(`Unknown profile key "${key}"`);
     }
-  }
-  const harness = parseHarness(raw.harness);
-  const agents = asBool(raw.agents, "agents");
-  const prompts = asStringList(raw.prompts, "prompts");
-  const templates = asBool(raw.templates, "templates");
-  if (harness !== "opencode") {
-    if (agents) throw new Error(`"agents" is only valid on harness: opencode`);
-    if (prompts.length)
-      throw new Error(`"prompts" is only valid on harness: opencode`);
-    if (templates)
-      throw new Error(`"templates" is only valid on harness: opencode`);
   }
   return {
     name,
     mode: raw.mode == null || raw.mode === "" ? null : String(raw.mode),
     skills: asStringList(raw.skills, "skills"),
     playbooks: toPlaybooks(raw.playbooks),
-    harness,
-    agents,
-    prompts,
-    templates,
     extensions: asStringList(raw.extensions, "extensions"),
   };
 }
@@ -171,39 +134,6 @@ export function listProfiles(srcRoot) {
     .filter((n) => n.endsWith(".yaml") && !/^readme\.yaml$/i.test(n))
     .map((n) => n.slice(0, -5))
     .sort();
-}
-
-export function listPromptIds(srcRoot) {
-  const dir = join(packRoot(srcRoot), "prompts");
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter((n) => n.endsWith(".md") && !/^readme\.md$/i.test(n))
-    .map((n) => n.slice(0, -3))
-    .sort();
-}
-
-export function installPrompts(srcRoot, target, ids) {
-  const srcDir = join(packRoot(srcRoot), "prompts");
-  const destDir = join(target, ".opencode", "command");
-  const seen = new Set();
-  const files = [];
-  for (const id of ids) {
-    if (seen.has(id)) continue;
-    seen.add(id);
-    const src = join(srcDir, `${id}.md`);
-    if (!existsSync(src)) throw new Error(`Unknown prompt "${id}"`);
-    files.push({ id, src });
-  }
-  mkdirSync(destDir, { recursive: true });
-  const keep = new Set(files.map((f) => `${f.id}.md`));
-  for (const { id, src } of files) {
-    cpSync(src, join(destDir, `${id}.md`));
-  }
-  for (const ent of readdirSync(destDir, { withFileTypes: true })) {
-    if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
-    if (!keep.has(ent.name)) rmSync(join(destDir, ent.name));
-  }
-  return files.map((f) => f.id);
 }
 
 export function listPlaybookIds(srcRoot) {
@@ -319,29 +249,23 @@ export function findSkillDir(srcRoot, name) {
   return candidates[0];
 }
 
-export function installModePlaybooks(srcRoot, target, mode, ids, destBases) {
-  if (!Array.isArray(destBases) || destBases.length === 0) {
-    throw new Error("installModePlaybooks requires a nonempty dest list");
-  }
+export function installModePlaybooks(srcRoot, target, mode, ids) {
   const metas = ids.map((id) => readPlaybookMeta(srcRoot, id));
-  for (const destBase of destBases) {
-    const skillDir = join(target, destBase, `${mode}-mode`);
-    if (!existsSync(skillDir)) {
-      throw new Error(`Mode skill missing: ${destBase}/${mode}-mode`);
-    }
-    const pbDir = join(skillDir, "playbooks");
-    mkdirSync(pbDir, { recursive: true });
-    for (const ent of readdirSync(pbDir, { withFileTypes: true })) {
-      if (ent.isFile() && ent.name.endsWith(".md"))
-        rmSync(join(pbDir, ent.name));
-    }
-    for (const id of ids) {
-      const src = join(packRoot(srcRoot), "playbooks", `${id}.md`);
-      if (!existsSync(src)) throw new Error(`Playbook not found: ${id}`);
-      cpSync(src, join(pbDir, `${id}.md`));
-    }
-    rewriteSkillPlaybooks(skillDir, metas);
+  const skillDir = join(target, SKILL_DEST, `${mode}-mode`);
+  if (!existsSync(skillDir)) {
+    throw new Error(`Mode skill missing: ${SKILL_DEST}/${mode}-mode`);
   }
+  const pbDir = join(skillDir, "playbooks");
+  mkdirSync(pbDir, { recursive: true });
+  for (const ent of readdirSync(pbDir, { withFileTypes: true })) {
+    if (ent.isFile() && ent.name.endsWith(".md")) rmSync(join(pbDir, ent.name));
+  }
+  for (const id of ids) {
+    const src = join(packRoot(srcRoot), "playbooks", `${id}.md`);
+    if (!existsSync(src)) throw new Error(`Playbook not found: ${id}`);
+    cpSync(src, join(pbDir, `${id}.md`));
+  }
+  rewriteSkillPlaybooks(skillDir, metas);
 }
 
 const ROLE_STEM_RE = /^[a-z][a-z0-9-]{0,63}$/;
@@ -528,18 +452,6 @@ function walkSkillDirs(root, visit) {
   }
 }
 
-function parseHarness(value) {
-  const known = Object.keys(HARNESSES).join(", ");
-  if (value == null || value === "") {
-    throw new Error(`Missing harness. Choose: ${known}`);
-  }
-  const id = String(value);
-  if (!Object.hasOwn(HARNESSES, id)) {
-    throw new Error(`Unknown harness "${id}". Choose: ${known}`);
-  }
-  return id;
-}
-
 function toPlaybooks(value) {
   if (value === undefined || value === null) return { kind: "omit" };
   if (value === "all") return { kind: "all" };
@@ -551,12 +463,6 @@ function asStringList(value, key) {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) throw new Error(`"${key}" must be a list`);
   return value.map(String);
-}
-
-function asBool(value, key) {
-  if (value === undefined || value === null) return false;
-  if (typeof value !== "boolean") throw new Error(`"${key}" must be a boolean`);
-  return value;
 }
 
 function stripComment(line) {

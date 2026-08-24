@@ -1,6 +1,6 @@
 # agent-core
 
-Skill and profile pack for OpenCode, Claude, Pi, and agents.
+Skill and profile pack for Pi.
 
 ## Develop this repo with Pi
 

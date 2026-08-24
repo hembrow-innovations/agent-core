@@ -1,12 +1,5 @@
 #!/usr/bin/env node
-import {
-  cpSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
@@ -15,9 +8,6 @@ import {
   installVendorExtensions,
   isFirstPartyExtension,
 } from "./vendor.ts";
-
-const AGENT_DEST = join(".opencode", "agent");
-const COMMAND_DEST = join(".opencode", "command");
 
 type PlaybookSelection =
   | { kind: "all" }
@@ -29,25 +19,14 @@ type Profile = {
   mode: string | null;
   skills: string[];
   playbooks: PlaybookSelection;
-  harness: string;
-  agents: boolean;
-  prompts: string[];
-  templates: boolean;
   extensions: string[];
 };
 
-type Harness = {
-  skillDests: string[];
-  runtime: "opencode" | "pi" | null;
-};
-
 type ProfileModule = {
-  HARNESSES: Record<string, Harness>;
+  SKILL_DEST: string;
   loadProfile: (srcRoot: string, name: string) => Profile;
   listProfiles: (srcRoot: string) => string[];
   listPlaybookIds: (srcRoot: string) => string[];
-  listPromptIds: (srcRoot: string) => string[];
-  installPrompts: (srcRoot: string, target: string, ids: string[]) => string[];
   resolvePlaybookIds: (
     profile: Profile,
     opts: {
@@ -62,7 +41,6 @@ type ProfileModule = {
     target: string,
     mode: string,
     ids: string[],
-    destBases: string[],
   ) => void;
   installPiRuntime: (
     srcRoot: string,
@@ -81,10 +59,6 @@ type InstallRequest = {
   playbooks: string[] | null;
   withPlaybooks: string[];
   withoutPlaybooks: string[];
-  noAgents: boolean;
-  noPrompts: boolean;
-  noTemplates: boolean;
-  harness: string | null;
   extensions: FirstPartyExtension[];
 };
 
@@ -94,13 +68,7 @@ type InstallPlan = {
   skills: string[];
   playbookIds: string[];
   overlayPlaybooks: boolean;
-  agents: boolean;
-  prompts: string[];
-  templates: boolean;
-  skillDests: string[];
-  runtime: "opencode" | "pi" | null;
   mode: string | null;
-  harness: string;
   extensions: FirstPartyExtension[];
 };
 
@@ -121,16 +89,12 @@ Options:
   --playbooks <ids>        replace profile playbook selection
   --with-playbooks <ids>   add playbook ids
   --without-playbooks <ids> remove playbook ids
-  --no-agents              Skip OpenCode agents
-  --no-prompts             Skip OpenCode prompts
-  --no-templates           Skip opencode.json / WORKFLOW / rules templates
-  --harness <id>           Override profile harness (opencode | claude | pi | agents)
   -h, --help               Show help
 
 Profiles (profiles/*.yaml):
   ${listed}
 
-Playbooks are selected in the YAML and overlaid into {mode}-mode.
+Dest is always .pi/. Playbooks are selected in the YAML and overlaid into {mode}-mode.
 
 Examples:
   pnpm exec agentic-core install . --profile agentic-core
@@ -155,10 +119,6 @@ function parseArgs(argv: string[]): CliRequest {
     playbooks: null,
     withPlaybooks: [],
     withoutPlaybooks: [],
-    noAgents: false,
-    noPrompts: false,
-    noTemplates: false,
-    harness: null,
     extensions: [],
   };
 
@@ -174,10 +134,6 @@ function parseArgs(argv: string[]): CliRequest {
       out.withPlaybooks.push(...csv(need(args, a)));
     else if (a === "--without-playbooks")
       out.withoutPlaybooks.push(...csv(need(args, a)));
-    else if (a === "--no-agents") out.noAgents = true;
-    else if (a === "--no-prompts") out.noPrompts = true;
-    else if (a === "--no-templates") out.noTemplates = true;
-    else if (a === "--harness") out.harness = need(args, a);
     else if (a === "--extension") {
       const name = need(args, a);
       if (!isFirstPartyExtension(name)) {
@@ -243,12 +199,10 @@ function isFn(value: unknown): value is (...args: never[]) => unknown {
 function isProfileModule(value: unknown): value is ProfileModule {
   if (!isRecord(value)) return false;
   return (
-    isRecord(value.HARNESSES) &&
+    typeof value.SKILL_DEST === "string" &&
     isFn(value.loadProfile) &&
     isFn(value.listProfiles) &&
     isFn(value.listPlaybookIds) &&
-    isFn(value.listPromptIds) &&
-    isFn(value.installPrompts) &&
     isFn(value.resolvePlaybookIds) &&
     isFn(value.installModePlaybooks) &&
     isFn(value.installPiRuntime) &&
@@ -268,93 +222,15 @@ function copySkill(
   name: string,
   target: string,
   findSkillDir: ProfileModule["findSkillDir"],
-  destBases: string[],
+  destBase: string,
 ): void {
   const src = findSkillDir(srcRoot, name);
   if (!src) die(`Skill not found in source: ${name}`);
-  for (const destBase of destBases) {
-    const dest = join(target, destBase, name);
-    mkdirSync(dirname(dest), { recursive: true });
-    rmSync(dest, { recursive: true, force: true });
-    cpSync(src, dest, { recursive: true });
-    console.log(`  skill ${name} → ${destBase}/${name}`);
-  }
-}
-
-function copyMarkdownTree(
-  srcDir: string,
-  destDir: string,
-  label: string,
-): number {
-  if (!existsSync(srcDir)) return 0;
-  let n = 0;
-  mkdirSync(destDir, { recursive: true });
-  for (const ent of readdirSync(srcDir, { withFileTypes: true })) {
-    if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
-    if (ent.name.toUpperCase() === "README.MD") continue;
-    const dest = join(destDir, ent.name);
-    cpSync(join(srcDir, ent.name), dest);
-    console.log(
-      `  ${label} ${ent.name} → ${destDir.replace(`${process.cwd()}/`, "")}/${ent.name}`.replace(
-        /\\/g,
-        "/",
-      ),
-    );
-    n++;
-  }
-  return n;
-}
-
-function installAgents(srcRoot: string, target: string): void {
-  const src = join(srcRoot, "ai", "agents");
-  const dest = join(target, AGENT_DEST);
-  const n = copyMarkdownTree(src, dest, "agent");
-  if (!n) console.log("  agents: none");
-}
-
-function installTemplates(srcRoot: string, target: string): void {
-  const tpl = join(srcRoot, "ai", "templates", "opencode");
-  if (!existsSync(tpl)) {
-    console.log("  templates: missing pack");
-    return;
-  }
-
-  const opencodeJson = join(target, "opencode.json");
-  if (existsSync(opencodeJson)) {
-    console.log("  template skip (exists): opencode.json");
-  } else {
-    cpSync(join(tpl, "opencode.json"), opencodeJson);
-    console.log("  template write: opencode.json");
-  }
-
-  const rulesSrc = join(tpl, "rules", "draconic-models.md");
-  const rulesDest = join(target, ".opencode", "rules", "draconic-models.md");
-  mkdirSync(dirname(rulesDest), { recursive: true });
-  cpSync(rulesSrc, rulesDest);
-  console.log("  template write: .opencode/rules/draconic-models.md");
-
-  for (const name of ["WORKFLOW.md", "DRACONIC-INDEX.md"]) {
-    const dest = join(target, name);
-    if (name === "DRACONIC-INDEX.md" || !existsSync(dest)) {
-      cpSync(join(tpl, name), dest);
-      console.log(`  template write: ${name}`);
-    } else {
-      console.log(`  template skip (exists): ${name}`);
-    }
-  }
-
-  const gitignore = join(target, ".opencode", ".gitignore");
-  if (!existsSync(gitignore)) {
-    mkdirSync(dirname(gitignore), { recursive: true });
-    writeFileSync(gitignore, "node_modules/\npackage-lock.json\n", "utf8");
-    console.log("  template write: .opencode/.gitignore");
-  }
-}
-
-function resolveHarnessId(opts: InstallRequest, profile: Profile): string {
-  if (opts.harness) return opts.harness;
-  if (opts.extensions.length > 0 && opts.profile == null) return "pi";
-  return profile.harness;
+  const dest = join(target, destBase, name);
+  mkdirSync(dirname(dest), { recursive: true });
+  rmSync(dest, { recursive: true, force: true });
+  cpSync(src, dest, { recursive: true });
+  console.log(`  skill ${name} → ${destBase}/${name}`);
 }
 
 function resolveExtensions(
@@ -381,19 +257,11 @@ function planFromProfile(
   opts: InstallRequest,
   available: string[],
   resolvePlaybookIds: ProfileModule["resolvePlaybookIds"],
-  harnesses: Record<string, Harness>,
 ): InstallPlan {
   const set = new Set(profile.skills);
   if (profile.mode) set.add(`${profile.mode}-mode`);
   for (const s of opts.with) set.add(s);
   for (const s of opts.without) set.delete(s);
-  const harnessId = resolveHarnessId(opts, profile);
-  const harness = harnesses[harnessId];
-  if (!harness) {
-    const known = Object.keys(harnesses).join(", ");
-    throw new Error(`Unknown harness "${harnessId}". Choose: ${known}`);
-  }
-  const opencode = harness.runtime === "opencode";
   return {
     skills: [...set].sort(),
     playbookIds: resolvePlaybookIds(profile, opts, available),
@@ -401,13 +269,7 @@ function planFromProfile(
       profile.playbooks.kind !== "omit" ||
       opts.playbooks != null ||
       opts.withPlaybooks.length > 0,
-    agents: opencode && profile.agents && !opts.noAgents,
-    prompts: opencode && !opts.noPrompts ? [...profile.prompts].sort() : [],
-    templates: opencode && profile.templates && !opts.noTemplates,
-    skillDests: [...harness.skillDests],
-    runtime: harness.runtime,
     mode: profile.mode,
-    harness: harnessId,
     extensions: resolveExtensions(profile.extensions, opts.extensions),
   };
 }
@@ -434,7 +296,6 @@ async function run(argv: string[]): Promise<void> {
     console.log(`Using local source: ${srcRoot}`);
     console.log(`Installing into ${opts.target}`);
     console.log("Profile: none");
-    console.log("Harness: pi");
     writePiGitignore(opts.target);
     try {
       installVendorExtensions(srcRoot, opts.target, opts.extensions);
@@ -446,10 +307,9 @@ async function run(argv: string[]): Promise<void> {
   }
 
   const {
-    HARNESSES,
+    SKILL_DEST,
     loadProfile,
     listPlaybookIds,
-    installPrompts,
     resolvePlaybookIds,
     installModePlaybooks,
     installPiRuntime,
@@ -471,7 +331,6 @@ async function run(argv: string[]): Promise<void> {
       opts,
       listPlaybookIds(srcRoot),
       resolvePlaybookIds,
-      HARNESSES,
     );
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));
@@ -479,66 +338,38 @@ async function run(argv: string[]): Promise<void> {
   console.log(`Using local source: ${srcRoot}`);
   console.log(`Installing into ${opts.target}`);
   console.log(`Profile: ${profileName}`);
-  console.log(`Harness: ${plan.harness}`);
   console.log(`Skills (${plan.skills.length}): ${plan.skills.join(", ")}`);
 
   for (const name of plan.skills) {
-    copySkill(srcRoot, name, opts.target, findSkillDir, plan.skillDests);
+    copySkill(srcRoot, name, opts.target, findSkillDir, SKILL_DEST);
   }
   if (plan.overlayPlaybooks) {
     if (!plan.mode) die("Playbook overlay requires profile.mode");
-    installModePlaybooks(
-      srcRoot,
-      opts.target,
-      plan.mode,
-      plan.playbookIds,
-      plan.skillDests,
-    );
+    installModePlaybooks(srcRoot, opts.target, plan.mode, plan.playbookIds);
     console.log(
       `  playbooks (${plan.playbookIds.length}) → ${plan.mode}-mode/playbooks`,
     );
   }
-  if (plan.agents) installAgents(srcRoot, opts.target);
-  if (plan.prompts.length) {
-    let ids: string[];
+  installPiRuntime(srcRoot, opts.target, {
+    skills: plan.skills,
+    playbooks: plan.playbookIds,
+  });
+  console.log("  pi runtime → .pi");
+  if (plan.extensions.length > 0) {
     try {
-      ids = installPrompts(srcRoot, opts.target, plan.prompts);
+      installVendorExtensions(srcRoot, opts.target, plan.extensions);
     } catch (err) {
       die(err instanceof Error ? err.message : String(err));
-    }
-    for (const id of ids) {
-      console.log(`  prompt ${id} → ${COMMAND_DEST}/${id}.md`);
-    }
-  }
-  if (plan.templates) installTemplates(srcRoot, opts.target);
-  if (plan.runtime === "pi") {
-    installPiRuntime(srcRoot, opts.target, {
-      skills: plan.skills,
-      playbooks: plan.playbookIds,
-    });
-    console.log("  pi runtime → .pi");
-    if (plan.extensions.length > 0) {
-      try {
-        installVendorExtensions(srcRoot, opts.target, plan.extensions);
-      } catch (err) {
-        die(err instanceof Error ? err.message : String(err));
-      }
     }
   }
 
   console.log("Done.");
-  if (plan.runtime === "opencode" && plan.mode === "draconic") {
-    console.log(
-      "Next: open the project in OpenCode, run /setup-draconic, optionally /create-verification-skill.",
-    );
-  } else if (plan.runtime === "pi") {
-    console.log(
-      "Next: run `pi` in the project, trust the folder, then /draconic-mode.",
-    );
-    console.log(
-      "Pi installs project packages from .pi/settings.json after you trust the folder.",
-    );
-  }
+  console.log(
+    "Next: run `pi` in the project, trust the folder, then /draconic-mode.",
+  );
+  console.log(
+    "Pi installs project packages from .pi/settings.json after you trust the folder.",
+  );
 }
 
 void run(process.argv.slice(2)).catch((err: unknown) => {

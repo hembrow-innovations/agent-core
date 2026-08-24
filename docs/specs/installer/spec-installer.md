@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [spec]
 created_at: "2026-08-23"
-updated_at: "2026-08-24"
+updated_at: "2026-08-25"
 ---
 
 # Installer spec
@@ -25,14 +25,12 @@ Flags:
 
 - `--profile <name>`
 - `--extension <name>`
-- `--harness <id>`
 
 `--extension` may repeat.
 A profile install also installs that profile's `extensions` list.
-`--harness` overrides the harness on the profile.
-Pi profiles `pi`, `agentic-core`, and `life-engine-pi` all list the todo, coms, boot, and teams extensions.
+Dest is always `.pi/`.
 
-When the dest harness is `pi`, the dest receives a lib-bundled copy at `.pi/vendor/@agentic-core/<name>`.
+The dest receives a lib-bundled copy at `.pi/vendor/@agentic-core/<name>`.
 Dest settings gain a dest-relative path to that folder.
 Re-running install overwrites the vendor copy.
 The dest has no sibling lib package.
@@ -50,23 +48,23 @@ A dest never depends on this checkout at runtime.
 - npm publish
 - A `git:` package source for first-party extensions
 - A curl entry such as `curl | node scripts/install.mjs`
-- A new profile language
+- A dest other than `.pi/`
+- A profile key that names a dest
 
 ## Behaviour
 
 `<target>` is a dest directory. `.` is allowed.
 
-`--profile <name>` writes that profile into the dest and installs every name in `profile.extensions` when the dest harness is `pi`.
-`--extension <name>` installs that first-party extension when the dest harness is `pi`.
+`--profile <name>` writes that profile into `.pi/` and installs every name in `profile.extensions`.
+`--extension <name>` installs that first-party extension into `.pi/vendor/`.
 Repeated `--extension` flags install each named extension.
 `--profile` and `--extension` may be used together. Extra extensions install on top of the profile list.
-`--harness <id>` selects the dest tree. It overrides the profile. Vendor write happens only for harness `pi`.
 
 Install bundles `packages/lib` into each extension. Dest does not receive a vendor lib package.
 
 The package `@agentic-core/draconic-todo` lands at `.pi/vendor/@agentic-core/draconic-todo`. The same shape holds for `draconic-coms`, `draconic-boot`, and `draconic-teams`.
 
-The pi dest uses `.pi/vendor/` and `.pi/settings.json`.
+The dest uses `.pi/vendor/` and `.pi/settings.json`.
 Settings record dest-relative paths only. No path back to this checkout.
 
 Third-party sources such as `npm:pi-lens` still merge into dest settings.
@@ -75,17 +73,19 @@ Re-run replaces the vendor tree and rewrites the dest-relative settings paths.
 
 This checkout's Pi is not wired to `packages/`. Nothing vendors until the installer is pointed at a target.
 
+A leftover `harness:`, `pi:`, `agents:`, `prompts:`, `templates:`, or `commands:` key on a profile is an error.
+
 ## Acceptance
 
-- The command accepts `<target>`, `--profile`, `--extension`, and `--harness`
+- The command accepts `<target>`, `--profile`, and `--extension`
 - `--extension` can be passed more than once
-- A profile install installs `profile.extensions` when dest harness is `pi`
+- A profile install installs `profile.extensions` into `.pi/vendor/`
 - Vendor path is `.pi/vendor/@agentic-core/<name>`
 - Settings contain dest-relative paths to those folders
 - Re-run overwrites the vendor copy
 - Third-party `npm:` sources still merge
 - First-party extensions are not read from `pi/extensions/`
-- `--harness opencode` does not write `.pi/vendor`
+- `--harness` is an unknown flag
 - Installer tests write a temp dest and check settings plus the vendor tree
 - Dest has no live path back to this checkout
 - Dest has no sibling lib package

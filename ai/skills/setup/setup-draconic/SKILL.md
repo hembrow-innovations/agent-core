@@ -1,18 +1,11 @@
 ---
 name: setup-draconic
-description: Configure which models draconic uses per role. Detects available models and writes .pi/draconic-models.md or .opencode/rules/draconic-models.md. Use for /setup-draconic or changing draconic model choices.
+description: Configure which models draconic uses per role. Detects available models and writes .pi/draconic-models.md. Use for /setup-draconic or changing draconic model choices.
 ---
 
 # Setup draconic
 
-Write the model map next to the dest this session uses. Skills fall back to inherit-parent when a line is absent.
-
-Dest:
-
-- If `.pi/skills` exists, write `.pi/draconic-models.md`.
-- If `.opencode` exists, write `.opencode/rules/draconic-models.md`.
-- If both exist, write both.
-- If neither exists, write `.pi/draconic-models.md` when `.pi` exists, otherwise `.opencode/rules/draconic-models.md`.
+Write the model map to `.pi/draconic-models.md`. Skills fall back to inherit-parent when a line is absent.
 
 ## Steps
 
@@ -36,7 +29,7 @@ Every real slug must be in the detected set. `inherit-parent` and `auto` always 
 
 ### 5. Write the rule
 
-Overwrite every dest file from the Dest list so re-runs stay idempotent:
+Overwrite `.pi/draconic-models.md` so re-runs stay idempotent:
 
 ```
 ---

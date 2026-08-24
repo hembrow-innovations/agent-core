@@ -16,7 +16,7 @@ The language of this checkout. Source pack, dest copy, and the install path betw
 ## Language
 
 **Pack**:
-The source tree in this checkout. Harness markdown lives under `ai/`. Profiles stay at the root. First-party packages live under `packages/`. It is the only install source.
+The source tree in this checkout. Pi markdown lives under `ai/`. Profiles stay at the root. First-party packages live under `packages/`. It is the only install source.
 _Avoid_: monorepo-of-skills
 
 **Dest**:
@@ -24,10 +24,7 @@ A project that holds a committed, self-contained copy of pack output. It has no 
 _Avoid_: live path
 
 **Profile**:
-A named install set in `profiles/`. Selected with `--profile`.
-
-**Harness**:
-The dest agent runtime. One of `opencode`, `claude`, `pi`, or `agents`. `--harness` overrides the profile.
+A named install set in `profiles/`. Selected with `--profile`. Skills, playbooks, and extensions. Dest is always `.pi/`.
 
 **Workspace package**:
 A TypeScript package under `packages/`. Folders are `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, `lib`, and `installer`.

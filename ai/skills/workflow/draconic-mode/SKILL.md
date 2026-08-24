@@ -50,7 +50,7 @@ Use the Task tool for playbook delegates, arena arms, swarm workers, and how/why
 - Writing children: `subagent_type: "draconic-agent"`. Pass a standalone prompt with file paths, success criteria, and the prove-it-works bar.
 - Read-only reviews: `subagent_type: "explore"`.
 - Isolate writes in a git worktree under `.draconic/worktrees/` when the child should not touch the main tree.
-- Pass `model` from `.pi/draconic-models.md` or `.opencode/rules/draconic-models.md` when a role has a real slug. Omit it for inherit-parent.
+- Pass `model` from `.pi/draconic-models.md` when a role has a real slug. Omit it for inherit-parent.
 
 You own every child's work. Read the returned text and the diff. Write your own summary. Do not pass through what it said.
 
@@ -103,58 +103,25 @@ A large or cross-cutting effort (a migration across many call sites, an ambitiou
 - **Worktree and simulator cleanup.** Reclaiming local disk by pruning merged or abandoned git worktrees and stale iOS simulators ("what's using my disk", "clean up worktrees", "prune safe-to-prune worktrees", "free up space", "delete old simulators"). `playbooks/worktree-cleanup.md`.
 <!-- playbooks:end -->
 
-## OpenCode runtime adapter
-
-This pack runs on **OpenCode**. Map leftover Pi or Cursor wording as follows:
-
-| Playbook wording | OpenCode equivalent |
-| --- | --- |
-| Skill tool / load skill X | Skill tool, or read `.opencode/skills/<name>/SKILL.md` |
-| Task / `subagent_type: "draconic-agent"` | Task tool with `draconic-agent` |
-| `generalPurpose` | Task `general` or `draconic-agent` |
-| Slash `/foo` | OpenCode command `/foo` |
-| Sticky primary agent | the `draconic` agent plus `.opencode/rules/APPEND_SYSTEM.md` |
-| Todos / todolist | TodoWrite and/or `draconic_todo` |
-| AskQuestion | the question tool, only for product or preference |
-| MCP | configured MCP, else `git`, `gh`, and project CLIs |
-| `/loop` | Stay in this session, or poll with bash |
-| `/deslop` / cursor-team-kit | `/unslop` |
-| control-ui / control-cli | Project `verify-*` skill |
-| Graphite / `gt` | Use only if the project already uses it. Default is `gh` |
-| Cursor `agent-transcripts/` / Pi sessions | this OpenCode session, or `~/.local/share/opencode/` |
-| `.cursor/worktrees` | `.draconic/worktrees/` |
-| Cloud `environment` | Local Task children only |
-
-**Skill load.** Descriptions are in the system prompt. Full instructions load when you use the Skill tool. Playbooks live under `.opencode/skills/draconic-mode/playbooks/`.
-
-**Verify.** Prefer a project-local `verify-*` skill. Otherwise use the project's documented harness. Compile-only is not prove-it-works.
-
-**Orchestrate, autopilot-full, autopilot-stack, and Graphite shipping.** One unit per session unless Task fan-out is enough. Prove it. Open a PR with `gh`. Do not pretend a cloud fleet ran.
-
 ## Pi runtime adapter
 
-This pack also runs on **Pi**. Map leftover OpenCode or Cursor wording as follows:
+This pack runs on Pi. Dest is `.pi/`.
 
-| Playbook wording | Pi equivalent |
-| --- | --- |
-| Skill tool / load skill X | `read` the skill's `SKILL.md`, or the user typed `/skill:name` |
-| Task / `subagent_type: "draconic-agent"` | `subagent` with a standalone task |
-| `generalPurpose` | `subagent` |
-| Slash `/foo` | Prompt `/foo` or `/skill:foo` |
-| Sticky identity | dest `.pi/agents/` default file. Boot appends it. |
-| Todos / todolist | `draconic_todo` |
-| AskQuestion | Ask in prose, only for product or preference |
-| MCP | `git`, `gh`, and project CLIs. Skip missing sources and say so |
-| `/loop` | Stay in this session, or poll with bash |
-| `/deslop` / cursor-team-kit | `/unslop` |
-| control-ui / control-cli | Project `verify-*` skill |
-| Graphite / `gt` | Use only if the project already uses it. Default is `gh` |
-| Cursor `agent-transcripts/` | `~/.pi/agent/sessions/` for this cwd, or `PI_SESSION_FILE` |
-| `.cursor/worktrees` | `.draconic/worktrees/` |
-| Cloud `environment` | Does not exist. Local spawn or in-process only |
+- **Skill load.** `read` the skill's `SKILL.md`, or the user typed `/skill:name`. Descriptions are in the system prompt. Playbooks live under `.pi/skills/draconic-mode/playbooks/`.
+- **Delegates.** `subagent` with a standalone task. `generalPurpose` is also `subagent`.
+- **Slash `/foo`.** Prompt `/foo` or `/skill:foo`.
+- **Sticky identity.** Dest `.pi/agents/` default file. Boot appends it.
+- **Todos.** `draconic_todo`.
+- **AskQuestion.** Ask in prose, only for product or preference.
+- **MCP.** `git`, `gh`, and project CLIs. Skip missing sources and say so.
+- **`/loop`.** Stay in this session, or poll with bash.
+- **`/deslop` / cursor-team-kit.** `/unslop`.
+- **control-ui / control-cli.** Project `verify-*` skill.
+- **Graphite / `gt`.** Use only if the project already uses it. Default is `gh`.
+- **Cursor `agent-transcripts/`.** `~/.pi/agent/sessions/` for this cwd, or `PI_SESSION_FILE`.
+- **`.cursor/worktrees`.** `.draconic/worktrees/`.
+- **Cloud `environment`.** Does not exist. Local spawn or in-process only.
 
-**Skill load.** Descriptions are in the system prompt. Full instructions load when you `read` `SKILL.md`. Playbooks live under `.pi/skills/draconic-mode/playbooks/`.
-
-**Verify.** Prefer a project-local `verify-*` skill. Otherwise use the project's documented harness. Compile-only is not prove-it-works.
+**Verify.** Prefer a project-local `verify-*` skill. Otherwise use the project's documented dest. Compile-only is not prove-it-works.
 
 **Orchestrate, autopilot-full, autopilot-stack, and Graphite shipping.** Degraded. Do one unit per session, prove it, open a PR with `gh`. Do not pretend a cloud fleet ran.

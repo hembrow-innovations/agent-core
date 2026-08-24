@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [purpose]
 created_at: "2026-08-23"
-updated_at: "2026-08-23"
+updated_at: "2026-08-25"
 ---
 
 # Installer purpose
@@ -23,7 +23,7 @@ Install a self-contained vendor tree a dest project can commit and run without t
 - Profile install with that profile's `extensions` list
 - One extension install with `--extension`
 - Repeatable `--extension`
-- `--harness` override of the profile harness
+- Dest always `.pi/`
 - Lib bundled into each extension at install time
 - Vendor copy at `.pi/vendor/@agentic-core/<name>`
 - Dest-relative paths written into dest settings
@@ -37,7 +37,8 @@ Install a self-contained vendor tree a dest project can commit and run without t
 - npm publish
 - A `git:` package source for first-party extensions
 - A curl entry such as `curl | node scripts/install.mjs`
-- A new profile language
+- A dest other than `.pi/`
+- A profile key that names a dest
 - A meta package that installs every extension
 - Skills turned into npm or Pi packages
 - Auto-wire of this checkout's Pi to `packages/`
@@ -47,12 +48,12 @@ Install a self-contained vendor tree a dest project can commit and run without t
 ## Surfaces
 
 The CLI is `pnpm exec agentic-core install`.
-The dest tree is `.pi/vendor/` plus dest settings.
+The dest tree is `.pi/` plus dest settings.
 
 ## Authority
 
 - Behaviour: [[spec-installer]]
-- Decisions: [[adr-2]]
+- Decisions: [[0002-standalone-vendor-install]] and [[0005-pi-only-dest]]
 - Layout: [[architecture-pack-and-packages]]
 
 ## Open product questions

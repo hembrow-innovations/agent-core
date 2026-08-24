@@ -7,7 +7,7 @@ domain: pack
 area: guides
 tags: [guide]
 created_at: "2026-08-23"
-updated_at: "2026-08-23"
+updated_at: "2026-08-25"
 ---
 
 # Install from this repo
@@ -16,6 +16,7 @@ updated_at: "2026-08-23"
 
 How to install from this checkout into a dest project.
 For humans working in this repo.
+Dest is always `.pi/`.
 
 ## Prerequisites
 
@@ -29,14 +30,11 @@ For humans working in this repo.
 
    `pnpm exec agentic-core install <target> --profile pi`
 
-   That also installs `draconic-todo`, `draconic-coms`, and `draconic-boot`.
+   That also installs `draconic-todo`, `draconic-coms`, `draconic-boot`, and `draconic-teams`.
 3. Or install a one-off extension.
 
    `pnpm exec agentic-core install <target> --extension draconic-todo`
-4. Pass `--harness` to override the profile.
-
-   `pnpm exec agentic-core install <target> --profile pi --harness pi`
-5. Commit dest `.pi/vendor/` and the dest settings that point at it.
+4. Commit dest `.pi/vendor/` and the dest settings that point at it.
 
 ## Examples
 
@@ -51,6 +49,7 @@ You will see:
 - `.pi/vendor/@agentic-core/draconic-todo`
 - `.pi/vendor/@agentic-core/draconic-coms`
 - `.pi/vendor/@agentic-core/draconic-boot`
+- `.pi/vendor/@agentic-core/draconic-teams`
 - dest-relative paths for those folders in `.pi/settings.json`
 
 One-off extension into another dest.
@@ -69,5 +68,5 @@ This checkout does not vendor `packages/` until you point the installer at a tar
 
 - Command and dest rules in [[spec-installer]]
 - Pack layout in [[architecture-pack-and-packages]]
-- Decision record in [[adr-2]]
+- Decision record in [[0002-standalone-vendor-install]] and [[0005-pi-only-dest]]
 - Terms in [[glossary]]

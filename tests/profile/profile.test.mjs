@@ -16,9 +16,7 @@ import {
 	findSkillDir,
 	installModePlaybooks,
 	installPiRuntime,
-	installPrompts,
 	listProfiles,
-	listPromptIds,
 	loadProfile,
 	mergePiSettingsPackages,
 	packageSource,
@@ -39,16 +37,12 @@ test("parseProfileYaml: comments, scalars, booleans, lists, all", () => {
 	const got = parseProfileYaml(`
 # header
 mode: draconic
-templates: true
-agents: false
 playbooks: all
 skills: [architect, arena]
 empty: []
 `);
 	assert.deepEqual(got, {
 		mode: "draconic",
-		templates: true,
-		agents: false,
 		playbooks: "all",
 		skills: ["architect", "arena"],
 		empty: [],
@@ -104,18 +98,17 @@ test("loadProfile: missing dies with available names", () => {
 
 test("loadProfile: defaults and playbooks shapes", () => {
 	const root = tempRoot();
-	writeYaml(root, "bare", "harness: opencode\nskills: []\n");
-	writeYaml(root, "all", "harness: opencode\nplaybooks: all\nmode: draconic\n");
+	writeYaml(root, "bare", "skills: []\n");
+	writeYaml(root, "all", "playbooks: all\nmode: draconic\n");
 	writeYaml(
 		root,
 		"listed",
-		`harness: opencode
-playbooks:
+		`playbooks:
   - investigation
   - feature
 `,
 	);
-	writeYaml(root, "empty", "harness: opencode\nplaybooks: []\n");
+	writeYaml(root, "empty", "playbooks: []\n");
 
 	const bare = loadProfile(root, "bare");
 	assert.deepEqual(bare, {
@@ -123,10 +116,6 @@ playbooks:
 		mode: null,
 		skills: [],
 		playbooks: { kind: "omit" },
-		harness: "opencode",
-		agents: false,
-		prompts: [],
-		templates: false,
 		extensions: [],
 	});
 
@@ -142,50 +131,53 @@ playbooks:
 	});
 });
 
-test("loadProfile: missing harness dies", () => {
+test("loadProfile: leftover dest keys die", () => {
 	const root = tempRoot();
-	writeYaml(root, "bare", "skills: []\n");
+	writeYaml(root, "harness", "harness: pi\nskills: []\n");
 	assert.throws(
-		() => loadProfile(root, "bare"),
-		/Missing harness.*opencode, claude, pi, agents/,
+		() => loadProfile(root, "harness"),
+		/leftover "harness:". dest is always \.pi/,
 	);
-});
-
-test("loadProfile: leftover pi dies", () => {
-	const root = tempRoot();
-	writeYaml(root, "old", "harness: pi\npi: false\nskills: []\n");
-	assert.throws(() => loadProfile(root, "old"), /use harness: pi/);
-});
-
-test("loadProfile: leftover commands dies", () => {
-	const root = tempRoot();
-	writeYaml(root, "old", "harness: opencode\ncommands: true\n");
-	assert.throws(() => loadProfile(root, "old"), /use prompts:/);
-});
-
-test("loadProfile: unknown harness dies", () => {
-	const root = tempRoot();
-	writeYaml(root, "x", "harness: nope\nskills: []\n");
+	writeYaml(root, "old-pi", "pi: false\nskills: []\n");
 	assert.throws(
-		() => loadProfile(root, "x"),
-		/Unknown harness "nope".*opencode, claude, pi, agents/,
+		() => loadProfile(root, "old-pi"),
+		/leftover "pi:". dest is always \.pi/,
+	);
+	writeYaml(root, "commands", "commands: true\nskills: []\n");
+	assert.throws(
+		() => loadProfile(root, "commands"),
+		/leftover "commands:". dest is always \.pi/,
+	);
+	writeYaml(root, "agents", "agents: true\nskills: []\n");
+	assert.throws(
+		() => loadProfile(root, "agents"),
+		/leftover "agents:". dest is always \.pi/,
+	);
+	writeYaml(root, "prompts", "prompts:\n  - wizard\n");
+	assert.throws(
+		() => loadProfile(root, "prompts"),
+		/leftover "prompts:". dest is always \.pi/,
+	);
+	writeYaml(root, "templates", "templates: true\nskills: []\n");
+	assert.throws(
+		() => loadProfile(root, "templates"),
+		/leftover "templates:". dest is always \.pi/,
 	);
 });
 
 test("loadProfile: unknown key dies", () => {
 	const root = tempRoot();
-	writeYaml(root, "x", "harness: opencode\nfoo: 1\n");
+	writeYaml(root, "x", "foo: 1\nskills: []\n");
 	assert.throws(() => loadProfile(root, "x"), /Unknown profile key "foo"/);
 });
 
 test("loadProfile: extensions default empty and accept a list", () => {
 	const root = tempRoot();
-	writeYaml(root, "bare", "harness: opencode\nskills: []\n");
+	writeYaml(root, "bare", "skills: []\n");
 	writeYaml(
 		root,
 		"ext",
-		`harness: pi
-extensions:
+		`extensions:
   - draconic-todo
   - draconic-coms
 `,
@@ -195,38 +187,6 @@ extensions:
 		"draconic-todo",
 		"draconic-coms",
 	]);
-});
-
-test("loadProfile: agents true on non-opencode dies", () => {
-	const root = tempRoot();
-	writeYaml(root, "x", "harness: pi\nagents: true\n");
-	assert.throws(
-		() => loadProfile(root, "x"),
-		/"agents" is only valid on harness: opencode/,
-	);
-});
-
-test("loadProfile: prompts on non-opencode dies", () => {
-	const root = tempRoot();
-	writeYaml(root, "x", "harness: pi\nprompts:\n  - wizard\n");
-	assert.throws(
-		() => loadProfile(root, "x"),
-		/"prompts" is only valid on harness: opencode/,
-	);
-});
-
-test("loadProfile: prompts list is like skills", () => {
-	const root = tempRoot();
-	writeYaml(
-		root,
-		"listed",
-		`harness: opencode
-prompts:
-  - wizard
-  - how
-`,
-	);
-	assert.deepEqual(loadProfile(root, "listed").prompts, ["wizard", "how"]);
 });
 
 test("listProfiles skips README", () => {
@@ -344,65 +304,28 @@ test("installModePlaybooks: selected files only, second run converges", () => {
 	);
 
 	const dest = mkdtempSync(join(tmpdir(), "dest-"));
-	for (const base of [".opencode/skills", ".claude/skills"]) {
-		const skillDir = join(dest, base, "demo-mode");
-		mkdirSync(join(skillDir, "playbooks"), { recursive: true });
-		writeFileSync(join(skillDir, "playbooks", "eval.md"), "stale\n");
-		writeFileSync(join(skillDir, "playbooks", "leftover.md"), "gone\n");
-		writeFileSync(
-			join(skillDir, "SKILL.md"),
-			"pre\n<!-- playbooks:start -->\n- old\n<!-- playbooks:end -->\npost\n",
-		);
-	}
+	const skillDir = join(dest, ".pi", "skills", "demo-mode");
+	mkdirSync(join(skillDir, "playbooks"), { recursive: true });
+	writeFileSync(join(skillDir, "playbooks", "eval.md"), "stale\n");
+	writeFileSync(join(skillDir, "playbooks", "leftover.md"), "gone\n");
+	writeFileSync(
+		join(skillDir, "SKILL.md"),
+		"pre\n<!-- playbooks:start -->\n- old\n<!-- playbooks:end -->\npost\n",
+	);
 
 	const ids = ["feature", "bug-fix"];
-	const destBases = [".opencode/skills", ".claude/skills"];
-	installModePlaybooks(root, dest, "demo", ids, destBases);
+	installModePlaybooks(root, dest, "demo", ids);
 	const first = snapshotInstall(dest);
-	installModePlaybooks(root, dest, "demo", ids, destBases);
+	installModePlaybooks(root, dest, "demo", ids);
 	assert.deepEqual(snapshotInstall(dest), first);
 
-	for (const base of [".opencode/skills", ".claude/skills"]) {
-		const pb = join(dest, base, "demo-mode", "playbooks");
-		assert.deepEqual(readdirSync(pb).sort(), ["bug-fix.md", "feature.md"]);
-		const skill = readFileSync(join(dest, base, "demo-mode", "SKILL.md"), "utf8");
-		assert.match(skill, /\*\*Feature\.\*\*/);
-		assert.match(skill, /\*\*Bug fix\.\*\*/);
-		assert.doesNotMatch(skill, /Eval/);
-		assert.doesNotMatch(skill, /leftover/);
-	}
-});
-
-test("installPrompts: selected files only, second run converges, unknown dies", () => {
-	const root = tempRoot();
-	mkdirSync(join(root, "ai", "prompts"), { recursive: true });
-	writeFileSync(join(root, "ai", "prompts", "wizard.md"), "wizard\n");
-	writeFileSync(join(root, "ai", "prompts", "how.md"), "how\n");
-	writeFileSync(join(root, "ai", "prompts", "README.md"), "skip\n");
-
-	const dest = mkdtempSync(join(tmpdir(), "prompts-"));
-	mkdirSync(join(dest, ".opencode", "command"), { recursive: true });
-	writeFileSync(join(dest, ".opencode", "command", "stale.md"), "gone\n");
-
-	const first = installPrompts(root, dest, ["wizard"]);
-	assert.deepEqual(first, ["wizard"]);
-	assert.deepEqual(readdirSync(join(dest, ".opencode", "command")).sort(), [
-		"wizard.md",
-	]);
-	assert.equal(
-		readFileSync(join(dest, ".opencode", "command", "wizard.md"), "utf8"),
-		"wizard\n",
-	);
-
-	installPrompts(root, dest, ["wizard"]);
-	assert.deepEqual(readdirSync(join(dest, ".opencode", "command")).sort(), [
-		"wizard.md",
-	]);
-
-	assert.throws(
-		() => installPrompts(root, dest, ["nope"]),
-		/Unknown prompt "nope"/,
-	);
+	const pb = join(skillDir, "playbooks");
+	assert.deepEqual(readdirSync(pb).sort(), ["bug-fix.md", "feature.md"]);
+	const skill = readFileSync(join(skillDir, "SKILL.md"), "utf8");
+	assert.match(skill, /\*\*Feature\.\*\*/);
+	assert.match(skill, /\*\*Bug fix\.\*\*/);
+	assert.doesNotMatch(skill, /Eval/);
+	assert.doesNotMatch(skill, /leftover/);
 });
 
 test("readPlaybookMeta: frontmatter and heading fallback", () => {
@@ -432,10 +355,6 @@ test("repo life-engine profile loads", () => {
 	const p = loadProfile(REPO, "life-engine");
 	assert.equal(p.mode, "draconic");
 	assert.deepEqual(p.playbooks, { kind: "all" });
-	assert.equal(p.agents, true);
-	assert.deepEqual(p.prompts, listPromptIds(REPO));
-	assert.equal(p.templates, true);
-	assert.equal(p.harness, "opencode");
 	const ported = [
 		"behaviour-contracts",
 		"diagnose",
@@ -459,10 +378,6 @@ test("repo life-engine-pi profile loads", () => {
 	const p = loadProfile(REPO, "life-engine-pi");
 	assert.equal(p.mode, "draconic");
 	assert.deepEqual(p.playbooks, { kind: "all" });
-	assert.equal(p.agents, false);
-	assert.deepEqual(p.prompts, []);
-	assert.equal(p.templates, false);
-	assert.equal(p.harness, "pi");
 	const ported = [
 		"behaviour-contracts",
 		"diagnose",
@@ -486,10 +401,6 @@ test("repo agentic-core profile loads", () => {
 	const p = loadProfile(REPO, "agentic-core");
 	assert.equal(p.mode, "draconic");
 	assert.deepEqual(p.playbooks, { kind: "all" });
-	assert.equal(p.agents, false);
-	assert.deepEqual(p.prompts, []);
-	assert.equal(p.templates, false);
-	assert.equal(p.harness, "pi");
 	const needed = [
 		"create-skill",
 		"diagnose",
@@ -509,14 +420,6 @@ test("repo agentic-core profile loads", () => {
 	for (const name of banned) assert.equal(p.skills.includes(name), false, name);
 	const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
 	assert.deepEqual(missing, []);
-});
-
-test("repo opencode profiles list every pack prompt", () => {
-	const prompts = listPromptIds(REPO);
-	assert.ok(prompts.includes("wizard"));
-	for (const name of ["draconic", "full", "godot", "life-engine"]) {
-		assert.deepEqual(loadProfile(REPO, name).prompts, prompts, name);
-	}
 });
 
 test("repo pi profiles list todo, coms, boot, and teams", () => {
@@ -553,10 +456,6 @@ test("always-on text points at one playbook, not the dest router", () => {
 
 test("repo pi profile resolves every skill from skills/", () => {
 	const p = loadProfile(REPO, "pi");
-	assert.equal(p.harness, "pi");
-	assert.equal(p.agents, false);
-	assert.deepEqual(p.prompts, []);
-	assert.equal(p.templates, false);
 	assert.equal(p.mode, "draconic");
 	const needed = [...p.skills, `${p.mode}-mode`];
 	for (const name of needed) {
@@ -840,7 +739,7 @@ test("install --profile pi writes .pi only", () => {
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 	assert.match(r.stdout, /Profile: pi/);
-	assert.match(r.stdout, /Harness: pi/);
+	assert.doesNotMatch(r.stdout, /Harness:/);
 	const piSkill = readFileSync(
 		join(dest, ".pi", "skills", "draconic-mode", "SKILL.md"),
 		"utf8",
@@ -915,7 +814,7 @@ test("install --profile agentic-core writes .pi only", () => {
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 	assert.match(r.stdout, /Profile: agentic-core/);
-	assert.match(r.stdout, /Harness: pi/);
+	assert.doesNotMatch(r.stdout, /Harness:/);
 	assert.equal(
 		existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")),
 		true,
@@ -958,7 +857,7 @@ test("install --profile life-engine-pi writes .pi only", () => {
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 	assert.match(r.stdout, /Profile: life-engine-pi/);
-	assert.match(r.stdout, /Harness: pi/);
+	assert.doesNotMatch(r.stdout, /Harness:/);
 	assert.equal(
 		existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")),
 		true,
@@ -993,7 +892,7 @@ test("install --profile pi --without how omits the how prompt", () => {
 	assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), false);
 });
 
-test("install --profile core writes .opencode/skills only", () => {
+test("install --profile core writes .pi/skills", () => {
 	const dest = mkdtempSync(join(tmpdir(), "install-core-"));
 	const r = spawnSync(
 		process.execPath,
@@ -1001,51 +900,22 @@ test("install --profile core writes .opencode/skills only", () => {
 		{ encoding: "utf8" },
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
-	assert.equal(
-		existsSync(join(dest, ".opencode", "skills", "bro", "SKILL.md")),
-		true,
-	);
-	assert.equal(existsSync(join(dest, ".claude")), false);
-	assert.equal(existsSync(join(dest, ".pi")), false);
-});
-
-test("install --harness claude on core writes .claude/skills only", () => {
-	const dest = mkdtempSync(join(tmpdir(), "install-claude-"));
-	const r = spawnSync(
-		process.execPath,
-		[
-			INSTALLER,
-			"install",
-			dest,
-			"--profile",
-			"core",
-			"--harness",
-			"claude",
-			"--without",
-			CORE_WITHOUT,
-		],
-		{ encoding: "utf8" },
-	);
-	assert.equal(r.status, 0, r.stderr || r.stdout);
-	assert.match(r.stdout, /Harness: claude/);
-	assert.equal(
-		existsSync(join(dest, ".claude", "skills", "bro", "SKILL.md")),
-		true,
-	);
+	assert.equal(existsSync(join(dest, ".pi", "skills", "bro", "SKILL.md")), true);
+	assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
 	assert.equal(existsSync(join(dest, ".opencode")), false);
-	assert.equal(existsSync(join(dest, ".pi")), false);
+	assert.equal(existsSync(join(dest, ".claude")), false);
 	assert.equal(existsSync(join(dest, ".agents")), false);
 });
 
-test("install --harness unknown dies", () => {
+test("install --harness dies", () => {
 	const dest = mkdtempSync(join(tmpdir(), "install-bad-harness-"));
 	const r = spawnSync(
 		process.execPath,
-		[INSTALLER, "install", dest, "--profile", "core", "--harness", "nope"],
+		[INSTALLER, "install", dest, "--profile", "core", "--harness", "pi"],
 		{ encoding: "utf8" },
 	);
 	assert.notEqual(r.status, 0);
-	assert.match(r.stderr, /Unknown harness "nope"/);
+	assert.match(r.stderr, /Unknown flag: --harness/);
 });
 
 test("install uses profiles yaml only and does not write preference stubs", () => {
@@ -1058,7 +928,6 @@ test("install uses profiles yaml only and does not write preference stubs", () =
 			dest,
 			"--profile",
 			"core",
-			"--no-templates",
 			"--without",
 			"domain-modeling,wayfinder,tdd,handoff,improve-codebase-architecture,codebase-design,setup-matt-pocock-skills,research,prototype,planning,planning-with-docs,management,docs,unslop",
 		],
@@ -1066,7 +935,7 @@ test("install uses profiles yaml only and does not write preference stubs", () =
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 	assert.match(r.stdout, /Profile: core/);
-	assert.match(r.stdout, /skill bro → \.opencode\/skills\/bro/);
+	assert.match(r.stdout, /skill bro → \.pi\/skills\/bro/);
 	assert.doesNotMatch(r.stdout, /prefs/);
 	assert.equal(existsSync(join(dest, "AGENTS.md")), false);
 	assert.equal(existsSync(join(dest, "CLAUDE.md")), false);
@@ -1074,10 +943,8 @@ test("install uses profiles yaml only and does not write preference stubs", () =
 		existsSync(join(dest, ".github", "copilot-instructions.md")),
 		false,
 	);
-	assert.equal(
-		existsSync(join(dest, ".opencode", "skills", "bro", "SKILL.md")),
-		true,
-	);
+	assert.equal(existsSync(join(dest, ".pi", "skills", "bro", "SKILL.md")), true);
+	assert.equal(existsSync(join(dest, ".opencode")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
 	assert.equal(existsSync(join(REPO, "preferences")), false);
 });
@@ -1142,17 +1009,13 @@ function writePiRolesPack(root) {
 }
 
 function snapshotInstall(dest) {
-	const out = {};
-	for (const base of [".opencode/skills", ".claude/skills"]) {
-		const skillDir = join(dest, base, "demo-mode");
-		out[`${base}/SKILL.md`] = readFileSync(join(skillDir, "SKILL.md"), "utf8");
-		out[`${base}/playbooks`] = {};
-		for (const name of readdirSync(join(skillDir, "playbooks")).sort()) {
-			out[`${base}/playbooks`][name] = readFileSync(
-				join(skillDir, "playbooks", name),
-				"utf8",
-			);
-		}
+	const skillDir = join(dest, ".pi", "skills", "demo-mode");
+	const out = {
+		"SKILL.md": readFileSync(join(skillDir, "SKILL.md"), "utf8"),
+		playbooks: {},
+	};
+	for (const name of readdirSync(join(skillDir, "playbooks")).sort()) {
+		out.playbooks[name] = readFileSync(join(skillDir, "playbooks", name), "utf8");
 	}
 	return out;
 }

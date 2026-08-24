@@ -1,37 +1,19 @@
 # Profiles
 
-`pnpm exec agentic-core install <target> --profile NAME` loads `profiles/NAME.yaml`.
+`pnpm exec agentic-core install <target> --profile NAME` loads `profiles/NAME.yaml`. Dest is always `.pi/`.
 
 ## Schema
 
 ```yaml
-harness: opencode     # required. One of opencode, claude, pi, agents
 mode: draconic        # optional. If set, install adds {mode}-mode to the skill list
 skills:               # skill folder names to copy. Default: []
   - architect
 playbooks: all        # omit the key, `all`, or a list of playbook ids
-agents: true          # copy ai/agents/. Default: false. Valid only when harness is opencode
-prompts:              # prompt file stems to copy from ai/prompts/. Default: []. Valid only when harness is opencode
-  - wizard
-templates: true       # copy ai/templates/opencode. Default: false. Valid only when harness is opencode
-extensions:           # first-party package folder names. Default: []. Installed when dest harness is pi
+extensions:           # first-party package folder names. Default: []
   - draconic-todo
 ```
 
-`harness` selects the dest tree from `HARNESSES` in `scripts/profile.mjs`.
-
-| id | skill dest | runtime |
-| ---- | ------------ | --------- |
-| opencode | `.opencode/skills` | opencode |
-| claude | `.claude/skills` | unset |
-| pi | `.pi/skills` | pi |
-| agents | `.agents/skills` | unset |
-
-Install writes only that dest. `--harness <id>` overrides the profile value.
-
-`runtime` `opencode` copies agents, the listed prompts, and templates when those profile values are set and the matching `--no-*` flag is off.
-
-`runtime` `pi` copies the Pi pack into `.pi/`:
+Install writes `.pi/skills` and the Pi pack into `.pi/`:
 
 - first-party vendor packages from `profile.extensions` into `.pi/vendor/@agentic-core/`
 - `ai/pi/prompts/*.md` whose stem is in the installed skill list or playbook list
@@ -45,26 +27,18 @@ A missing `ai/pi/APPEND_SYSTEM.md`, `ai/pi/draconic-models.md`, or `ai/pi/roles/
 
 `ai/pi/packages.json` is a JSON array of Pi package sources such as `npm:pi-lens`. Install merges those sources into `.pi/settings.json` `packages` and leaves other settings keys alone. An existing object-form entry with the same `source` counts as present. Pi then installs any missing project packages on the next trusted startup.
 
-A leftover `pi:` key is an error. The message says `use harness: pi`. A leftover `commands:` key is an error. The message says `use prompts:`. Missing, empty, or unknown `harness` is an error and names the known ids. Unknown YAML keys are an error. `agents` or `templates` set true, or a nonempty `prompts` list, on a non-opencode harness is an error.
+A leftover `harness:`, `pi:`, `agents:`, `prompts:`, `templates:`, or `commands:` key is an error. The message says dest is always `.pi`. Unknown YAML keys are an error.
 
-Boolean keys default to false. `mode` defaults to unset. `skills`, `prompts`, and `extensions` default to empty lists. A profile install also vendors `extensions` when the dest harness is `pi`. `--extension` names install on top of that list.
+Boolean keys are not used. `mode` defaults to unset. `skills` and `extensions` default to empty lists. A profile install also vendors `extensions`. `--extension` names install on top of that list.
 
 ## Playbooks
 
 `ai/playbooks/` is the library. Install copies the selected files into `{mode}-mode/playbooks/` and rewrites that skill's matching list.
 
-| Value | Install |
-| ------- | --------- |
-| key omitted | The mode skill's bundled playbooks stay as copied from source |
-| `all` | Every `playbooks/*.md` except README |
-| list of ids | Those files, including an empty list |
+- **key omitted**: The mode skill's bundled playbooks stay as copied from source
+- **`all`**: Every `playbooks/*.md` except README
+- **list of ids**: Those files, including an empty list
 
 `--playbooks a,b` replaces the profile selection. `--with-playbooks` and `--without-playbooks` add or remove ids after that.
 
 Playbook files live at `ai/playbooks/<id>.md` with `title` and `when` frontmatter. A profile names the ids it ships, or sets `playbooks: all`. Install overwrites copies inside a mode skill from the library.
-
-## Prompts
-
-`ai/prompts/` is the OpenCode prompt library. Install copies the listed files into `.opencode/command/`.
-
-A profile names the stems it ships. An omitted or empty list copies nothing. Unknown stems are an error. Re-install prunes dest `.md` files that are no longer listed. `--no-prompts` skips the copy.

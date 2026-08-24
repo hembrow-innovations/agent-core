@@ -1,4 +1,3 @@
-harness: pi
 mode: draconic
 playbooks: all
 extensions:
