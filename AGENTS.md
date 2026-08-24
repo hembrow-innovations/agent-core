@@ -2,6 +2,9 @@
 
 This repo is the skill and profile pack. Install copies skills into a dest tree. Edit the source.
 
+## Rules
+- Markdown: never tables — use `- **{text}**: {text}`
+
 ## Source
 
 - `ai/skills/` is the skill library.
