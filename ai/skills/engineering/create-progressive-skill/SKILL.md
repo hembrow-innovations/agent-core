@@ -10,11 +10,11 @@ Ship dozens of rules on disk. Put only a small router in context. Deep content i
 
 The user's argument is the brief: a topic, a path to a fat `SKILL.md` or guide, or "split X into a pack".
 
-Layout, checklist, and anti-patterns: [`../write-a-skill/PROGRESSIVE.md`](../write-a-skill/PROGRESSIVE.md). Voice and invocation: [`../write-a-skill/SKILL.md`](../write-a-skill/SKILL.md). Read both before writing. Exemplar router: skill `vercel-react-best-practices` `SKILL.md` only, not its `rules/`.
+Layout, checklist, and anti-patterns: [`../create-skill/PROGRESSIVE.md`](../create-skill/PROGRESSIVE.md). Voice and invocation: [`../create-skill/SKILL.md`](../create-skill/SKILL.md). Read both before writing. Exemplar router: skill `vercel-react-best-practices` `SKILL.md` only, not its `rules/`.
 
 ## 1. Load the spec
 
-Read the two write-a-skill files and the exemplar router.
+Read the two create-skill files and the exemplar router.
 
 **Done when** those three files are read.
 

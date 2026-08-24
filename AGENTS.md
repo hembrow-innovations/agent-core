@@ -22,7 +22,7 @@ After you change a source skill, reinstall:
 pnpm exec agentic-core install . --profile agentic-core
 ```
 
-When you write or edit a skill, read `ai/skills/engineering/write-a-skill/SKILL.md`.
+When you write or edit a skill, read `ai/skills/engineering/create-skill/SKILL.md`.
 
 ## Verify
 
