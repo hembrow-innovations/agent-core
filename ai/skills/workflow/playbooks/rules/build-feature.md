@@ -19,8 +19,7 @@ New or changed behavior from a named data shape.
 4. Delegate with the named data shape. Arena when several shapes are valid. Review the diff yourself.
 5. Verify on the matching surface.
 6. Rebase into small ordered commits.
-7. `interrogate` if the design is contested.
-8. Opening a PR.
+7. Opening a PR.
 
 Library: `ai/playbooks/feature.md` (dest: `playbooks/feature.md`).
 

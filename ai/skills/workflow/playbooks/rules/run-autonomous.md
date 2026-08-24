@@ -17,7 +17,7 @@ One long task driven to a checkable predicate without stopping.
 2. Pick the wake: stay in session, poll, or a watcher on an event.
 3. Each iteration is the smallest change the evidence justifies. Revert what did not move the predicate.
 4. Mid-run discoveries are yours. Irreversible actions and real product calls still surface.
-5. Checkpoint every iteration via `show-me-your-work`.
+5. Checkpoint every iteration in `.draconic/decisions.tsv`.
 6. A plateau is a pivot, not a stop. A dead end surfaces. Do not relax the predicate.
 
 Library: `ai/playbooks/autonomous-run.md` (dest: `playbooks/autonomous-run.md`).

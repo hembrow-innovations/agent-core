@@ -17,18 +17,17 @@ Remaining triggers:
 - Any code → name the data shape first, and choose its organizing structure per **principle-model-the-domain**.
 - Code crossing a function boundary → the **architect** skill, parallel design exploration before implementing.
 - Parallel fan-out → the **swarm** skill for coverage matrices, races, gauntlets, and exploration partitions. Use **arena** for design or code bakeoffs with base selection and grafting.
-- Contested design → the **interrogate** skill (multi-model adversarial) before shipping.
 - Nontrivial multi-step → write the throughput checkpoint (Feature step 3).
 - Any prose surface → the **unslop** skill. Your reply is a prose surface; write it per **Writing the reply**. Agent-facing prose also follows the **authoring-a-skill** playbook.
 - Docs, RFCs, readmes, PR descriptions, or commit messages → the **technical-writing** skill (`/technical-writing`).
 - Before commit → the **unslop** skill (`/unslop`).
-- Before review → the **no-comments** skill (`/no-comments`).
+- Before review → strip narrating comments per **Comments**.
 - Shipping UI / IDE / CLI → the project `verify-*` skill. For bug fixes, reproduce first on the same surface yourself; hand to the user only under the narrow Bug fix step 1 exception.
 - Any PR-status request → the **Babysit** playbook (`playbooks/babysit.md`). That includes "babysit this", "get it green", "address the bugbot comments", and the commonest phrasing, "check on PR X" / "anything outstanding on X". Never triggered by merely opening a PR. Declare its mode before polling; the playbook's step 1 owns the request-to-mode mapping.
 - Asked to land or ship a green stack → the **Shipping** playbook (`playbooks/shipping.md`). Green is not safe. Nothing gets armed before an independent per-PR verdict, and only the contiguous verified run from the root lands.
 - Bugbot or the agentic security review commented → skeptical posture. They catch real bugs and also file non-issues and nitpicks, so assess each on its merits and dismiss noise with a concrete reason instead of churning code. Triage fix / dismiss / ask per `references/bugbot-triage.md`.
 - Broken skill mid-task → fix it in its own PR. Don't block. Don't silently work around it.
-- Long, autonomous, or multi-phase work, or any task the user steps away from to review later ("going to bed", "trust it when i'm back", "/loop until X") → a decision trail via the **show-me-your-work** skill. Commit it when stakes need an auditable record; keep it local otherwise.
+- Long, autonomous, or multi-phase work, or any task the user steps away from to review later ("going to bed", "trust it when i'm back", "/loop until X") → a decision trail in `.draconic/decisions.tsv`. Commit it when stakes need an auditable record; keep it local otherwise.
 
 ## Principles
 
@@ -46,10 +45,10 @@ Load **principals**. Read its router, pick 1-N rule ids for this task, and `Read
 
 ## Delegates
 
-Use the Task tool for playbook delegates, arena arms, swarm workers, interrogate reviewers, and how/why explorers.
+Use the Task tool for playbook delegates, arena arms, swarm workers, and how/why explorers.
 
 - Writing children: `subagent_type: "draconic-agent"`. Pass a standalone prompt with file paths, success criteria, and the prove-it-works bar.
-- Read-only reviews: `subagent_type: "explore"` or `comment-sicko`.
+- Read-only reviews: `subagent_type: "explore"`.
 - Isolate writes in a git worktree under `.draconic/worktrees/` when the child should not touch the main tree.
 - Pass `model` from `.pi/draconic-models.md` or `.opencode/rules/draconic-models.md` when a role has a real slug. Omit it for inherit-parent.
 
@@ -112,7 +111,6 @@ This pack runs on **OpenCode**. Map leftover Pi or Cursor wording as follows:
 | --- | --- |
 | Skill tool / load skill X | Skill tool, or read `.opencode/skills/<name>/SKILL.md` |
 | Task / `subagent_type: "draconic-agent"` | Task tool with `draconic-agent` |
-| `Comment Sicko` | Task `comment-sicko`, or apply that skill yourself |
 | `generalPurpose` | Task `general` or `draconic-agent` |
 | Slash `/foo` | OpenCode command `/foo` |
 | Sticky primary agent | the `draconic` agent plus `.opencode/rules/APPEND_SYSTEM.md` |
@@ -141,7 +139,6 @@ This pack also runs on **Pi**. Map leftover OpenCode or Cursor wording as follow
 | --- | --- |
 | Skill tool / load skill X | `read` the skill's `SKILL.md`, or the user typed `/skill:name` |
 | Task / `subagent_type: "draconic-agent"` | `subagent` with a standalone task |
-| `Comment Sicko` | `subagent` agent `reviewer`, or apply comment-sicko yourself |
 | `generalPurpose` | `subagent` |
 | Slash `/foo` | Prompt `/foo` or `/skill:foo` |
 | Sticky identity | dest `.pi/agents/` default file. Boot appends it. |

@@ -28,9 +28,9 @@ Create a folder when the first file needs it. The tree is optional until then.
 Reserved at the root, owned by other skills. Do not relocate them.
 
 | Path | Owner |
-|---|---|
+| --- | --- |
 | `TODO.md` | session checklist |
-| `decisions.tsv` | show-me-your-work |
+| `decisions.tsv` | long-run decision trail |
 | `worktrees/` | isolated child work |
 | `sessions/` | child session transcripts |
 

@@ -28,7 +28,7 @@ Read each dest file that already exists. Otherwise start from the defaults in st
 
 Show every role with its current model. Ask whether to accept as-is or change specific roles. Offer detected models plus `inherit-parent` and `auto`.
 
-Panel roles (how critics, arena runners, architect runners, interrogate reviewers) are lists. One spawn runs per entry. `arena cross-judge pool` is a list; pick one value whose family differs from the parent when possible. `swarm workers` is the default for every worker unless a race assigns another model per arm.
+Panel roles (how critics, arena runners, architect runners) are lists. One spawn runs per entry. `arena cross-judge pool` is a list; pick one value whose family differs from the parent when possible. `swarm workers` is the default for every worker unless a race assigns another model per arm.
 
 ### 4. Validate
 
@@ -55,13 +55,10 @@ how explainer: inherit-parent
 how critics: inherit-parent, inherit-parent
 why investigators: inherit-parent
 why synthesizer: inherit-parent
-reflect tooling: inherit-parent
-reflect judgment, divergent, synthesizer: inherit-parent
 arena runners: inherit-parent, inherit-parent
 arena cross-judge pool: inherit-parent
 swarm workers: inherit-parent
 architect runners: inherit-parent, inherit-parent
-interrogate reviewers: inherit-parent, inherit-parent
 ```
 
 Replace `inherit-parent` with confirmed slugs when the user picks real models.

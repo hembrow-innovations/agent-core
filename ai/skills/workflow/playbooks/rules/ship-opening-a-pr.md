@@ -15,7 +15,7 @@ Invoked at the end of every other build or fix playbook.
 
 - Work from a git worktree off main. Dirty unrelated work gets patched out.
 - Commit liberally. Rebase into landable slices before opening.
-- `/unslop` the description and commit bodies. `/no-comments` before review.
+- `/unslop` the description and commit bodies. Strip narrating comments before review.
 - Five narrow PRs over one fat one. Stack follow-ups. Branch off main only for independent work.
 - After opening, the parent runs Babysit. A subagent that opened the PR returns the URL and does not babysit.
 

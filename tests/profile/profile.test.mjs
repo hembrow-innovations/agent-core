@@ -99,10 +99,7 @@ test("parseProfileYaml: throws on unknown constructs", () => {
 test("loadProfile: missing dies with available names", () => {
 	const root = tempRoot();
 	writeYaml(root, "core", "skills: []\n");
-	assert.throws(
-		() => loadProfile(root, "nope"),
-		/Unknown profile "nope".*core/,
-	);
+	assert.throws(() => loadProfile(root, "nope"), /Unknown profile "nope".*core/);
 });
 
 test("loadProfile: defaults and playbooks shapes", () => {
@@ -368,10 +365,7 @@ test("installModePlaybooks: selected files only, second run converges", () => {
 	for (const base of [".opencode/skills", ".claude/skills"]) {
 		const pb = join(dest, base, "demo-mode", "playbooks");
 		assert.deepEqual(readdirSync(pb).sort(), ["bug-fix.md", "feature.md"]);
-		const skill = readFileSync(
-			join(dest, base, "demo-mode", "SKILL.md"),
-			"utf8",
-		);
+		const skill = readFileSync(join(dest, base, "demo-mode", "SKILL.md"), "utf8");
 		assert.match(skill, /\*\*Feature\.\*\*/);
 		assert.match(skill, /\*\*Bug fix\.\*\*/);
 		assert.doesNotMatch(skill, /Eval/);
@@ -482,7 +476,6 @@ test("repo life-engine-pi profile loads", () => {
 		"verify-issue",
 		"webapp-testing",
 		"create-skill",
-		"comment-sicko",
 	];
 	for (const name of ported) assert.ok(p.skills.includes(name), name);
 	const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
@@ -608,10 +601,7 @@ test("installPiRuntime writes boot, models, and profile-filtered prompts", () =>
 		"models\n",
 	);
 	assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), true);
-	assert.equal(
-		existsSync(join(dest, ".pi", "prompts", "orchestrate.md")),
-		true,
-	);
+	assert.equal(existsSync(join(dest, ".pi", "prompts", "orchestrate.md")), true);
 	assert.equal(existsSync(join(dest, ".pi", "prompts", "why.md")), false);
 
 	writeFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "custom\n");
@@ -1007,15 +997,7 @@ test("install --profile core writes .opencode/skills only", () => {
 	const dest = mkdtempSync(join(tmpdir(), "install-core-"));
 	const r = spawnSync(
 		process.execPath,
-		[
-			INSTALLER,
-			"install",
-			dest,
-			"--profile",
-			"core",
-			"--without",
-			CORE_WITHOUT,
-		],
+		[INSTALLER, "install", dest, "--profile", "core", "--without", CORE_WITHOUT],
 		{ encoding: "utf8" },
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);

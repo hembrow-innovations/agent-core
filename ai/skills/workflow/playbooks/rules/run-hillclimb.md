@@ -15,7 +15,7 @@ Sustained improvement of one metric against a target. One change, one measuremen
 
 1. Ground the workload with `how`. Fix one metric, the better direction, and a stop predicate with a floor on attempts.
 2. Build the harness. Prove it is sensitive. Freeze it. Record the baseline.
-3. Open a `decision.tsv` via `show-me-your-work`. Keep it out of the tree.
+3. Open `.draconic/decisions.tsv`. Keep it out of the tree.
 4. Each iteration: one hypothesis, measure, accept or revert in full, log the row.
 5. Push past the first plateau. Do not relax the predicate.
 6. Opening a PR with accepted commits in the order they landed.

@@ -17,11 +17,13 @@ Verify every task output by checking the real thing directly. Do not infer from 
 **Pattern:** After completing any task, ask: "how do I prove this actually works?"
 
 Check the real thing, not a proxy:
+
 - Check process liveness directly, not indirectly through derived state
 - Read the actual value, not a cached or derived representation
 - When verification fails, suspect the observation method before suspecting the system
 
 Code and features:
+
 1. Build it (necessary but not sufficient)
 2. Run it and exercise the actual feature path
 3. Check the full chain: does data flow from input to output?
@@ -34,6 +36,6 @@ When verifying delegated work, inspect the actual output artifact (git diff, fil
 
 The strongest proof is a deterministic script that re-runs the same comparison, not a one-time eyeball. Write the script, run it, and keep its output as an artifact a reviewer can re-run instead of trusting your word. A script comparing the old and new compiled output catches what a glance misses.
 
-Keep the artifact visible for the human. Commit it only for large or complex work where the trail has to be auditable later, like a big port or migration (the **show-me-your-work** skill). Most work just needs it visible, not committed.
+Keep the artifact visible for the human. Commit it only for large or complex work where the trail has to be auditable later, like a big port or migration. Most work just needs it visible, not committed.
 
 **On life-engine.** Start from `pnpm db:reset` so seed state is known. `pnpm typecheck:web` is not proof. Web is Playwright. Mobile is Maestro after checking `emulator -list-avds` and `adb devices`. Desktop is the web SPA in Electron, so prove the shell only when the shell changed.

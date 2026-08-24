@@ -1,9 +1,12 @@
 ---
 description: draconic per-role model choices (overrides skill defaults)
 ---
-# One line per role. Delete a line to fall back to inherit-parent.
-# inherit-parent or auto: child runs on the parent chat model (omit spawn model).
-# Run /setup-draconic to replace inherit-parent with real model slugs.
+# One line per role. Delete a line to fall back to inherit-parent
+
+# inherit-parent or auto: child runs on the parent chat model (omit spawn model)
+
+# Run /setup-draconic to replace inherit-parent with real model slugs
+
 feature, refactoring: inherit-parent
 bug-fix: inherit-parent
 perf-issue: inherit-parent
@@ -15,10 +18,7 @@ how explainer: inherit-parent
 how critics: inherit-parent, inherit-parent
 why investigators: inherit-parent
 why synthesizer: inherit-parent
-reflect tooling: inherit-parent
-reflect judgment, divergent, synthesizer: inherit-parent
 arena runners: inherit-parent, inherit-parent
 arena cross-judge pool: inherit-parent
 swarm workers: inherit-parent
 architect runners: inherit-parent, inherit-parent
-interrogate reviewers: inherit-parent, inherit-parent
