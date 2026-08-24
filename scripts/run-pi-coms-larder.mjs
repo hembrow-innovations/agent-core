@@ -113,11 +113,22 @@ function extractToolCalls(jsonlPath) {
   return calls;
 }
 
+function writeAgent(name, body, extraFrontmatter = "") {
+  const dir = join(PLAY, ".pi", "agents");
+  mkdirSync(dir, { recursive: true });
+  const extra = extraFrontmatter ? `\n${extraFrontmatter}` : "";
+  writeFileSync(
+    join(dir, `${name}.md`),
+    `---\nname: ${name}${extra}\n---\n\n${body}\n`,
+  );
+}
+
 class RpcSession {
   constructor(opts) {
     this.name = opts.name;
     this.purpose = opts.purpose;
     this.cwd = opts.cwd;
+    this.agent = opts.agent || "draconic";
     this.lines = [];
     this.waiters = [];
     this.pending = new Map();
@@ -154,6 +165,8 @@ class RpcSession {
       this.purpose,
       "--project",
       PROJECT,
+      "--agent",
+      this.agent,
     ];
     this.child = spawn("pi", args, {
       cwd: this.cwd,
@@ -360,16 +373,37 @@ function waitForFile(path, timeoutMs) {
   return existsSync(path);
 }
 
+async function snapshotSession(session, label) {
+  const state = await session.request({ type: "get_state" }, 15_000);
+  const commands = await session.commands();
+  const snap = {
+    ts: nowIso(),
+    label,
+    name: session.name,
+    agent: session.agent,
+    state: state.data,
+    commandNames: commands.map((c) => c.name ?? c),
+  };
+  writeFileSync(
+    join(RUN, `session-${label}.json`),
+    `${JSON.stringify(snap, null, 2)}\n`,
+  );
+  return snap;
+}
+
 async function smoke() {
   log("smoke: starting probe");
+  writeAgent("probe", "You check that this process is alive.", "tools: [read]");
   const probe = new RpcSession({
     name: "probe",
     purpose: "Smoke the coms bind",
     cwd: PLAY,
+    agent: "probe",
   });
   probe.start();
   try {
     const state = await probe.ready();
+    const sessionSnap = await snapshotSession(probe, "smoke");
     const cardPath = join(COMS, "projects", PROJECT, "agents", "probe.json");
     if (!waitForFile(cardPath, 10_000)) {
       throw new Error(`probe did not bind at ${cardPath}`);
@@ -383,6 +417,8 @@ async function smoke() {
       sessionId: state.sessionId,
       card,
       registry,
+      agent: probe.agent,
+      session: sessionSnap,
     };
     writeFileSync(
       join(RUN, "smoke.json"),
@@ -405,20 +441,28 @@ Do not edit .pi/, run/, or .coms/.
 `,
   );
 
+  writeAgent(
+    "mason",
+    "You plan. You talk to living peers. You do not write application files under larder/.",
+    "tools: [read]",
+  );
   const joiner = new RpcSession({
     name: "joiner",
     purpose: "Writes the pantry CLI",
     cwd: PLAY,
+    agent: "draconic",
   });
   const inspector = new RpcSession({
     name: "inspector",
     purpose: "Reviews the pantry CLI",
     cwd: PLAY,
+    agent: "draconic",
   });
   const mason = new RpcSession({
     name: "mason",
     purpose: "Plans and talks to peers",
     cwd: PLAY,
+    agent: "mason",
   });
 
   const sessions = [joiner, inspector, mason];
@@ -438,9 +482,11 @@ Do not edit .pi/, run/, or .coms/.
     log("start joiner");
     joiner.start();
     await joiner.ready();
+    await snapshotSession(joiner, "joiner-ready");
     log("start inspector");
     inspector.start();
     await inspector.ready();
+    await snapshotSession(inspector, "inspector-ready");
     snapshotRegistry("after-workers");
 
     log("role prompt joiner");
@@ -457,6 +503,7 @@ Do not edit .pi/, run/, or .coms/.
     log("start mason");
     mason.start();
     await mason.ready();
+    await snapshotSession(mason, "mason-ready");
     snapshotRegistry("after-mason");
 
     log("job prompt mason");
