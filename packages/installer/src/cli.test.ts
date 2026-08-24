@@ -286,9 +286,7 @@ test("install --extension draconic-todo vendors a lib-bundled dest-relative pack
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   ) as { packages?: unknown };
   assert.ok(Array.isArray(settings.packages), "settings.packages");
-  assert.deepEqual(settings.packages, [
-    "vendor/@agentic-core/draconic-todo",
-  ]);
+  assert.deepEqual(settings.packages, ["vendor/@agentic-core/draconic-todo"]);
 
   const gitignore = readFileSync(join(dest, ".pi", ".gitignore"), "utf8");
   assert.equal(gitignore, "npm/\ngit/\n");
@@ -302,21 +300,23 @@ test("install rewrites stale .pi/vendor package sources to vendor/", () => {
   mkdirSync(join(dest, ".pi"), { recursive: true });
   writeFileSync(
     join(dest, ".pi", "settings.json"),
-    `${JSON.stringify({
-      packages: [
-        ".pi/vendor/@agentic-core/draconic-todo",
-        "vendor/@agentic-core/draconic-todo",
-      ],
-    }, null, 2)}\n`,
+    `${JSON.stringify(
+      {
+        packages: [
+          ".pi/vendor/@agentic-core/draconic-todo",
+          "vendor/@agentic-core/draconic-todo",
+        ],
+      },
+      null,
+      2,
+    )}\n`,
   );
   const r = runCli(["install", dest, "--extension", "draconic-todo"]);
   assert.equal(r.status, 0, r.stderr || r.stdout);
   const settings = JSON.parse(
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   ) as { packages?: unknown };
-  assert.deepEqual(settings.packages, [
-    "vendor/@agentic-core/draconic-todo",
-  ]);
+  assert.deepEqual(settings.packages, ["vendor/@agentic-core/draconic-todo"]);
 });
 
 test("install --extension can repeat and a second run overwrites vendor", () => {

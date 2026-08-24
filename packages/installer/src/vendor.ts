@@ -32,7 +32,9 @@ export function vendorPackageSource(name: FirstPartyExtension): string {
 }
 
 function canonicalizePackageSource(source: string): string {
-  const match = source.match(/^(?:\.pi\/)?vendor\/@agentic-core\/([a-z0-9-]+)$/);
+  const match = source.match(
+    /^(?:\.pi\/)?vendor\/@agentic-core\/([a-z0-9-]+)$/,
+  );
   if (!match) return source;
   return `vendor/@agentic-core/${match[1]}`;
 }
