@@ -87,6 +87,7 @@ test("every non-empty pack agent parses", () => {
 			"devops",
 			"documenter",
 			"growth",
+			"lead",
 			"planner",
 			"product",
 			"researcher",
@@ -95,6 +96,24 @@ test("every non-empty pack agent parses", () => {
 			"tester",
 		],
 	);
+});
+
+test("lead carries its recipes and has no dest file hops", () => {
+	const text = readFileSync(
+		join(REPO, "ai", "agents", "lead", "lead.md"),
+		"utf8",
+	);
+	const def = parseAgentDefinition(text);
+	assert.equal(def.name, "lead");
+	assert.equal(def.skills, undefined);
+	assert.match(def.body, /team-lead/);
+	assert.match(def.body, /team_spawn/);
+	assert.match(def.body, /## Feature/);
+	assert.match(def.body, /## Bug fix/);
+	assert.match(def.body, /## Investigation/);
+	assert.match(def.body, /## Refactoring/);
+	assert.doesNotMatch(def.body, /\.pi\/playbooks\//);
+	assert.doesNotMatch(def.body, /\.pi\/skills\//);
 });
 
 test("unknown keys throw", () => {
