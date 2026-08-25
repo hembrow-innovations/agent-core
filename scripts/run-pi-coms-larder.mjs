@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Live pi-coms scenario. Install playground first:
- *   pnpm exec agentic-core install playground --profile pi
+ *   pnpm exec agentic-core install playground --profile agentic-core
  * Then:
  *   node scripts/run-pi-coms-larder.mjs --smoke
  *   node scripts/run-pi-coms-larder.mjs
@@ -553,7 +553,7 @@ async function main() {
     !existsSync(join(PLAY, ".pi", "vendor", "@agentic-core", "draconic-coms"))
   ) {
     throw new Error(
-      "playground missing coms package. run: pnpm exec agentic-core install playground --profile pi",
+      "playground missing coms package. run: pnpm exec agentic-core install playground --profile agentic-core",
     );
   }
   mkdirSync(RUN, { recursive: true });

@@ -49,6 +49,25 @@ function findPeer(
 	return undefined;
 }
 
+type SendReply =
+	| { type: "ack"; msg_id: string }
+	| { type: "nack"; msg_id: string; error: string };
+
+function parseSendReply(value: unknown): SendReply | undefined {
+	if (!isRecord(value) || typeof value.msg_id !== "string") return undefined;
+	if (value.type === "ack") return { type: "ack", msg_id: value.msg_id };
+	if (value.type === "nack") {
+		return {
+			type: "nack",
+			msg_id: value.msg_id,
+			error: typeof value.error === "string" ? value.error : "nack",
+		};
+	}
+	return undefined;
+}
+
+const ACK_TIMEOUT_MS = 250;
+
 function sendLine(endpoint: string, payload: unknown): Promise<void> {
 	return new Promise((resolve, reject) => {
 		const sock = createConnection({ path: endpoint });
@@ -56,6 +75,7 @@ function sendLine(endpoint: string, payload: unknown): Promise<void> {
 		const finish = (err?: Error) => {
 			if (settled) return;
 			settled = true;
+			clearTimeout(timer);
 			try {
 				sock.destroy();
 			} catch {
@@ -64,7 +84,12 @@ function sendLine(endpoint: string, payload: unknown): Promise<void> {
 			if (err) reject(err);
 			else resolve();
 		};
+		const timer = setTimeout(
+			() => finish(new Error("coms: ack timeout")),
+			ACK_TIMEOUT_MS,
+		);
 		sock.once("error", (err) => finish(err));
+		sock.once("close", () => finish(new Error("connection closed before ack")));
 		sock.once("connect", () => {
 			try {
 				sock.write(`${JSON.stringify(payload)}\n`);
@@ -72,8 +97,29 @@ function sendLine(endpoint: string, payload: unknown): Promise<void> {
 				finish(err instanceof Error ? err : new Error(String(err)));
 				return;
 			}
-			sock.once("data", () => finish());
-			setTimeout(() => finish(), 250).unref?.();
+			let buf = "";
+			sock.on("data", (chunk: Buffer) => {
+				buf += chunk.toString("utf8");
+				const nl = buf.indexOf("\n");
+				if (nl < 0) return;
+				let parsed: unknown;
+				try {
+					parsed = JSON.parse(buf.slice(0, nl));
+				} catch {
+					finish(new Error("coms: malformed reply"));
+					return;
+				}
+				const reply = parseSendReply(parsed);
+				if (!reply) {
+					finish(new Error("coms: malformed reply"));
+					return;
+				}
+				if (reply.type === "nack") {
+					finish(new Error(reply.error));
+					return;
+				}
+				finish();
+			});
 		});
 	});
 }

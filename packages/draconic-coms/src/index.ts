@@ -260,13 +260,14 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("agent_end", async (_event, ctx) => {
-		const inbound = peer?.lastUnfulfilledInbound();
-		if (!peer || !inbound) return;
+		if (!peer) return;
 		const text = lastAssistantText(ctx.sessionManager.getBranch());
-		try {
-			await peer.fulfillInbound({ msgId: inbound.msg_id, response: text });
-		} catch {
-			// sender may have gone away
+		for (const inbound of peer.unfulfilledInbounds()) {
+			try {
+				await peer.fulfillInbound({ msgId: inbound.msg_id, response: text });
+			} catch {
+				// sender may have gone away
+			}
 		}
 	});
 

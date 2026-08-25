@@ -6,7 +6,14 @@ import { test } from "node:test";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import comsExtension from "../../draconic-coms/src/index.ts";
 import teamsExtension from "./index.ts";
-import { getTask, listTasks, readTeam } from "./store.ts";
+import {
+	createTeam,
+	getTask,
+	listTasks,
+	parseMemberName,
+	readTeam,
+	writeTeam,
+} from "./store.ts";
 
 type Tool = {
 	name: string;
@@ -53,6 +60,7 @@ function loadExtension(opts?: { flags?: Record<string, string> }) {
 	const tools: Tool[] = [];
 	const commands: Command[] = [];
 	const events: string[] = [];
+	const handlers = new Map<string, (...args: never[]) => unknown>();
 	const flags = opts?.flags ?? {};
 	const statuses: Array<[string, string | undefined]> = [];
 	teamsExtension({
@@ -63,14 +71,51 @@ function loadExtension(opts?: { flags?: Record<string, string> }) {
 		registerCommand(name: string, spec: { handler: Command["handler"] }) {
 			commands.push({ name, handler: spec.handler });
 		},
-		on(event: string) {
+		on(event: string, handler: (...args: never[]) => unknown) {
 			events.push(event);
+			handlers.set(event, handler);
 		},
 		getFlag(name: string) {
 			return flags[name];
 		},
 	} as unknown as ExtensionAPI);
-	return { tools, commands, events, statuses };
+	return { tools, commands, events, statuses, handlers };
+}
+
+function sessionCtx(cwd = "/work") {
+	return {
+		cwd,
+		hasUI: false,
+		ui: {
+			setStatus() {},
+			notify() {},
+		},
+	};
+}
+
+function seedSpawnedTeammate(teamsDir: string) {
+	const created = createTeam({
+		teamsDir,
+		name: "demo",
+		leadName: "team-lead",
+		cwd: "/work",
+	});
+	writeTeam({
+		teamsDir,
+		team: {
+			...created,
+			members: [
+				...created.members,
+				{
+					kind: "teammate",
+					name: parseMemberName("researcher", { role: "teammate" }),
+					purpose: "look at AGENTS.md",
+					paneId: "%12",
+					status: "spawned",
+				},
+			],
+		},
+	});
 }
 
 function tool(tools: Tool[], name: string): Tool {
@@ -431,6 +476,76 @@ test("team_status follows live --project after factory load", async () => {
 			(status.details as { team?: { name: string } }).team?.name,
 			"demo",
 		);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("agent_settled writes idle and team_status prints it", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		seedSpawnedTeammate(teamsDir);
+		const { tools, handlers } = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		await handlers.get("agent_settled")?.(
+			{ type: "agent_settled" } as never,
+			sessionCtx() as never,
+		);
+		const teammate = readTeam({ teamsDir, name: "demo" }).members.find(
+			(member) => member.kind === "teammate",
+		);
+		assert.equal(teammate?.status, "idle");
+		const status = await tool(tools, "team_status").execute(
+			"1",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.match(status.content[0]?.text ?? "", /researcher idle/);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("accepted inbound prompt writes working and team_status prints it", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		seedSpawnedTeammate(teamsDir);
+		const { tools, handlers } = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		await handlers.get("message_start")?.(
+			{
+				type: "message_start",
+				message: {
+					role: "custom",
+					customType: "coms-inbound",
+					content: "[from team-lead]\n\ndo the work",
+					display: true,
+				},
+			} as never,
+			sessionCtx() as never,
+		);
+		const teammate = readTeam({ teamsDir, name: "demo" }).members.find(
+			(member) => member.kind === "teammate",
+		);
+		assert.equal(teammate?.status, "working");
+		const status = await tool(tools, "team_status").execute(
+			"1",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.match(status.content[0]?.text ?? "", /researcher working/);
 	} finally {
 		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
 		else process.env.PI_TEAMS_DIR = prev;

@@ -16,6 +16,7 @@ import {
 	listTasks,
 	parseMemberName,
 	readTeam,
+	setMemberStatus,
 	type Task,
 	type Team,
 	upsertMember,
@@ -164,6 +165,22 @@ export default function (pi: ExtensionAPI) {
 		}
 	});
 
+	const writeOwnStatus = (status: "working" | "idle"): void => {
+		const name = flagString(pi, "cname");
+		const project = flagString(pi, "project") || currentTeam;
+		if (!name || !project) return;
+		try {
+			setMemberStatus({
+				teamsDir: teamsDir(),
+				team: project,
+				name,
+				status,
+			});
+		} catch {
+			// no team file yet
+		}
+	};
+
 	pi.on("agent_settled", async (_event, ctx) => {
 		const name = flagString(pi, "cname");
 		const project = flagString(pi, "project") || currentTeam;
@@ -176,6 +193,7 @@ export default function (pi: ExtensionAPI) {
 		}
 		const member = findMember(team, name);
 		if (member?.kind !== "teammate") return;
+		writeOwnStatus("idle");
 		try {
 			await sendComsPrompt({
 				project: team.name,
@@ -187,6 +205,14 @@ export default function (pi: ExtensionAPI) {
 		} catch {
 			// lead may have gone away
 		}
+	});
+
+	pi.on("message_start", (event) => {
+		const message = event.message;
+		if (message.role !== "custom" || message.customType !== "coms-inbound") {
+			return;
+		}
+		writeOwnStatus("working");
 	});
 
 	pi.on("session_shutdown", () => {});

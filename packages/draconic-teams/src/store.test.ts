@@ -1,8 +1,17 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, readFileSync, readdirSync } from "node:fs";
+import { spawn } from "node:child_process";
+import {
+	mkdirSync,
+	mkdtempSync,
+	readFileSync,
+	readdirSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 import {
 	addBlockedBy,
 	claimTask,
@@ -15,6 +24,7 @@ import {
 	parseTeam,
 	parseTeamName,
 	readTeam,
+	setMemberStatus,
 	writeTeam,
 } from "./store.ts";
 
@@ -154,6 +164,77 @@ test("writeTeam persists a teammate member through parse", () => {
 	});
 });
 
+test("setMemberStatus writes idle and working, and leaves shutdown alone", () => {
+	const teamsDir = tempDir();
+	const created = createTeam({
+		teamsDir,
+		name: "demo",
+		leadName: "team-lead",
+		cwd: "/work",
+	});
+	writeTeam({
+		teamsDir,
+		team: {
+			...created,
+			members: [
+				...created.members,
+				{
+					kind: "teammate",
+					name: parseMemberName("researcher", { role: "teammate" }),
+					purpose: "look at AGENTS.md",
+					paneId: "%12",
+					status: "spawned",
+				},
+			],
+		},
+	});
+
+	setMemberStatus({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		status: "working",
+	});
+	assert.equal(
+		readTeam({ teamsDir, name: "demo" }).members.find(
+			(member) => member.kind === "teammate",
+		)?.status,
+		"working",
+	);
+
+	setMemberStatus({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		status: "idle",
+	});
+	assert.equal(
+		readTeam({ teamsDir, name: "demo" }).members.find(
+			(member) => member.kind === "teammate",
+		)?.status,
+		"idle",
+	);
+
+	setMemberStatus({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		status: "shutdown",
+	});
+	setMemberStatus({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		status: "working",
+	});
+	assert.equal(
+		readTeam({ teamsDir, name: "demo" }).members.find(
+			(member) => member.kind === "teammate",
+		)?.status,
+		"shutdown",
+	);
+});
+
 function seedTeam(teamsDir: string) {
 	return createTeam({
 		teamsDir,
@@ -285,6 +366,118 @@ test("complete task 1 that blocks 2, then 2 can be claimed", () => {
 		owner: "researcher",
 	});
 	assert.equal(claimed.status, "in_progress");
+});
+
+test("a leftover lock file does not brick a later claim", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	createTask({
+		teamsDir,
+		team: "demo",
+		subject: "read AGENTS.md",
+		description: "summarize",
+	});
+	const lockPath = join(teamsDir, "demo", "tasks", "1.json.lock");
+	writeFileSync(lockPath, "");
+	const claimed = claimTask({
+		teamsDir,
+		team: "demo",
+		id: "1",
+		owner: "researcher",
+	});
+	assert.equal(claimed.status, "in_progress");
+	assert.equal(claimed.owner, "researcher");
+});
+
+test("a leftover board lock with a dead pid does not brick a later claim", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	createTask({
+		teamsDir,
+		team: "demo",
+		subject: "read AGENTS.md",
+		description: "summarize",
+	});
+	writeFileSync(join(teamsDir, "demo", "tasks", ".lock"), "999999\n");
+	const claimed = claimTask({
+		teamsDir,
+		team: "demo",
+		id: "1",
+		owner: "researcher",
+	});
+	assert.equal(claimed.status, "in_progress");
+});
+
+test("two concurrent createTask calls keep distinct ids and both writes", async () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	const storePath = fileURLToPath(new URL("./store.ts", import.meta.url));
+	const run = (subject: string) =>
+		new Promise<string>((resolve, reject) => {
+			const child = spawn(process.execPath, [
+				"--experimental-strip-types",
+				"--input-type=module",
+				"-e",
+				`import { createTask } from ${JSON.stringify(storePath)};
+const task = createTask({
+  teamsDir: ${JSON.stringify(teamsDir)},
+  team: "demo",
+  subject: ${JSON.stringify(subject)},
+  description: "x",
+});
+process.stdout.write(task.id);
+`,
+			]);
+			let out = "";
+			let err = "";
+			child.stdout.on("data", (chunk: Buffer) => {
+				out += chunk.toString("utf8");
+			});
+			child.stderr.on("data", (chunk: Buffer) => {
+				err += chunk.toString("utf8");
+			});
+			child.on("error", reject);
+			child.on("close", (code) => {
+				if (code === 0) resolve(out);
+				else reject(new Error(err || `exit ${code ?? "null"}`));
+			});
+		});
+	const [first, second] = await Promise.all([run("one"), run("two")]);
+	assert.notEqual(first, second);
+	const tasks = listTasks({ teamsDir, team: "demo" });
+	assert.equal(tasks.length, 2);
+	assert.deepEqual(tasks.map((task) => task.id).sort(), [first, second].sort());
+});
+
+test("completeTask fails clean if a dependent cannot be rewritten", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	createTask({
+		teamsDir,
+		team: "demo",
+		subject: "blocker",
+		description: "first",
+	});
+	createTask({
+		teamsDir,
+		team: "demo",
+		subject: "dependent",
+		description: "second",
+	});
+	addBlockedBy({
+		teamsDir,
+		team: "demo",
+		id: "2",
+		blocker: "1",
+	});
+	const dependentPath = join(teamsDir, "demo", "tasks", "2.json");
+	rmSync(dependentPath);
+	mkdirSync(dependentPath);
+	assert.throws(() => completeTask({ teamsDir, team: "demo", id: "1" }));
+	assert.notEqual(
+		getTask({ teamsDir, team: "demo", id: "1" }).status,
+		"completed",
+	);
 });
 
 test("addBlockedBy rejects a cycle", () => {

@@ -122,6 +122,7 @@ export type BoundPeer = {
   get: (msgId: string) => GetResult;
   awaitReply: (msgId: string, timeoutMs?: number) => Promise<string>;
   lastUnfulfilledInbound: () => PromptEnvelope | undefined;
+  unfulfilledInbounds: () => PromptEnvelope[];
   fulfillInbound: (args: {
     msgId: string;
     response: string;
@@ -770,8 +771,14 @@ export async function bindPeer(opts: BindPeerOptions): Promise<BoundPeer> {
     }
   };
 
+  const unfulfilledInbounds = (): PromptEnvelope[] => {
+    return [...inbound.values()].flatMap((item) =>
+      item.fulfilled ? [] : [item.env],
+    );
+  };
+
   const lastUnfulfilledInbound = (): PromptEnvelope | undefined => {
-    return [...inbound.values()].reverse().find((item) => !item.fulfilled)?.env;
+    return unfulfilledInbounds().at(-1);
   };
 
   const fulfillInbound = async (args: {
@@ -826,6 +833,7 @@ export async function bindPeer(opts: BindPeerOptions): Promise<BoundPeer> {
     get,
     awaitReply,
     lastUnfulfilledInbound,
+    unfulfilledInbounds,
     fulfillInbound,
     shutdown,
   };

@@ -204,6 +204,24 @@ export function findMember(team: Team, name: string): Member | undefined {
 	return team.members.find((member) => member.name === name);
 }
 
+export function setMemberStatus(input: {
+	teamsDir: string;
+	team: string;
+	name: string;
+	status: MemberStatus;
+}): Team {
+	const team = readTeam({ teamsDir: input.teamsDir, name: input.team });
+	const member = findMember(team, input.name);
+	if (!member || member.kind !== "teammate") return team;
+	if (member.status === "shutdown") return team;
+	if (member.status === input.status) return team;
+	return upsertMember({
+		teamsDir: input.teamsDir,
+		team: team.name,
+		member: { ...member, status: input.status },
+	});
+}
+
 export type TaskId = string & { readonly __brand: "TaskId" };
 export type TaskStatus = "pending" | "in_progress" | "completed";
 
@@ -286,13 +304,57 @@ function readTaskFile(path: string): Task {
 	return parseTask(parsed);
 }
 
-function withTaskLock<T>(path: string, fn: () => T): T {
-	const lockPath = `${path}.lock`;
+function boardLockPath(teamsDir: string, team: TeamName): string {
+	return join(tasksDir(teamsDir, team), ".lock");
+}
+
+function isProcessAlive(pid: number): boolean {
+	try {
+		process.kill(pid, 0);
+		return true;
+	} catch (err) {
+		return !(isRecord(err) && err.code === "ESRCH");
+	}
+}
+
+function recoverStaleLock(lockPath: string): void {
+	if (!existsSync(lockPath)) return;
+	let raw = "";
+	try {
+		raw = readFileSync(lockPath, "utf8").trim();
+	} catch {
+		try {
+			unlinkSync(lockPath);
+		} catch {
+			// already gone
+		}
+		return;
+	}
+	const pid = Number(raw);
+	if (!Number.isInteger(pid) || pid <= 0 || !isProcessAlive(pid)) {
+		try {
+			unlinkSync(lockPath);
+		} catch {
+			// already gone
+		}
+	}
+}
+
+function withBoardLock<T>(input: {
+	teamsDir: string;
+	team: TeamName;
+	fn: () => T;
+}): T {
+	const dir = tasksDir(input.teamsDir, input.team);
+	mkdirSync(dir, { recursive: true });
+	const lockPath = boardLockPath(input.teamsDir, input.team);
 	let fd: number | undefined;
 	let lastError: unknown;
 	for (let attempt = 0; attempt < 20; attempt++) {
+		recoverStaleLock(lockPath);
 		try {
 			fd = openSync(lockPath, "wx");
+			writeFileSync(fd, `${process.pid}\n`);
 			lastError = undefined;
 			break;
 		} catch (err) {
@@ -306,7 +368,7 @@ function withTaskLock<T>(path: string, fn: () => T): T {
 		);
 	}
 	try {
-		return fn();
+		return input.fn();
 	} finally {
 		closeSync(fd);
 		try {
@@ -340,20 +402,24 @@ export function createTask(input: {
 	description: string;
 }): Task {
 	const team = readTeam({ teamsDir: input.teamsDir, name: input.team });
-	const ids = listTaskIds(input.teamsDir, team.name);
-	const next = ids.length === 0 ? 1 : Number(ids[ids.length - 1]) + 1;
-	const task: Task = {
-		id: parseTaskId(String(next)),
-		subject: input.subject,
-		description: input.description,
-		status: "pending",
-		owner: null,
-		blockedBy: [],
-	};
-	const dir = tasksDir(input.teamsDir, team.name);
-	mkdirSync(dir, { recursive: true });
-	writeTaskFile(taskPath(input.teamsDir, team.name, task.id), task);
-	return task;
+	return withBoardLock({
+		teamsDir: input.teamsDir,
+		team: team.name,
+		fn: () => {
+			const ids = listTaskIds(input.teamsDir, team.name);
+			const next = ids.length === 0 ? 1 : Number(ids[ids.length - 1]) + 1;
+			const task: Task = {
+				id: parseTaskId(String(next)),
+				subject: input.subject,
+				description: input.description,
+				status: "pending",
+				owner: null,
+				blockedBy: [],
+			};
+			writeTaskFile(taskPath(input.teamsDir, team.name, task.id), task);
+			return task;
+		},
+	});
 }
 
 export function getTask(input: {
@@ -404,18 +470,22 @@ export function claimTask(input: {
 	const owner = parseOwnerName(input.owner);
 	const path = taskPath(input.teamsDir, team.name, id);
 	if (!existsSync(path)) throw new Error(`task not found: ${id}`);
-	return withTaskLock(path, () => {
-		const task = readTaskFile(path);
-		if (task.status !== "pending") {
-			throw new Error(`task ${id} is not pending`);
-		}
-		const blocked = incompleteBlockers(input.teamsDir, team.name, task);
-		if (blocked.length > 0) {
-			throw new Error(`task ${id} is blocked by ${blocked.join(", ")}`);
-		}
-		const claimed: Task = { ...task, status: "in_progress", owner };
-		writeTaskFile(path, claimed);
-		return claimed;
+	return withBoardLock({
+		teamsDir: input.teamsDir,
+		team: team.name,
+		fn: () => {
+			const task = readTaskFile(path);
+			if (task.status !== "pending") {
+				throw new Error(`task ${id} is not pending`);
+			}
+			const blocked = incompleteBlockers(input.teamsDir, team.name, task);
+			if (blocked.length > 0) {
+				throw new Error(`task ${id} is blocked by ${blocked.join(", ")}`);
+			}
+			const claimed: Task = { ...task, status: "in_progress", owner };
+			writeTaskFile(path, claimed);
+			return claimed;
+		},
 	});
 }
 
@@ -428,23 +498,32 @@ export function completeTask(input: {
 	const id = parseTaskId(input.id);
 	const path = taskPath(input.teamsDir, team.name, id);
 	if (!existsSync(path)) throw new Error(`task not found: ${id}`);
-	return withTaskLock(path, () => {
-		const task = readTaskFile(path);
-		const completed: Task = { ...task, status: "completed" };
-		writeTaskFile(path, completed);
-		for (const otherId of listTaskIds(input.teamsDir, team.name)) {
-			if (otherId === id) continue;
-			const otherPath = taskPath(input.teamsDir, team.name, otherId);
-			withTaskLock(otherPath, () => {
+	return withBoardLock({
+		teamsDir: input.teamsDir,
+		team: team.name,
+		fn: () => {
+			const task = readTaskFile(path);
+			const dependents: Array<{ path: string; task: Task }> = [];
+			for (const otherId of listTaskIds(input.teamsDir, team.name)) {
+				if (otherId === id) continue;
+				const otherPath = taskPath(input.teamsDir, team.name, otherId);
 				const other = readTaskFile(otherPath);
-				if (!other.blockedBy.includes(id)) return;
-				writeTaskFile(otherPath, {
-					...other,
-					blockedBy: other.blockedBy.filter((item) => item !== id),
+				if (!other.blockedBy.includes(id)) continue;
+				dependents.push({
+					path: otherPath,
+					task: {
+						...other,
+						blockedBy: other.blockedBy.filter((item) => item !== id),
+					},
 				});
-			});
-		}
-		return completed;
+			}
+			const completed: Task = { ...task, status: "completed" };
+			for (const dependent of dependents) {
+				writeTaskFile(dependent.path, dependent.task);
+			}
+			writeTaskFile(path, completed);
+			return completed;
+		},
 	});
 }
 
@@ -483,17 +562,21 @@ export function addBlockedBy(input: {
 	if (!existsSync(taskPath(input.teamsDir, team.name, blocker))) {
 		throw new Error(`task not found: ${blocker}`);
 	}
-	return withTaskLock(path, () => {
-		const task = readTaskFile(path);
-		if (task.blockedBy.includes(blocker)) return task;
-		if (wouldCycle(input.teamsDir, team.name, id, blocker)) {
-			throw new Error(`cycle: ${id} blockedBy ${blocker}`);
-		}
-		const updated: Task = {
-			...task,
-			blockedBy: [...task.blockedBy, blocker],
-		};
-		writeTaskFile(path, updated);
-		return updated;
+	return withBoardLock({
+		teamsDir: input.teamsDir,
+		team: team.name,
+		fn: () => {
+			const task = readTaskFile(path);
+			if (task.blockedBy.includes(blocker)) return task;
+			if (wouldCycle(input.teamsDir, team.name, id, blocker)) {
+				throw new Error(`cycle: ${id} blockedBy ${blocker}`);
+			}
+			const updated: Task = {
+				...task,
+				blockedBy: [...task.blockedBy, blocker],
+			};
+			writeTaskFile(path, updated);
+			return updated;
+		},
 	});
 }

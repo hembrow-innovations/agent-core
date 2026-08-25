@@ -122,7 +122,7 @@ Keep each rule scannable (~20–80 lines). Prefer one clear before/after over es
 ## Skills vs prompts
 
 - **Skill**: reusable knowledge pack or multi-step workflow the agent loads mid-task via Skill tool.
-- **Prompt** (`ai/pi/prompts/<name>.md`, dest `.pi/prompts/<name>.md`): user-invoked single-shot entry (`/name`). Thin wrappers may load a skill then run; pure one-liners live only as prompts (no skill folder).
+- **Prompt** (`ai/prompts/<name>.md`, dest `.pi/prompts/<name>.md`): user-invoked single-shot entry (`/name`). Thin wrappers may load a skill then run; pure one-liners live only as prompts (no skill folder).
 
 Do not keep a skill whose entire body is a one-shot instruction with no reusable knowledge. Move it to prompts.
 

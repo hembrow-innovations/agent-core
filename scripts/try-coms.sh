@@ -17,7 +17,7 @@ Raw two-terminal smoke:
 
 Recorded living-session scenario (install playground first):
 
-  pnpm exec agentic-core install playground --profile pi
+  pnpm exec agentic-core install playground --profile agentic-core
   node scripts/run-pi-coms-larder.mjs --smoke
   node scripts/run-pi-coms-larder.mjs
 EOF

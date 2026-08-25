@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import comsExtension from "./index.ts";
+import { bindPeer, type BoundPeer } from "./protocol.ts";
 
 type Tool = {
 	name: string;
@@ -118,6 +119,77 @@ test("coms_list includes this session", async () => {
 				"1 peer(s):\nalice grok alive /work this-session",
 			);
 		} finally {
+			await handlers.get("session_shutdown")?.();
+		}
+	});
+});
+
+test("two inbounds before one agent_end does not leave the first msg_id pending", async () => {
+	await withComsDir(async () => {
+		const { handlers } = loadExtension({
+			flags: { cname: "alice", project: "demo" },
+		});
+		const extras: BoundPeer[] = [];
+		try {
+			await handlers.get("session_start")?.({} as never, sessionCtx() as never);
+			const comsDir = process.env.PI_COMS_DIR;
+			if (!comsDir) throw new Error("missing PI_COMS_DIR");
+			const planner = await bindPeer({
+				comsDir,
+				name: "planner",
+				project: "demo",
+			});
+			extras.push(planner);
+			const reviewer = await bindPeer({
+				comsDir,
+				name: "reviewer",
+				project: "demo",
+			});
+			extras.push(reviewer);
+
+			const first = await planner.send({
+				target: "alice",
+				prompt: "job-1",
+			});
+			const second = await reviewer.send({
+				target: "alice",
+				prompt: "job-2",
+			});
+			assert.equal(planner.get(first.msg_id).status, "pending");
+			assert.equal(reviewer.get(second.msg_id).status, "pending");
+
+			await handlers.get("agent_end")?.(
+				{} as never,
+				{
+					...sessionCtx(),
+					sessionManager: {
+						getBranch() {
+							return [
+								{
+									type: "message",
+									message: {
+										role: "assistant",
+										content: "turn-done",
+									},
+								},
+							];
+						},
+					},
+				} as never,
+			);
+
+			const firstDone = planner.get(first.msg_id);
+			assert.notEqual(firstDone.status, "pending");
+			assert.equal(firstDone.status, "complete");
+			if (firstDone.status !== "complete") throw new Error("expected complete");
+			assert.equal(firstDone.response, "turn-done");
+
+			const secondDone = reviewer.get(second.msg_id);
+			assert.equal(secondDone.status, "complete");
+			if (secondDone.status !== "complete") throw new Error("expected complete");
+			assert.equal(secondDone.response, "turn-done");
+		} finally {
+			for (const extra of extras) await extra.shutdown();
 			await handlers.get("session_shutdown")?.();
 		}
 	});

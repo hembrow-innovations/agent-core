@@ -28,7 +28,7 @@ Dest is always `.pi/`.
 1. Pick a dest directory. Use `.` to install into this checkout.
 2. Install a profile.
 
-   `pnpm exec agentic-core install <target> --profile pi`
+   `pnpm exec agentic-core install <target> --profile agentic-core`
 
    That also installs `draconic-todo`, `draconic-coms`, `draconic-boot`, and `draconic-teams`.
 3. Or install a one-off extension.
@@ -41,7 +41,7 @@ Dest is always `.pi/`.
 Profile install into this checkout.
 
 ```bash
-pnpm exec agentic-core install . --profile pi
+pnpm exec agentic-core install . --profile agentic-core
 ```
 
 You will see:
