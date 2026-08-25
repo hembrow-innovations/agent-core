@@ -44,7 +44,7 @@ The folders are:
 - `ai/prompts/` is the prompt/command library.
 - `ai/pi/` is the Pi runtime pack. Prompts, skills, agents, and roles do not live here. It has no `extensions/` and no `lib/`.
 - `profiles/` is the install profiles.
-- `scripts/` is the checks and the profile module.
+- `scripts/` is the checks. Profile parse lives in `packages/installer`.
 
 Leftover empty stub dirs under `ai/` are not libraries.
 
@@ -63,9 +63,11 @@ The folders are:
 - `packages/draconic-footer` is `@agentic-core/draconic-footer`.
 - `packages/installer` is the install CLI.
 
-Protocol code lives inside the coms package. `draconic-coms-protocol` is not a product extension.
+Protocol code lives inside the coms package. `draconic-coms-protocol` is not a product extension. See [[architecture-draconic-coms]].
 
-Session checklist persistence lives in the todo package. There is no `packages/lib`.
+Session checklist persistence lives in the todo package. There is no `packages/lib`. See [[architecture-draconic-todo]].
+
+The TUI paints one footer line from the footer package. See [[architecture-draconic-footer]].
 
 There is no npm publish. There is no git package source.
 
@@ -79,7 +81,15 @@ A dest project never depends on this checkout at runtime.
 
 Each first-party extension lands as a copied package at `.pi/vendor/@agentic-core/<name>`. Settings gain a dest-relative path to that folder. The target commits `.pi/vendor/` and those settings. Re-running install overwrites the copy.
 
-First-party extensions do not copy from `pi/extensions/`. That folder is not part of the pack.
+`writeVendorExtension` copies `package.json` and non-test `.ts` files from `packages/<name>/src` into that vendor tree. First-party extensions do not copy from `pi/extensions/`. That folder is not part of the pack.
+
+```ts
+// packages/installer/src/extensions.ts writeVendorExtension
+const srcPkg = join(srcRoot, "packages", name);
+const destRel = join(".pi", "vendor", "@agentic-core", name);
+dest.copyFile(join(srcPkg, "package.json"), join(destRel, "package.json"));
+copyTsSources(join(srcPkg, "src"), dest, join(destRel, "src"));
+```
 
 ### Installer CLI
 
@@ -88,8 +98,20 @@ The command is `pnpm exec agentic-core install`. The package lives in `packages/
 - **cli.ts**: parses argv and dispatches
 - **profile.ts**: reads `profiles/*.yaml` into a `Profile`
 - **dest.ts**: dest `.pi/` reads and writes
+- **pack-walk.ts**: `walkSkillDirs` finds `SKILL.md` folders under `ai/skills/`
 - **skills.ts**, **playbooks.ts**, **agents.ts**, **prompts.ts**, **extensions.ts**, **runtime.ts**: one module per install section
 - **plan.ts**: merges the profile with CLI flags
+
+`installSkills` calls `findSkillDir`, which walks with `walkSkillDirs`. Duplicate basenames prefer `ai/skills/workflow/`, then `ai/skills/setup/`, then the first hit.
+
+```ts
+// packages/installer/src/skills.ts findSkillDir
+walkSkillDirs(skillsRoot, (dir) => {
+  if (basename(dir) === name && existsSync(join(dir, "SKILL.md"))) {
+    candidates.push(dir);
+  }
+});
+```
 
 ```bash
 pnpm exec agentic-core install <target> --profile agentic-core

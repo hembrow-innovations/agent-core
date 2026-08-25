@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [purpose]
 created_at: "2026-08-23"
-updated_at: "2026-08-25"
+updated_at: "2026-08-26"
 ---
 
 # Installer purpose
@@ -16,6 +16,13 @@ updated_at: "2026-08-25"
 ## Job
 
 Install a self-contained vendor tree a dest project can commit and run without this checkout.
+
+```ts
+// packages/installer/src/extensions.ts — vendorPackageSource
+export function vendorPackageSource(name: FirstPartyExtension): string {
+  return `vendor/@agentic-core/${name}`;
+}
+```
 
 ## In scope
 

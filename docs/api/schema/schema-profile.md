@@ -8,7 +8,7 @@ area: installer
 tags: [schema, installer, profiles]
 source: "packages/installer/src/profile.ts"
 created_at: "2026-08-25"
-updated_at: "2026-08-25"
+updated_at: "2026-08-26"
 ---
 
 # Profile YAML schema
@@ -19,17 +19,26 @@ A profile is a named install set. `--profile <name>` loads `profiles/<name>.yaml
 
 ## Fields
 
-Allowed keys are `skills`, `playbooks`, `agents`, `prompts`, and `packages`. All five are optional.
+Allowed keys are `skills`, `playbooks`, `agents`, `prompts`, and `packages`. All five are optional. `PROFILE_KEYS` is that set.
 
-- **skills.** String list of skill folder names. Missing or `null` becomes `[]`. A present non-list is an error. Each name must be a directory under `ai/skills/` that holds `SKILL.md`. If two directories share a basename, install prefers `ai/skills/workflow/`, then `ai/skills/setup/`, then the first walk hit. Install copies each name to `.pi/skills/<name>/`. A typo parses. Copy then fails with `Skill not found in source`. `--with` adds names. `--without` removes them.
+- **skills.** String list of skill folder names. Missing or `null` becomes `[]`. A present non-list is an error. Each name must be a directory under `ai/skills/` that holds `SKILL.md`. `findSkillDir` walks with `walkSkillDirs` from `pack-walk.ts`. If two directories share a basename, install prefers `ai/skills/workflow/`, then `ai/skills/setup/`, then the first walk hit. Install copies each name to `.pi/skills/<name>/`. A typo parses. Copy then fails with `Skill not found in source`. CLI `--with` and `--without` change the planned list. That overlay is [[spec-installer]].
 
 - **playbooks.** One of three shapes. Missing, `null`, or `~` is omit. Dest `.pi/playbooks/` stays put unless a CLI playbook flag writes it. `all` selects every `ai/playbooks/*.md` except `README.md`. A list selects those ids, including an empty list. An empty list is not omit. It overlays dest and deletes the markdown already there. Any other scalar, including `true` or `false`, is `Invalid playbooks value`.
 
-- **agents.** Same three shapes as playbooks. `all` selects every `ai/agents/<id>/` directory that holds `<id>.md`. A list selects those ids. Overlay writes `.pi/agents/<id>.md` and deletes other dest agent markdown.
+- **agents.** Same three shapes as playbooks. `all` selects every `ai/agents/<id>/` directory that holds `<id>.md`. The stem must match `^[a-z][a-z0-9-]{0,63}$`. A list selects those ids. Overlay writes `.pi/agents/<id>.md` and deletes other dest agent markdown.
 
 - **prompts.** Same three shapes as playbooks. `all` selects every `ai/prompts/*.md` except `README.md`. Overlay writes `.pi/prompts/<id>.md` and deletes other dest prompt markdown.
 
-- **packages.** String list of Pi package sources. Missing or `null` becomes `[]`. A present non-list is an error. Each item is `npm:<name>` or `vendor/@agentic-core/<name>`. Vendor names must be `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, or `draconic-footer`. A bare first-party name is an error. Use the vendor path. Install vendors those trees to `.pi/vendor/@agentic-core/<name>` and merges every source into `.pi/settings.json` `packages` in list order. `--extension` appends a vendor source. Profile order wins, then CLI, duplicates dropped.
+- **packages.** String list of Pi package sources. Missing or `null` becomes `[]`. A present non-list is an error. Each item is `npm:<name>` or `vendor/@agentic-core/<name>`. A leading `.pi/` on the vendor path is allowed and then stripped. Vendor names must be `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, or `draconic-footer`. A bare first-party name is an error. Use the vendor path. `npm:` with nothing after the prefix is `Invalid package source`. Install vendors those trees to `.pi/vendor/@agentic-core/<name>` and merges every source into `.pi/settings.json` `packages` in list order. `--extension` appends a vendor source. Profile order wins, then CLI, duplicates dropped.
+
+```ts
+// packages/installer/src/profile.ts — loadProfile leftover keys
+const leftover = LEFTOVER_KEYS.get(key);
+if (leftover) throw new Error(`Profile "${name}" has ${leftover}`);
+if (!PROFILE_KEYS.has(key)) {
+  throw new Error(`Unknown profile key "${key}"`);
+}
+```
 
 ## Constraints
 
@@ -43,13 +52,11 @@ Unknown keys fail. These leftovers have their own messages because they used to 
 
 `listProfiles` reads `profiles/*.yaml`, ignores `readme.yaml`, and sorts the stems. `.yml` is not a profile. A missing file is `Unknown profile "<name>". Choose: ...`.
 
-The default CLI profile is `agentic-core` when `--profile` is omitted and the command is not an extensions-only install.
-
-`--playbooks a,b` replaces the YAML selection. `--with-playbooks` and `--without-playbooks` add or remove ids after that. If the key is omitted, `--without-playbooks` alone does not write dest playbooks. `--with-playbooks` or `--playbooks` does.
-
 Unknown playbook, agent, or prompt ids fail when the plan is built, not at parse. Invalid package sources fail at load.
 
-Profile `packages` is the install list. `ai/pi/packages.json` is not merged on install.
+Profile `packages` is the install list. `readPiPackages` can read `ai/pi/packages.json`. `writeRuntime` does not merge that file.
+
+CLI replace and add rules for playbooks, and the default profile name, live in [[spec-installer]].
 
 ### YAML subset
 
@@ -68,25 +75,14 @@ Scalars are `true`, `false`, `null`, `~`, `[]`, a flow list, or a string. Double
 ```yaml
 # Develop this repo in Pi. Not an export profile.
 playbooks: all
-agents:
-  - architect
-  - coder
-prompts:
-  - arena
-  - figure-it-out
+agents: all
+prompts: all
 packages:
   - npm:pi-lens
-  - npm:pi-web-access
-  - npm:pi-subagents
-  - npm:@ff-labs/pi-fff
   - vendor/@agentic-core/draconic-todo
-  - vendor/@agentic-core/draconic-coms
-  - vendor/@agentic-core/draconic-boot
-  - vendor/@agentic-core/draconic-teams
-  - vendor/@agentic-core/draconic-footer
 skills:
-  - docs
   - how
+  - unslop
 ```
 
 Shipped files are `profiles/agentic-core.yaml` and `profiles/life-engine.yaml`. Both use `agents: all` and `prompts: all`. `agentic-core` is the skill list for developing this pack.

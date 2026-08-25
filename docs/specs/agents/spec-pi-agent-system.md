@@ -2,40 +2,49 @@
 id: "spec-pi-agent-system"
 title: "Pi agent system"
 kind: spec
-description: "Identity files, primary switch, team mode on coms, and selective skill load for Pi."
+description: "Dest agent files, opt-in attach, tool allowlist, and the second coms stamp."
 status: draft
 domain: agents
 area: agents
 tags: [spec, pi]
 created_at: "2026-08-24"
-updated_at: "2026-08-25"
+updated_at: "2026-08-26"
 ---
 
 # Pi agent system
 
 ## Goal
 
-Define how a Pi session gets an identity, how a team of living sessions works, and how skills and playbooks enter context.
+Define how a Pi process attaches a dest agent file, how that file is parsed, and how its `tools` list changes the live builtin set. Team panes and skill load stay in scope as product rules. Boot does not implement them.
 
 ## Requirements
 
 Pi only.
 
-Identity is a markdown file under `ai/agents/`. Dest holds it at `.pi/agents/`. The file may name skills, tools, and model. The body is Pi-safe.
+Source identity files live under `ai/agents/<stem>/<stem>.md`. Dest holds the same stem at `.pi/agents/<stem>.md`. `agentFile` is the dest path boot reads.
 
-`draconic-boot` is the switch. It appends the chosen file with `before_agent_start`. A command or `--agent` flag picks the name for this process. A new process attaches nothing. The last pick is not restored. See [[0007-agent-attach-is-opt-in]].
+```ts
+// packages/draconic-boot/src/index.ts — agentFile
+function agentFile(cwd: string, name: string): string {
+  return join(cwd, ".pi", "agents", `${name}.md`);
+}
+```
 
-`draconic-coms` stamps a second identity: `You are coms peer <cname> on project <project>.` That is how a session knows `--project` and `--cname`. Those flags are not in `PI_*` and not in the boot file. A new process without the flags binds as `agent-<id>` on project `default`. Resume without the flags does the same. Bind failure stamps `coms is not bound.`
+The file is YAML frontmatter plus a Pi-safe body. Allowed keys are `name`, `skills`, `tools`, and `model`. `parseAgentDefinition` throws on unknown keys, a missing or empty name, a name that fails `^[a-z][a-z0-9-]{0,63}$`, missing fences, or an empty body. Pack files in `ai/agents/` parse today with `name` only. Some name `skills`. None name `tools`.
 
-A lone session and a teammate share one file format and one attach meaning. Append. Spawn and switch differ only in how they name the file. Nicobailon children keep their own format.
+`draconic-boot` is the switch. `registerFlag("agent")` is the process flag. `/agent` is the command. `before_agent_start` appends `def.body` when a stem is selected. A new process attaches nothing. The last pick is not written to disk. See [[0007-agent-attach-is-opt-in]].
 
-A team is a lead plus named living TUI peers. They talk on coms. They share tasks. The human can type into a member. Team UX follows Claude Code agent teams. The mailbox is still coms. Not `~/.claude` inboxes. Not `claude-code-teams-mcp`. Tmux spawn and panes are a separate build. Do not staff teammates with `--mode json -p` or `--mode rpc`.
+`draconic-coms` stamps a second identity. Boot does not own that stamp, `--project`, or `--cname`. See [[architecture-draconic-coms]].
 
-`APPEND_SYSTEM` points at a short playbook index. The session reads one matched playbook. It may read multiple **principals** rule files. Skill descriptions may stay in the catalog. Skill bodies load on demand. The dest `playbooks` router is not dumped into the transcript.
+A lone session and a teammate share one dest file format and one attach meaning. Append. How a pane is named is not this spec. Nicobailon children keep their own format.
 
-`tools` on a definition is an allowlist of builtin tools. Boot snapshots the live set, keeps active extension tools, and unions those with the listed builtins. Off or a new process restores the snapshot or the default. Never pass `definition.tools` to `setActiveTools` unchanged.
+A team is a lead plus named living TUI peers on coms. Tmux spawn is a separate build. Do not staff teammates with `--mode json -p` or `--mode rpc`.
 
-Quality is proven by evals and tests on the real Pi session.
+`tools` on a definition is an allowlist of builtin tool names. `bindActiveTools` snapshots the live set, keeps active extension tools, and unions those with the listed builtins. Off restores the snapshot. Never pass `definition.tools` to `setActiveTools` unchanged.
+
+`skills` and `model` parse into `AgentDefinition`. Boot does not load skills or set the model from those fields.
+
+Quality is proven by tests in `packages/draconic-boot/src/*.test.ts` and by evals on a real Pi session.
 
 ## Non-goals
 
@@ -45,28 +54,111 @@ Quality is proven by evals and tests on the real Pi session.
 - Official presets or an open-agents fork
 - A new switcher package
 - Replacing nicobailon children
+- Persisting the last `/agent` pick
+- Applying `skills` or `model` at attach time
 
 ## Behaviour
 
-Cold start. Boot appends nothing. The chip shows `off`.
+### Cold start
 
-Coms still binds. Without `--cname` and `--project` the name is `agent-<id>` and the project is `default`.
+`selected` starts as `null`. `session_start` reads `--agent` through `flagString`. It sets `selected` only when `loadAgent` returns a definition. A missing dest file or a parse throw is `undefined`. The chip is `off`. `before_agent_start` returns nothing. The base system prompt is unchanged.
 
-Switch. The command appends a dest file for this process. Off and default clear it. The next turn has no pack identity.
+```ts
+// packages/draconic-boot/src/index.ts — session_start
+pi.on("session_start", (_event, ctx) => {
+  const flagged = flagString(pi, "agent");
+  if (flagged && loadAgent(ctx.cwd, flagged)) selected = flagged;
+  applyDefinition(ctx, loadCurrent(ctx.cwd));
+});
+```
 
-Teammate spawn. The same file format is appended. `--system-prompt` does not replace the default coding-assistant prompt as the identity path.
+`loadAgent` swallows parse errors. It does not crash the session.
 
-Tool bind. Unknown names are dropped. If no valid builtin names remain, the live set is left alone. Extension tools with `sourceInfo.source` other than `builtin` stay active.
+```ts
+// packages/draconic-boot/src/index.ts — loadAgent
+function loadAgent(cwd: string, name: string): AgentDefinition | undefined {
+  const path = agentFile(cwd, name);
+  if (!existsSync(path)) return undefined;
+  try {
+    return parseAgentDefinition(readFileSync(path, "utf8"));
+  } catch {
+    return undefined;
+  }
+}
+```
 
-Load. At most one playbook body is in context. Principals rules may be several. Unread rules are not a failed step unless the playbook names them.
+Tests: `session_start paints off when no agent is selected`, `before_agent_start does not append when no agent is selected`, `boot writes no dest flag file`.
+
+### Switch
+
+`/agent <stem>` loads that dest file for this process. `/agent`, `/agent off`, and `/agent default` call `selectNone`. The chip is `off`. The next `before_agent_start` does not append.
+
+An unknown stem notifies `unknown agent: <stem>` and keeps the current file. `/agent` writes no dest settings and no flag file.
+
+```ts
+// packages/draconic-boot/src/index.ts — before_agent_start
+pi.on("before_agent_start", (event, ctx) => {
+  const def = loadCurrent(ctx.cwd);
+  applyDefinition(ctx, def);
+  if (!def) return;
+  return {
+    systemPrompt: `${event.systemPrompt}\n\n${def.body}`,
+  };
+});
+```
+
+`--agent <stem>` is the same attach for this process. `session_start` ignores a missing dest file. There is no fallback to `draconic`.
+
+Tests: `/agent other appends that file on the next turn`, `/agent default clears the agent`, `unknown /agent name keeps the current file`, `--agent flag selects that file for this process`.
+
+### Definition parse
+
+`parseAgentDefinition` splits on `---` fences. It keeps `name`, optional `skills`, optional `tools`, and optional `model`. Unknown keys throw `AgentDefinitionError` with code `unknown_keys`. `cname` is not a boot key.
+
+```ts
+// packages/draconic-boot/src/definition.ts — parseAgentDefinition
+const NAME_RE = /^[a-z][a-z0-9-]{0,63}$/;
+const ALLOWED_KEYS = new Set(["name", "skills", "tools", "model"]);
+```
+
+`name` is required. The body after the closing fence must be non-empty. Lists accept `a, b` or `[a, b]`.
+
+Tests: `valid fixture parses to name, body, and optional lists`, `omitted optional keys stay undefined`, `empty body throws`, `unknown keys throw`, `every non-empty pack agent parses`.
+
+### Tool bind
+
+`applyDefinition` always calls `bindActiveTools`, then `paint`. The chip is `def.name` or `off`.
+
+No definition, or a definition with `tools` omitted, restores `toolsSnapshot` when one exists.
+
+When `tools` is present, the first bind snapshots `getActiveTools()`. Names that are not builtin are dropped. If no valid builtin remains, `setActiveTools` is not called. Otherwise the live set is the valid builtins plus every currently active tool whose `sourceInfo.source` is not `builtin`.
+
+```ts
+// packages/draconic-boot/src/index.ts — bindActiveTools
+const valid = definition.tools.filter((name) => builtin.has(name));
+if (valid.length === 0) return nextSnapshot;
+const extensions = all
+  .filter(
+    (tool) => tool.sourceInfo.source !== "builtin" && active.has(tool.name),
+  )
+  .map((tool) => tool.name);
+pi.setActiveTools([...new Set([...valid, ...extensions])]);
+```
+
+Tests: `tools allowlist keeps coms and subagent`, `unknown tool names do not throw`, `empty valid tools list leaves the live set`, `return-to-off restores the tools snapshot`.
+
+### Load
+
+Skill catalog and playbook bodies are not boot. `skills` on the definition is stored and unused at attach. `APPEND_SYSTEM` is not a persona and is not this switch.
 
 ## Acceptance
 
-- A new Pi process in a trusted folder attaches no dest `.pi/agents/` file. `/agent` and `--agent` are the only attach path. The last switch is not restored. `APPEND_SYSTEM` is not a persona
-- `/agent` or the boot command changes the appended file for this process only
-- A teammate pane can receive coms and still has coms tools after a `tools` allowlist
-- A multi-step task reads the playbook index and one playbook, not dest `playbooks/SKILL.md` in full
-- Evals and tests fail if those bars regress
+- A new Pi process attaches no dest `.pi/agents/` file. `/agent` and `--agent` are the only attach path. The last switch is not restored. `APPEND_SYSTEM` is not a persona
+- `/agent` or `--agent` changes the appended file for this process only
+- A missing or broken dest file is `undefined`. The session stays up. The chip stays `off` unless another stem is already selected
+- A `tools` allowlist keeps active extension tools. Unknown builtin names drop. An empty valid list leaves the live set. Off restores the snapshot
+- `parseAgentDefinition` rejects unknown keys and an empty body. Pack agents under `ai/agents/` parse
+- Tests in `packages/draconic-boot/src/index.test.ts` and `definition.test.ts` fail if those bars regress
 
 ## Open questions
 

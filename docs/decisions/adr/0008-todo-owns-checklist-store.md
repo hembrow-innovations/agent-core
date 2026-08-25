@@ -8,7 +8,7 @@ domain: packages
 area: decisions
 tags: [packages, installer]
 created_at: "2026-08-25"
-updated_at: "2026-08-25"
+updated_at: "2026-08-26"
 ---
 
 # ADR-0008: checklist store lives in the todo package
@@ -37,4 +37,5 @@ Todo tests sit next to the store. Dest vendor `src/` matches the source package.
 - [[0002-standalone-vendor-install]]
 - [[glossary]]
 - [[architecture-pack-and-packages]]
+- [[architecture-draconic-todo]]
 - [[spec-installer]]
