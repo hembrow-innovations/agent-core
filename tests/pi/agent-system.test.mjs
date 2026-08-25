@@ -15,7 +15,7 @@ test("cold start dest ships the opt-in agent file", () => {
   const dest = mkdtempSync(join(tmpdir(), "agent-system-cold-"));
   const r = spawnSync(
     process.execPath,
-    [INSTALLER, "install", dest, "--profile", "pi"],
+    [INSTALLER, "install", dest, "--profile", "agentic-core"],
     { encoding: "utf8" },
   );
   assert.equal(r.status, 0, r.stderr || r.stdout);

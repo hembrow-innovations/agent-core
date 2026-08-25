@@ -21,6 +21,6 @@ Work that spans phases or stacked PRs. The plan is the deliverable. Do not imple
 6. Each phase names static and runtime verification.
 7. Stop. Summarize. Do not implement.
 
-Library: `ai/playbooks/multi-phase-plan.md` (dest: `playbooks/multi-phase-plan.md`). Full steps: `{mode}-mode/references/plan.md`.
+Library: `ai/playbooks/multi-phase-plan.md` (dest: `.pi/playbooks/multi-phase-plan.md`).
 
 Notes: A large migration you will also run is figure-it-out. A standing program is `run-orchestrate`.

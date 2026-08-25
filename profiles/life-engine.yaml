@@ -1,4 +1,3 @@
-mode: draconic
 playbooks: all
 extensions:
   - draconic-todo
@@ -6,6 +5,7 @@ extensions:
   - draconic-boot
   - draconic-teams
 skills:
+  - agent-teams
   - architect
   - behaviour-contracts
   - create-verification-skill

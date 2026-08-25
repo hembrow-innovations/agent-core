@@ -1,5 +1,4 @@
 # Develop this repo in Pi. Not an export profile.
-mode: draconic
 playbooks: all
 extensions:
   - draconic-todo
@@ -7,6 +6,7 @@ extensions:
   - draconic-boot
   - draconic-teams
 skills:
+  - agent-teams
   - architect
   - codebase-design
   - create-verification-skill

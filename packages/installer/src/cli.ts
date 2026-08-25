@@ -1,76 +1,22 @@
 #!/usr/bin/env node
-import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+import { openDestination, PLAYBOOK_DEST } from "./dest.ts";
 import {
   FIRST_PARTY_EXTENSIONS,
-  type FirstPartyExtension,
-  installVendorExtensions,
+  writeExtensions,
   isFirstPartyExtension,
-} from "./vendor.ts";
-
-type PlaybookSelection =
-  | { kind: "all" }
-  | { kind: "list"; ids: string[] }
-  | { kind: "omit" };
-
-type Profile = {
-  name: string;
-  mode: string | null;
-  skills: string[];
-  playbooks: PlaybookSelection;
-  extensions: string[];
-};
-
-type ProfileModule = {
-  SKILL_DEST: string;
-  loadProfile: (srcRoot: string, name: string) => Profile;
-  listProfiles: (srcRoot: string) => string[];
-  listPlaybookIds: (srcRoot: string) => string[];
-  resolvePlaybookIds: (
-    profile: Profile,
-    opts: {
-      playbooks: string[] | null;
-      withPlaybooks: string[];
-      withoutPlaybooks: string[];
-    },
-    available: string[],
-  ) => string[];
-  installModePlaybooks: (
-    srcRoot: string,
-    target: string,
-    mode: string,
-    ids: string[],
-  ) => void;
-  installPiRuntime: (
-    srcRoot: string,
-    target: string,
-    opts?: { skills?: string[]; playbooks?: string[] },
-  ) => void;
-  findSkillDir: (srcRoot: string, name: string) => string | null;
-};
-
-type InstallRequest = {
-  kind: "install";
-  target: string;
-  profile: string | null;
-  with: string[];
-  without: string[];
-  playbooks: string[] | null;
-  withPlaybooks: string[];
-  withoutPlaybooks: string[];
-  extensions: FirstPartyExtension[];
-};
+} from "./extensions.ts";
+import { planFromProfile, type InstallRequest } from "./plan.ts";
+import { listPlaybookIds, writePlaybooks } from "./playbooks.ts";
+import { listProfiles, loadProfile } from "./profile.ts";
+import { writeRuntime } from "./runtime.ts";
+import { installSkills } from "./skills.ts";
 
 type CliRequest = { kind: "help" } | InstallRequest;
 
-type InstallPlan = {
-  skills: string[];
-  playbookIds: string[];
-  overlayPlaybooks: boolean;
-  mode: string | null;
-  extensions: FirstPartyExtension[];
-};
+const DEFAULT_PROFILE = "agentic-core";
 
 function usage(profileNames: string[] | null): void {
   const listed = profileNames?.length
@@ -82,7 +28,7 @@ Usage:
   pnpm exec agentic-core install <target> [options]
 
 Options:
-  --profile <name>         YAML profile in profiles/ (default: core)
+  --profile <name>         YAML profile in profiles/ (default: ${DEFAULT_PROFILE})
   --extension <name>       first-party vendor package (repeatable)
   --with <skills>          comma-separated skills to add
   --without <skills>       comma-separated skills to remove
@@ -94,11 +40,11 @@ Options:
 Profiles (profiles/*.yaml):
   ${listed}
 
-Dest is always .pi/. Playbooks are selected in the YAML and overlaid into {mode}-mode.
+Dest is always .pi/. Playbooks are selected in the YAML and copied to .pi/playbooks/.
 
 Examples:
   pnpm exec agentic-core install . --profile agentic-core
-  pnpm exec agentic-core install ~/Projects/my-app --profile core --with godot-mono
+  pnpm exec agentic-core install ~/Projects/my-app --profile agentic-core --with godot-mono
 `);
 }
 
@@ -169,13 +115,6 @@ function die(msg: string): never {
   process.exit(1);
 }
 
-function writePiGitignore(target: string): void {
-  const gitignore = join(target, ".pi", ".gitignore");
-  if (existsSync(gitignore)) return;
-  mkdirSync(dirname(gitignore), { recursive: true });
-  writeFileSync(gitignore, "npm/\ngit/\n", "utf8");
-}
-
 function repoRoot(): string {
   const here = dirname(fileURLToPath(import.meta.url));
   const root = resolve(here, "../../..");
@@ -188,101 +127,14 @@ function repoRoot(): string {
   return root;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value != null && typeof value === "object" && !Array.isArray(value);
-}
-
-function isFn(value: unknown): value is (...args: never[]) => unknown {
-  return typeof value === "function";
-}
-
-function isProfileModule(value: unknown): value is ProfileModule {
-  if (!isRecord(value)) return false;
-  return (
-    typeof value.SKILL_DEST === "string" &&
-    isFn(value.loadProfile) &&
-    isFn(value.listProfiles) &&
-    isFn(value.listPlaybookIds) &&
-    isFn(value.resolvePlaybookIds) &&
-    isFn(value.installModePlaybooks) &&
-    isFn(value.installPiRuntime) &&
-    isFn(value.findSkillDir)
-  );
-}
-
-async function loadProfileModule(srcRoot: string): Promise<ProfileModule> {
-  const href = pathToFileURL(join(srcRoot, "scripts", "profile.mjs")).href;
-  const raw: unknown = await import(href);
-  if (!isProfileModule(raw)) die("scripts/profile.mjs export shape is invalid");
-  return raw;
-}
-
-function copySkill(
-  srcRoot: string,
-  name: string,
-  target: string,
-  findSkillDir: ProfileModule["findSkillDir"],
-  destBase: string,
-): void {
-  const src = findSkillDir(srcRoot, name);
-  if (!src) die(`Skill not found in source: ${name}`);
-  const dest = join(target, destBase, name);
-  mkdirSync(dirname(dest), { recursive: true });
-  rmSync(dest, { recursive: true, force: true });
-  cpSync(src, dest, { recursive: true });
-  console.log(`  skill ${name} → ${destBase}/${name}`);
-}
-
-function resolveExtensions(
-  profileNames: string[],
-  cliNames: readonly FirstPartyExtension[],
-): FirstPartyExtension[] {
-  const out: FirstPartyExtension[] = [];
-  const seen = new Set<FirstPartyExtension>();
-  for (const name of [...profileNames, ...cliNames]) {
-    if (!isFirstPartyExtension(name)) {
-      throw new Error(
-        `Unknown extension: ${name}. Choose: ${FIRST_PARTY_EXTENSIONS.join(", ")}`,
-      );
-    }
-    if (seen.has(name)) continue;
-    seen.add(name);
-    out.push(name);
-  }
-  return out;
-}
-
-function planFromProfile(
-  profile: Profile,
-  opts: InstallRequest,
-  available: string[],
-  resolvePlaybookIds: ProfileModule["resolvePlaybookIds"],
-): InstallPlan {
-  const set = new Set(profile.skills);
-  if (profile.mode) set.add(`${profile.mode}-mode`);
-  for (const s of opts.with) set.add(s);
-  for (const s of opts.without) set.delete(s);
-  return {
-    skills: [...set].sort(),
-    playbookIds: resolvePlaybookIds(profile, opts, available),
-    overlayPlaybooks:
-      profile.playbooks.kind !== "omit" ||
-      opts.playbooks != null ||
-      opts.withPlaybooks.length > 0,
-    mode: profile.mode,
-    extensions: resolveExtensions(profile.extensions, opts.extensions),
-  };
-}
-
-async function run(argv: string[]): Promise<void> {
+function run(argv: string[]): void {
   const opts = parseArgs(argv);
   const srcRoot = repoRoot();
 
   if (opts.kind === "help") {
     let names: string[] | null = null;
     try {
-      const mod = await loadProfileModule(srcRoot);
-      names = mod.listProfiles(srcRoot);
+      names = listProfiles(srcRoot);
     } catch {
       names = null;
     }
@@ -291,14 +143,15 @@ async function run(argv: string[]): Promise<void> {
   }
 
   if (!existsSync(opts.target)) die(`Target does not exist: ${opts.target}`);
+  const dest = openDestination(opts.target);
 
   if (opts.profile == null && opts.extensions.length > 0) {
     console.log(`Using local source: ${srcRoot}`);
     console.log(`Installing into ${opts.target}`);
     console.log("Profile: none");
-    writePiGitignore(opts.target);
+    dest.ensureGitignore();
     try {
-      installVendorExtensions(srcRoot, opts.target, opts.extensions);
+      writeExtensions(srcRoot, dest, opts.extensions);
     } catch (err) {
       die(err instanceof Error ? err.message : String(err));
     }
@@ -306,32 +159,17 @@ async function run(argv: string[]): Promise<void> {
     return;
   }
 
-  const {
-    SKILL_DEST,
-    loadProfile,
-    listPlaybookIds,
-    resolvePlaybookIds,
-    installModePlaybooks,
-    installPiRuntime,
-    findSkillDir,
-  } = await loadProfileModule(srcRoot);
-
-  const profileName = opts.profile ?? "core";
-  let profile: Profile;
+  const profileName = opts.profile ?? DEFAULT_PROFILE;
+  let profile;
   try {
     profile = loadProfile(srcRoot, profileName);
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));
   }
 
-  let plan: InstallPlan;
+  let plan;
   try {
-    plan = planFromProfile(
-      profile,
-      opts,
-      listPlaybookIds(srcRoot),
-      resolvePlaybookIds,
-    );
+    plan = planFromProfile(profile, opts, listPlaybookIds(srcRoot));
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));
   }
@@ -340,39 +178,35 @@ async function run(argv: string[]): Promise<void> {
   console.log(`Profile: ${profileName}`);
   console.log(`Skills (${plan.skills.length}): ${plan.skills.join(", ")}`);
 
-  for (const name of plan.skills) {
-    copySkill(srcRoot, name, opts.target, findSkillDir, SKILL_DEST);
-  }
-  if (plan.overlayPlaybooks) {
-    if (!plan.mode) die("Playbook overlay requires profile.mode");
-    installModePlaybooks(srcRoot, opts.target, plan.mode, plan.playbookIds);
-    console.log(
-      `  playbooks (${plan.playbookIds.length}) → ${plan.mode}-mode/playbooks`,
-    );
-  }
-  installPiRuntime(srcRoot, opts.target, {
-    skills: plan.skills,
-    playbooks: plan.playbookIds,
-  });
-  console.log("  pi runtime → .pi");
-  if (plan.extensions.length > 0) {
-    try {
-      installVendorExtensions(srcRoot, opts.target, plan.extensions);
-    } catch (err) {
-      die(err instanceof Error ? err.message : String(err));
+  try {
+    installSkills({ srcRoot, dest, names: plan.skills });
+    if (plan.overlayPlaybooks) {
+      writePlaybooks(srcRoot, dest, plan.playbookIds);
+      console.log(
+        `  playbooks (${plan.playbookIds.length}) → ${PLAYBOOK_DEST}`,
+      );
     }
+    writeRuntime(srcRoot, dest);
+    console.log("  pi runtime → .pi");
+    if (plan.extensions.length > 0) {
+      writeExtensions(srcRoot, dest, plan.extensions);
+    }
+  } catch (err) {
+    die(err instanceof Error ? err.message : String(err));
   }
 
   console.log("Done.");
-  console.log(
-    "Next: run `pi` in the project, trust the folder, then /draconic-mode.",
-  );
+  console.log("Next: run `pi` in the project and trust the folder.");
   console.log(
     "Pi installs project packages from .pi/settings.json after you trust the folder.",
   );
 }
 
-void run(process.argv.slice(2)).catch((err: unknown) => {
-  console.error(err);
-  process.exit(1);
-});
+void (() => {
+  try {
+    run(process.argv.slice(2));
+  } catch (err: unknown) {
+    console.error(err);
+    process.exit(1);
+  }
+})();

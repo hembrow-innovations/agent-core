@@ -73,7 +73,7 @@ Re-run replaces the vendor tree and rewrites the dest-relative settings paths.
 
 This checkout's Pi is not wired to `packages/`. Nothing vendors until the installer is pointed at a target.
 
-A leftover `harness:`, `pi:`, `agents:`, `prompts:`, `templates:`, or `commands:` key on a profile is an error.
+A leftover `mode:`, `harness:`, `pi:`, `agents:`, `prompts:`, `templates:`, or `commands:` key on a profile is an error.
 
 ## Acceptance
 

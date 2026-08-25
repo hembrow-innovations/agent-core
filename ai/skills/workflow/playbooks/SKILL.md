@@ -16,7 +16,7 @@ Pick one playbook. Read that rule. Then read the library file for the full steps
 
 ## Stack caveats
 
-**Prefer:** one playbook per task. Copy its steps into the todolist verbatim. A skip stays as `skip: <reason>`. Dest steps live at `{mode}-mode/playbooks/<id>.md`.
+**Prefer:** one playbook per task. Copy its steps into the todolist verbatim. A skip stays as `skip: <reason>`. Dest steps live at `.pi/playbooks/<id>.md`.
 
 **Careful:** Feature when `/figure-it-out` is the fit. Babysit when the ask is to land. Perf when the ask is a sustained metric loop. Prototype when the sketch is the ship.
 
@@ -71,7 +71,7 @@ rules/fix-bug.md
 rules/ship-babysit.md
 ```
 
-Library path here: `ai/playbooks/<id>.md`. Dest: `{mode}-mode/playbooks/<id>.md`.
+Library path here: `ai/playbooks/<id>.md`. Dest: `.pi/playbooks/<id>.md`.
 
 ## Full reference
 

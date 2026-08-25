@@ -23,7 +23,7 @@ The empty-start alternative in that note was the right product. A coding-assista
 
 A new Pi process attaches no agent definition. `/agent <name>` and `--agent <name>` attach a dest `.pi/agents/` file for that process only. `/agent off` and `/agent default` clear it. The last pick is not written to disk.
 
-`draconic` is one pack file. `draconic-mode` is one skill. Neither is the cold-start identity. Using either is opt-in.
+`draconic` is one pack file. It is not the cold-start identity. Using it is opt-in.
 
 ## Alternatives considered
 

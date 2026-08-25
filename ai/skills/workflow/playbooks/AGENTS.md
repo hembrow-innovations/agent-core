@@ -2,7 +2,7 @@
 
 Prefer `rules/` plus the `SKILL.md` router. This file is the skip rationale. It is not auto-injected on skill load.
 
-Twenty-three rules. One per file in `ai/playbooks/` except `README.md`. Each rule is the matcher and the contract. The ordered steps stay in the library file. Install still copies those files into `{mode}-mode/playbooks/`.
+Twenty-three rules. One per file in `ai/playbooks/` except `README.md`. Each rule is the matcher and the contract. The ordered steps stay in the library file. Install copies those files into dest `.pi/playbooks/`.
 
 This pack exists so a human can judge progressive disclosure over playbooks. It is not the source of truth for the steps.
 
@@ -26,4 +26,4 @@ Read the incorrect line. If you cannot picture an agent picking the wrong playbo
 
 ## Do not put here
 
-The full step lists. Dest adapter tables from `draconic-mode`. Graphite command recipes. `scripts/orch` and `scripts/watch-pr` internals.
+The full step lists. Graphite command recipes. `scripts/orch` and `scripts/watch-pr` internals.

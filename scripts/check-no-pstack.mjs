@@ -125,7 +125,6 @@ if (existsSync(piRoot)) {
 for (const name of listProfiles(root)) {
   const profile = loadProfile(root, name);
   const needed = new Set(profile.skills);
-  if (profile.mode) needed.add(`${profile.mode}-mode`);
   for (const skill of [...needed].sort()) {
     if (!resolveSkill(skill))
       errors.push(`profile ${name}: missing skill ${skill}`);
@@ -146,7 +145,7 @@ try {
       "install",
       dest,
       "--profile",
-      "draconic",
+      "agentic-core",
     ],
     { encoding: "utf8" },
   );
@@ -155,21 +154,16 @@ try {
     console.error(r.stderr);
     process.exit(1);
   }
-  const modeSkill = join(dest, ".pi", "skills", "draconic-mode", "SKILL.md");
   const setupSkill = join(dest, ".pi", "skills", "setup-draconic", "SKILL.md");
-  if (!existsSync(modeSkill) || !existsSync(setupSkill)) {
+  const playbook = join(dest, ".pi", "playbooks", "feature.md");
+  if (!existsSync(setupSkill) || !existsSync(playbook)) {
     console.error(
-      "draconic install did not copy draconic-mode and setup-draconic",
+      "agentic-core install did not copy setup-draconic and .pi/playbooks",
     );
     process.exit(1);
   }
-  const body = readFileSync(modeSkill, "utf8");
-  if (!body.includes("Pi runtime adapter")) {
-    console.error("installed draconic-mode is missing the Pi adapter");
-    process.exit(1);
-  }
-  if (body.includes("OpenCode runtime adapter")) {
-    console.error("installed draconic-mode still has the OpenCode adapter");
+  if (existsSync(join(dest, ".pi", "skills", "draconic-mode"))) {
+    console.error("agentic-core install still copied draconic-mode");
     process.exit(1);
   }
   for (const extra of [".opencode", ".claude", ".agents"]) {

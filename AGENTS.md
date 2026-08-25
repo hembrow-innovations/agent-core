@@ -15,7 +15,7 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
 - `ai/prompts/` is the prompt/command library.
 - `ai/pi/` is the Pi runtime pack. (prompts,skills,agents,roles, don't live in this directory)
 - `profiles/` is the install profiles.
-- `scripts/` is the checks and the profile module.
+- `scripts/` is the checks. Profile parse lives in `packages/installer`.
 - `packages/installer/` is the `agentic-core` CLI.
 
 ## Dest

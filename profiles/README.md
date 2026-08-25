@@ -5,7 +5,6 @@
 ## Schema
 
 ```yaml
-mode: draconic        # optional. If set, install adds {mode}-mode to the skill list
 skills:               # skill folder names to copy. Default: []
   - architect
 playbooks: all        # omit the key, `all`, or a list of playbook ids
@@ -27,18 +26,18 @@ A missing `ai/pi/APPEND_SYSTEM.md`, `ai/pi/draconic-models.md`, or `ai/pi/roles/
 
 `ai/pi/packages.json` is a JSON array of Pi package sources such as `npm:pi-lens`. Install merges those sources into `.pi/settings.json` `packages` and leaves other settings keys alone. An existing object-form entry with the same `source` counts as present. Pi then installs any missing project packages on the next trusted startup.
 
-A leftover `harness:`, `pi:`, `agents:`, `prompts:`, `templates:`, or `commands:` key is an error. The message says dest is always `.pi`. Unknown YAML keys are an error.
+A leftover `mode:`, `harness:`, `pi:`, `agents:`, `prompts:`, `templates:`, or `commands:` key is an error. Unknown YAML keys are an error.
 
-Boolean keys are not used. `mode` defaults to unset. `skills` and `extensions` default to empty lists. A profile install also vendors `extensions`. `--extension` names install on top of that list.
+Boolean keys are not used. `skills` and `extensions` default to empty lists. A leftover `mode:` key is an error. A profile install also vendors `extensions`. `--extension` names install on top of that list.
 
 ## Playbooks
 
-`ai/playbooks/` is the library. Install copies the selected files into `{mode}-mode/playbooks/` and rewrites that skill's matching list.
+`ai/playbooks/` is the library. Install copies the selected files into dest `.pi/playbooks/`.
 
-- **key omitted**: The mode skill's bundled playbooks stay as copied from source
+- **key omitted**: Dest `.pi/playbooks/` is left alone
 - **`all`**: Every `playbooks/*.md` except README
 - **list of ids**: Those files, including an empty list
 
 `--playbooks a,b` replaces the profile selection. `--with-playbooks` and `--without-playbooks` add or remove ids after that.
 
-Playbook files live at `ai/playbooks/<id>.md` with `title` and `when` frontmatter. A profile names the ids it ships, or sets `playbooks: all`. Install overwrites copies inside a mode skill from the library.
+Playbook files live at `ai/playbooks/<id>.md` with `title` and `when` frontmatter. A profile names the ids it ships, or sets `playbooks: all`. Install overwrites dest `.pi/playbooks/` from the library.

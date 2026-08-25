@@ -16,7 +16,7 @@ updated_at: "2026-08-25"
 
 This repo is a pnpm workspace. It is the only place you install from. A dest project never depends on this checkout at runtime. The installer copies a self-contained tree the dest can commit.
 
-The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus the Pi runtime pack and profiles. `scripts/` holds the checks and the profile module. Workspace packages are the TypeScript products under `packages/`. The dest tree is the copied project layout after install. The vendor copy is the first-party package under `.pi/vendor/`.
+The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus the Pi runtime pack and profiles. `scripts/` holds the checks. The installer package owns profile parse and dest writes. Workspace packages are the TypeScript products under `packages/`. The dest tree is the copied project layout after install. The vendor copy is the first-party package under `.pi/vendor/`.
 
 See [[glossary]] for the names used here.
 
@@ -82,16 +82,24 @@ First-party extensions do not copy from `pi/extensions/`. That folder is not par
 
 ### Installer CLI
 
-The command is `pnpm exec agentic-core install`.
+The command is `pnpm exec agentic-core install`. The package lives in `packages/installer`.
+
+- **cli.ts**: parses argv and dispatches
+- **profile.ts**: reads `profiles/*.yaml` into a `Profile`
+- **dest.ts**: dest `.pi/` reads and writes
+- **skills.ts**, **playbooks.ts**, **extensions.ts**, **runtime.ts**: one module per install section
+- **plan.ts**: merges the profile with CLI flags
 
 ```bash
-pnpm exec agentic-core install <target> --profile pi
+pnpm exec agentic-core install <target> --profile agentic-core
 pnpm exec agentic-core install <target> --extension draconic-todo
 ```
 
 `--extension` can repeat. Dest is always `.pi/`.
 
-A profile install copies the pack for that profile. It also installs that profile's `extensions` list. Profiles `pi`, `agentic-core`, and `life-engine-pi` all list `draconic-todo`, `draconic-coms`, `draconic-boot`, and `draconic-teams`.
+A profile install copies the pack for that profile. It also installs that profile's `extensions` list. Profiles `agentic-core` and `life-engine` list `draconic-todo`, `draconic-coms`, `draconic-boot`, and `draconic-teams`.
+
+Playbooks land at `.pi/playbooks/`. A leftover `mode:` key is an error.
 
 An extension install names a first-party package for the vendor tree.
 

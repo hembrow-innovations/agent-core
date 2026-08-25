@@ -9,6 +9,6 @@ pnpm exec agentic-core install . --profile agentic-core
 pi
 ```
 
-Trust the folder, then `/draconic-mode`.
+Trust the folder.
 
 Edit `ai/skills/`, `ai/playbooks/`, `ai/pi/`, and `profiles/`. `.pi/` is a generated dest.

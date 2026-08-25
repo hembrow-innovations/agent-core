@@ -29,7 +29,7 @@ A lone session and a teammate share one file format and one attach meaning. Appe
 
 A team is a lead plus named living TUI peers. They talk on coms. They share tasks. The human can type into a member. Team UX follows Claude Code agent teams. The mailbox is still coms. Not `~/.claude` inboxes. Not `claude-code-teams-mcp`. Tmux spawn and panes are a separate build. Do not staff teammates with `--mode json -p` or `--mode rpc`.
 
-`APPEND_SYSTEM` points at a short playbook index. The session reads one matched playbook. It may read multiple **principals** rule files. Skill descriptions may stay in the catalog. Skill bodies load on demand. The dest `draconic-mode` router is not dumped into the transcript.
+`APPEND_SYSTEM` points at a short playbook index. The session reads one matched playbook. It may read multiple **principals** rule files. Skill descriptions may stay in the catalog. Skill bodies load on demand. The dest `playbooks` router is not dumped into the transcript.
 
 `tools` on a definition is an allowlist of builtin tools. Boot snapshots the live set, keeps active extension tools, and unions those with the listed builtins. Off or a new process restores the snapshot or the default. Never pass `definition.tools` to `setActiveTools` unchanged.
 
@@ -61,7 +61,7 @@ Load. At most one playbook body is in context. Principals rules may be several. 
 - A new Pi process in a trusted folder attaches no dest `.pi/agents/` file. `/agent` and `--agent` are the only attach path. The last switch is not restored. `APPEND_SYSTEM` is not a persona
 - `/agent` or the boot command changes the appended file for this process only
 - A teammate pane can receive coms and still has coms tools after a `tools` allowlist
-- A multi-step task reads the playbook index and one playbook, not dest `draconic-mode/SKILL.md` in full
+- A multi-step task reads the playbook index and one playbook, not dest `playbooks/SKILL.md` in full
 - Evals and tests fail if those bars regress
 
 ## Open questions
