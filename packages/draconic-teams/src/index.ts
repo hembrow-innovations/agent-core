@@ -22,9 +22,23 @@ import {
 } from "./store.ts";
 import { applySpawn, killPane } from "./tmux.ts";
 
+function argvString(name: string): string | undefined {
+	const key = `--${name}`;
+	const argv = process.argv;
+	for (let i = 0; i < argv.length; i++) {
+		if (argv[i] !== key) continue;
+		const value = argv[i + 1];
+		if (typeof value === "string" && value.length > 0 && !value.startsWith("-")) {
+			return value;
+		}
+	}
+	return undefined;
+}
+
 function flagString(pi: ExtensionAPI, name: string): string | undefined {
-	const value = pi.getFlag(name);
-	return typeof value === "string" && value.length > 0 ? value : undefined;
+	const fromFlag = pi.getFlag(name);
+	if (typeof fromFlag === "string" && fromFlag.length > 0) return fromFlag;
+	return argvString(name);
 }
 
 type NotifyType = "info" | "warning" | "error";
@@ -90,18 +104,6 @@ function formatTask(task: Task): string {
 }
 
 export default function (pi: ExtensionAPI) {
-	pi.registerFlag("cname", {
-		description:
-			"Coms agent name. Distinct from pi --name, which the harness owns.",
-		type: "string",
-		default: undefined,
-	});
-	pi.registerFlag("project", {
-		description: "Project namespace for peer discovery",
-		type: "string",
-		default: undefined,
-	});
-
 	const teamsDir = () => defaultTeamsDir();
 	let currentTeam: string | undefined;
 

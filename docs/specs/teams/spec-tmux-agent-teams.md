@@ -8,7 +8,7 @@ domain: pack
 area: teams
 tags: [spec, pi, tmux]
 created_at: "2026-08-24"
-updated_at: "2026-08-25"
+updated_at: "2026-08-26"
 ---
 
 # Tmux agent teams
@@ -24,7 +24,7 @@ A lead Pi session can spawn named teammate TUIs in tmux panes. They talk on exis
 - Default spawn is `tmux split-window`. Windows sit behind a flag.
 - Spawned `pi` gets `--cname`, `--purpose`, `--project <team>`, `--name`, `--agent <name>`. Boot uses that dest file when it exists. Otherwise no agent.
 - Team name is the coms `--project`. Member name is `--cname`.
-- `--project` and `--cname` are extension flags. They are not `PI_*` env vars and not `pi --name`.
+- `--project` and `--cname` are extension flags. They are not `PI_*` env vars and not `pi --name`. Coms registers them. Teams reads argv and must not register them. Pi rejects two extensions owning the same flag, and `getFlag` only sees flags that extension registered.
 - Coms stamps bound identity into the system prompt as `You are coms peer <name> on project <project>.` Bind failure stamps `coms is not bound.`
 - `coms_list` includes this session, marked `this-session`.
 - `team_status` with a project flag and no roster file reports `project <name>, cname <name>. no team file yet.` The leadless error is only when no project flag is set.

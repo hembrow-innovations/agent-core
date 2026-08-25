@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import comsExtension from "../../draconic-coms/src/index.ts";
 import teamsExtension from "./index.ts";
 import { getTask, listTasks, readTeam } from "./store.ts";
 
@@ -31,17 +32,31 @@ type Command = {
 	) => Promise<void>;
 };
 
+function collectFlags(factory: (pi: ExtensionAPI) => void): string[] {
+	const names: string[] = [];
+	factory({
+		registerFlag(name: string) {
+			names.push(name);
+		},
+		registerTool() {},
+		registerCommand() {},
+		on() {},
+		getFlag() {
+			return undefined;
+		},
+		sendMessage() {},
+	} as unknown as ExtensionAPI);
+	return names;
+}
+
 function loadExtension(opts?: { flags?: Record<string, string> }) {
 	const tools: Tool[] = [];
 	const commands: Command[] = [];
 	const events: string[] = [];
 	const flags = opts?.flags ?? {};
-	const registered = new Set<string>();
 	const statuses: Array<[string, string | undefined]> = [];
 	teamsExtension({
-		registerFlag(name: string) {
-			registered.add(name);
-		},
+		registerFlag() {},
 		registerTool(tool: Tool) {
 			tools.push(tool);
 		},
@@ -52,7 +67,6 @@ function loadExtension(opts?: { flags?: Record<string, string> }) {
 			events.push(event);
 		},
 		getFlag(name: string) {
-			if (!registered.has(name)) return undefined;
 			return flags[name];
 		},
 	} as unknown as ExtensionAPI);
@@ -86,6 +100,41 @@ test("factory registers /team and the team plus task tools", () => {
 		tool(tools, "task_claim").promptGuidelines?.join(" ") ?? "",
 		/task_claim/,
 	);
+});
+
+test("teams does not re-register coms identity flags", () => {
+	const coms = collectFlags(comsExtension);
+	const teams = collectFlags(teamsExtension);
+	assert.deepEqual(
+		teams.filter((name) => coms.includes(name)),
+		[],
+	);
+});
+
+test("team_status reads --project and --cname from argv", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-argv-"));
+	const prevDir = process.env.PI_TEAMS_DIR;
+	const prevArgv = process.argv;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	process.argv = [...prevArgv, "--project", "demo", "--cname", "alice"];
+	try {
+		const { tools } = loadExtension();
+		const status = await tool(tools, "team_status").execute(
+			"1",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal(
+			status.content[0]?.text,
+			"project demo, cname alice. no team file yet.",
+		);
+	} finally {
+		process.argv = prevArgv;
+		if (prevDir === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prevDir;
+	}
 });
 
 test("team_create then team_status persist a roster under PI_TEAMS_DIR", async () => {
