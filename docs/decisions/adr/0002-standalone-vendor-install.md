@@ -50,3 +50,4 @@ Dest can commit a self-contained vendor tree. Settings point only at dest-relati
 - [[spec-installer]]
 - [[guides-install-from-this-repo]]
 - [[plan-2-pnpm-pi-packages]]
+- [[0008-todo-owns-checklist-store]] drops the lib bundle. Dest vendor is a package copy.

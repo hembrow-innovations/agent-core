@@ -30,7 +30,7 @@ Flags:
 A profile install also installs that profile's `extensions` list.
 Dest is always `.pi/`.
 
-The dest receives a lib-bundled copy at `.pi/vendor/@agentic-core/<name>`.
+The dest receives a vendor copy at `.pi/vendor/@agentic-core/<name>`.
 Dest settings gain a dest-relative path to that folder.
 Re-running install overwrites the vendor copy.
 The dest has no sibling lib package.
@@ -60,7 +60,7 @@ A dest never depends on this checkout at runtime.
 Repeated `--extension` flags install each named extension.
 `--profile` and `--extension` may be used together. Extra extensions install on top of the profile list.
 
-Install bundles `packages/lib` into each extension. Dest does not receive a vendor lib package.
+Install copies each named first-party package as it is. Dest does not receive a vendor lib package.
 
 The package `@agentic-core/draconic-todo` lands at `.pi/vendor/@agentic-core/draconic-todo`. The same shape holds for `draconic-coms`, `draconic-boot`, and `draconic-teams`.
 

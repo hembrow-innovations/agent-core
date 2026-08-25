@@ -24,7 +24,7 @@ Install a self-contained vendor tree a dest project can commit and run without t
 - One extension install with `--extension`
 - Repeatable `--extension`
 - Dest always `.pi/`
-- Lib bundled into each extension at install time
+- Vendor copy of each named first-party package
 - Vendor copy at `.pi/vendor/@agentic-core/<name>`
 - Dest-relative paths written into dest settings
 - Overwrite of the vendor copy on re-run
@@ -53,7 +53,7 @@ The dest tree is `.pi/` plus dest settings.
 ## Authority
 
 - Behaviour: [[spec-installer]]
-- Decisions: [[0002-standalone-vendor-install]] and [[0005-pi-only-dest]]
+- Decisions: [[0002-standalone-vendor-install]], [[0005-pi-only-dest]], and [[0008-todo-owns-checklist-store]]
 - Layout: [[architecture-pack-and-packages]]
 
 ## Open product questions
