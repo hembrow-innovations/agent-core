@@ -29,7 +29,7 @@ Allowed keys are `skills`, `playbooks`, `agents`, `prompts`, and `packages`. All
 
 - **prompts.** Same three shapes as playbooks. `all` selects every `ai/prompts/*.md` except `README.md`. Overlay writes `.pi/prompts/<id>.md` and deletes other dest prompt markdown.
 
-- **packages.** String list of Pi package sources. Missing or `null` becomes `[]`. A present non-list is an error. Each item is `npm:<name>` or `vendor/@agentic-core/<name>`. Vendor names must be `draconic-todo`, `draconic-coms`, `draconic-boot`, or `draconic-teams`. A bare first-party name is an error. Use the vendor path. Install vendors those trees to `.pi/vendor/@agentic-core/<name>` and merges every source into `.pi/settings.json` `packages` in list order. `--extension` appends a vendor source. Profile order wins, then CLI, duplicates dropped.
+- **packages.** String list of Pi package sources. Missing or `null` becomes `[]`. A present non-list is an error. Each item is `npm:<name>` or `vendor/@agentic-core/<name>`. Vendor names must be `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, or `draconic-footer`. A bare first-party name is an error. Use the vendor path. Install vendors those trees to `.pi/vendor/@agentic-core/<name>` and merges every source into `.pi/settings.json` `packages` in list order. `--extension` appends a vendor source. Profile order wins, then CLI, duplicates dropped.
 
 ## Constraints
 
@@ -83,6 +83,7 @@ packages:
   - vendor/@agentic-core/draconic-coms
   - vendor/@agentic-core/draconic-boot
   - vendor/@agentic-core/draconic-teams
+  - vendor/@agentic-core/draconic-footer
 skills:
   - docs
   - how

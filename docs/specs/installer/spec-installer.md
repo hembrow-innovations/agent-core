@@ -62,7 +62,7 @@ Repeated `--extension` flags install each named extension.
 
 Install copies each named first-party package as it is. Dest does not receive a vendor lib package.
 
-The package `@agentic-core/draconic-todo` lands at `.pi/vendor/@agentic-core/draconic-todo`. The same shape holds for `draconic-coms`, `draconic-boot`, and `draconic-teams`.
+The package `@agentic-core/draconic-todo` lands at `.pi/vendor/@agentic-core/draconic-todo`. The same shape holds for `draconic-coms`, `draconic-boot`, `draconic-teams`, and `draconic-footer`.
 
 The dest uses `.pi/vendor/` and `.pi/settings.json`.
 Settings record dest-relative paths only. No path back to this checkout.

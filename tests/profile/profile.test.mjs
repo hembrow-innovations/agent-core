@@ -423,6 +423,7 @@ test("repo profiles list npm and vendor packages", () => {
 		{ kind: "vendor", name: "draconic-coms" },
 		{ kind: "vendor", name: "draconic-boot" },
 		{ kind: "vendor", name: "draconic-teams" },
+		{ kind: "vendor", name: "draconic-footer" },
 	];
 	for (const name of ["agentic-core", "life-engine"]) {
 		const p = loadProfile(REPO, name);
@@ -721,6 +722,10 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 		existsSync(join(vendorRoot, "draconic-teams", "src", "index.ts")),
 		true,
 	);
+	assert.equal(
+		existsSync(join(vendorRoot, "draconic-footer", "src", "index.ts")),
+		true,
+	);
 	assert.equal(existsSync(join(vendorRoot, "lib")), false);
 	const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
 	assert.doesNotMatch(append, /running draconic-mode on Pi/);
@@ -744,6 +749,7 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 				"vendor/@agentic-core/draconic-coms",
 				"vendor/@agentic-core/draconic-boot",
 				"vendor/@agentic-core/draconic-teams",
+				"vendor/@agentic-core/draconic-footer",
 			],
 		},
 	);

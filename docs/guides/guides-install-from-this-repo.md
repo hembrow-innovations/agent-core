@@ -30,7 +30,7 @@ Dest is always `.pi/`.
 
    `pnpm exec agentic-core install <target> --profile agentic-core`
 
-   That also installs `draconic-todo`, `draconic-coms`, `draconic-boot`, and `draconic-teams`.
+   That also installs `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, and `draconic-footer`.
 3. Or install a one-off extension.
 
    `pnpm exec agentic-core install <target> --extension draconic-todo`
@@ -50,6 +50,7 @@ You will see:
 - `.pi/vendor/@agentic-core/draconic-coms`
 - `.pi/vendor/@agentic-core/draconic-boot`
 - `.pi/vendor/@agentic-core/draconic-teams`
+- `.pi/vendor/@agentic-core/draconic-footer`
 - dest-relative paths for those folders in `.pi/settings.json`
 
 One-off extension into another dest.

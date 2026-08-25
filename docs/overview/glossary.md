@@ -27,10 +27,10 @@ _Avoid_: live path
 A named install set in `profiles/`. Selected with `--profile`. Skills, playbooks, agents, prompts, and packages. Dest is always `.pi/`. Schema: [[schema-profile]].
 
 **Workspace package**:
-A TypeScript package under `packages/`. Folders are `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, and `installer`.
+A TypeScript package under `packages/`. Folders are `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, `draconic-footer`, and `installer`.
 
 **First-party extension**:
-A product extension among the workspace packages. The four are `@agentic-core/draconic-todo`, `@agentic-core/draconic-coms`, `@agentic-core/draconic-boot`, and `@agentic-core/draconic-teams`.
+A product extension among the workspace packages. The five are `@agentic-core/draconic-todo`, `@agentic-core/draconic-coms`, `@agentic-core/draconic-boot`, `@agentic-core/draconic-teams`, and `@agentic-core/draconic-footer`.
 _Avoid_: loose extension file
 
 **Vendor copy**:

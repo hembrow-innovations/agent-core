@@ -60,6 +60,7 @@ The folders are:
 - `packages/draconic-coms` is `@agentic-core/draconic-coms`.
 - `packages/draconic-boot` is `@agentic-core/draconic-boot`.
 - `packages/draconic-teams` is `@agentic-core/draconic-teams`.
+- `packages/draconic-footer` is `@agentic-core/draconic-footer`.
 - `packages/installer` is the install CLI.
 
 Protocol code lives inside the coms package. `draconic-coms-protocol` is not a product extension.
@@ -97,7 +98,7 @@ pnpm exec agentic-core install <target> --extension draconic-todo
 
 `--extension` can repeat. Dest is always `.pi/`.
 
-A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the npm sources plus `vendor/@agentic-core/` trees for todo, coms, boot, and teams.
+A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the npm sources plus `vendor/@agentic-core/` trees for todo, coms, boot, teams, and footer.
 
 Playbooks land at `.pi/playbooks/`. A leftover `mode:` key is an error.
 

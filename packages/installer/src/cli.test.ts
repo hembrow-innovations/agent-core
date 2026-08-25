@@ -94,12 +94,14 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
       "vendor/@agentic-core/draconic-coms",
       "vendor/@agentic-core/draconic-boot",
       "vendor/@agentic-core/draconic-teams",
+      "vendor/@agentic-core/draconic-footer",
     ],
   );
   const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
   assert.deepEqual(readdirSync(vendorRoot).sort(), [
     "draconic-boot",
     "draconic-coms",
+    "draconic-footer",
     "draconic-teams",
     "draconic-todo",
   ]);
@@ -117,6 +119,10 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
   );
   assert.equal(
     existsSync(join(vendorRoot, "draconic-teams", "src", "index.ts")),
+    true,
+  );
+  assert.equal(
+    existsSync(join(vendorRoot, "draconic-footer", "src", "index.ts")),
     true,
   );
   assert.equal(existsSync(join(vendorRoot, "lib")), false);
@@ -171,7 +177,7 @@ test("install --profile agentic-core writes .pi/skills and does not wire this ch
   if (after) {
     assert.doesNotMatch(
       after,
-      /packages\/(?:lib|draconic-todo|draconic-coms|draconic-boot|draconic-teams)/,
+      /packages\/(?:lib|draconic-todo|draconic-coms|draconic-boot|draconic-teams|draconic-footer)/,
     );
   }
 });

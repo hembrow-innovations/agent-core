@@ -3,6 +3,7 @@
     "lib": ["es2022"],
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": true,
     "noEmit": true,
     "skipLibCheck": true,
     "strict": true,

@@ -10,6 +10,7 @@ packages:
   - vendor/@agentic-core/draconic-coms
   - vendor/@agentic-core/draconic-boot
   - vendor/@agentic-core/draconic-teams
+  - vendor/@agentic-core/draconic-footer
 skills:
   - agent-teams
   - architect
