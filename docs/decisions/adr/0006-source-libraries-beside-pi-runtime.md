@@ -8,7 +8,7 @@ domain: pack
 area: decisions
 tags: [pack, layout]
 created_at: "2026-08-25"
-updated_at: "2026-08-25"
+updated_at: "2026-08-26"
 ---
 
 # ADR-0006: Source libraries sit beside the Pi runtime pack
@@ -29,7 +29,7 @@ Honor this source layout:
 - `ai/skills/` is the skill library.
 - `ai/playbooks/` is the playbook library.
 - `ai/prompts/` is the prompt/command library.
-- `ai/pi/` is the Pi runtime pack. Prompts, skills, agents, and roles do not live here.
+- `ai/pi/` is the Pi runtime pack. Prompts, skills, agents, and roles do not live here. Dest identity is only `.pi/agents/`.
 - `profiles/` is the install profiles.
 - `scripts/` is the checks and the profile module.
 - `packages/installer/` is the `agentic-core` CLI.
@@ -48,7 +48,7 @@ Edit agents in `ai/agents/`, prompts in `ai/prompts/`, skills in `ai/skills/`, p
 
 The folder list inside [[0004-source-pack-under-ai]] is stale. The claim in [[0005-pi-only-dest]] that source identity lives under `ai/pi/agents/` is superseded.
 
-Dest identity is still `.pi/agents/`. Dest prompts are still `.pi/prompts/`.
+Dest identity is only `.pi/agents/`. There is no dest `.pi/roles/` tree. Install deletes a leftover dest roles directory. Spawn uses `--agent`. Dest prompts are still `.pi/prompts/`.
 
 ## Relationships
 

@@ -10,16 +10,10 @@ cat <<EOF
 
 Named tmux panes on top of this transport live in scripts/try-teams.sh.
 
-Print three pasteable living-session commands:
+Raw two-terminal smoke:
 
-  node "$ROOT/ai/pi/roles/argv.mjs" researcher architect coder
-
-Paste each printed line into its own terminal. After they are up, ask one to coms_list, then coms_send, then coms_await.
-
-Raw two-terminal smoke without role files:
-
-  pi -e "$EXT" --cname planner --purpose "Plans the work"
-  pi -e "$EXT" --cname coder --purpose "Writes the code"
+  pi -e "$EXT" --cname planner --purpose "Plans the work" --agent planner
+  pi -e "$EXT" --cname coder --purpose "Writes the code" --agent coder
 
 Recorded living-session scenario (install playground first):
 

@@ -5,6 +5,7 @@ import type {
 import { Type } from "typebox";
 import {
 	type BoundPeer,
+	type ListedPeer,
 	bindPeer,
 	defaultComsDir,
 	defaultTimeoutMs,
@@ -71,6 +72,13 @@ function toolText(text: string, details: Record<string, unknown>) {
 	};
 }
 
+function formatPeer(item: ListedPeer, thisSession = false): string {
+	const live = item.alive ? "alive" : "dead";
+	const purpose = item.purpose ? ` ${item.purpose}` : "";
+	const mark = thisSession ? " this-session" : "";
+	return `${item.name} ${item.model} ${live} ${item.cwd}${purpose}${mark}`;
+}
+
 export default function (pi: ExtensionAPI) {
 	pi.registerFlag("cname", {
 		description:
@@ -90,6 +98,7 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	let peer: BoundPeer | undefined;
+	let selfCard: ListedPeer | undefined;
 
 	pi.on("session_start", async (_event, ctx) => {
 		const sessionId = newId();
@@ -123,25 +132,40 @@ export default function (pi: ExtensionAPI) {
 			);
 			return;
 		}
+		selfCard = {
+			name: peer.name,
+			model: ctx.model?.id ?? "unknown",
+			purpose: flagString(pi, "purpose") ?? "",
+			cwd: ctx.cwd,
+			alive: true,
+		};
 		setComsStatus(ctx, `${peer.name}@${project}`);
+	});
+
+	pi.on("before_agent_start", (event) => {
+		const identity = peer
+			? `You are coms peer ${peer.name} on project ${peer.project}.`
+			: "coms is not bound.";
+		return {
+			systemPrompt: `${event.systemPrompt}\n\n${identity}`,
+		};
 	});
 
 	pi.registerTool({
 		name: "coms_list",
 		label: "Coms list",
 		description:
-			"List live peer Pi sessions on this machine (name, model, purpose, cwd, alive). Use for talking to another already-running session. Do not use for swarm, arena, or orchestrate. Those stay subagents.",
-		promptSnippet: "List live peer Pi sessions on this machine.",
+			"List live peer Pi sessions on this machine (name, model, purpose, cwd, alive). Includes this session, marked this-session. Use for talking to another already-running session. Do not use for swarm, arena, or orchestrate. Those stay subagents.",
+		promptSnippet:
+			"List live peer Pi sessions on this machine, including this session.",
 		parameters: Type.Object({}),
 		async execute() {
-			if (!peer) return toolText("coms not initialised", { ok: false });
-			const peers = await peer.list();
-			if (peers.length === 0) return toolText("No peer agents found.", { peers });
-			const lines = peers.map((item) => {
-				const live = item.alive ? "alive" : "dead";
-				const purpose = item.purpose ? ` ${item.purpose}` : "";
-				return `${item.name} ${item.model} ${live} ${item.cwd}${purpose}`;
-			});
+			if (!peer || !selfCard) {
+				return toolText("coms not initialised", { ok: false });
+			}
+			const others = await peer.list();
+			const peers = [selfCard, ...others];
+			const lines = peers.map((item, index) => formatPeer(item, index === 0));
 			return toolText(`${peers.length} peer(s):\n${lines.join("\n")}`, {
 				peers,
 			});
@@ -250,5 +274,6 @@ export default function (pi: ExtensionAPI) {
 		if (!peer) return;
 		await peer.shutdown();
 		peer = undefined;
+		selfCard = undefined;
 	});
 }

@@ -20,7 +20,7 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
 
 ## Dest
 
-`.pi/` is generated and gitignored. Do not edit copies there.
+`.pi/` is generated and gitignored. Do not edit copies there. Identity dest is `.pi/agents/`. There is no dest roles tree.
 
 After you change a source skill, reinstall:
 

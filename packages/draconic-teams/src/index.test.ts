@@ -285,6 +285,31 @@ test("team_status binds --project without team_create in this process", async ()
 	}
 });
 
+test("team_status with --project and no team file reports the flags", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const { tools } = loadExtension({
+			flags: { project: "demo", cname: "alice" },
+		});
+		const status = await tool(tools, "team_status").execute(
+			"1",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal(
+			status.content[0]?.text,
+			"project demo, cname alice. no team file yet.",
+		);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
 test("team_status without flags stays leadless", async () => {
 	const { tools } = loadExtension();
 	const status = await tool(tools, "team_status").execute(
@@ -297,7 +322,7 @@ test("team_status without flags stays leadless", async () => {
 	assert.equal(status.content[0]?.text, "no team. /team create <name> first.");
 });
 
-test("coms default project without a team file stays leadless", async () => {
+test("coms default project without a team file reports the flags", async () => {
 	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-ext-"));
 	const prev = process.env.PI_TEAMS_DIR;
 	process.env.PI_TEAMS_DIR = teamsDir;
@@ -310,7 +335,10 @@ test("coms default project without a team file stays leadless", async () => {
 			undefined,
 			{ cwd: "/work" },
 		);
-		assert.equal(status.content[0]?.text, "no team. /team create <name> first.");
+		assert.equal(
+			status.content[0]?.text,
+			"project default, cname team-lead. no team file yet.",
+		);
 	} finally {
 		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
 		else process.env.PI_TEAMS_DIR = prev;

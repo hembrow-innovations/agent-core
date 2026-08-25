@@ -121,6 +121,35 @@ export default function (pi: ExtensionAPI) {
 		}
 	};
 
+	const loadStatus = (): {
+		text: string;
+		details: Record<string, unknown>;
+	} => {
+		const project = currentTeam || flagString(pi, "project");
+		const cname = ownerName(flagString(pi, "cname"));
+		if (!project) {
+			const message = "no team. /team create <name> first.";
+			return { text: message, details: { error: message } };
+		}
+		try {
+			const team = readTeam({ teamsDir: teamsDir(), name: project });
+			currentTeam = team.name;
+			return {
+				text: formatTeam(team),
+				details: { team, members: team.members },
+			};
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err);
+			if (message.startsWith("team not found:")) {
+				return {
+					text: `project ${project}, cname ${cname}. no team file yet.`,
+					details: { project, cname },
+				};
+			}
+			throw err;
+		}
+	};
+
 	pi.on("session_start", async (_event, ctx) => {
 		const project = flagString(pi, "project");
 		if (!project) return;
@@ -233,8 +262,8 @@ export default function (pi: ExtensionAPI) {
 		parameters: Type.Object({}),
 		async execute() {
 			try {
-				const team = requireTeam();
-				return toolText(formatTeam(team), { team, members: team.members });
+				const status = loadStatus();
+				return toolText(status.text, status.details);
 			} catch (err) {
 				return errorText(err);
 			}
@@ -405,8 +434,8 @@ export default function (pi: ExtensionAPI) {
 			const [verb, ...rest] = text.split(/\s+/);
 			try {
 				if (!verb || verb === "status") {
-					const team = requireTeam();
-					notify(ctx, formatTeam(team));
+					const status = loadStatus();
+					notify(ctx, status.text);
 					return;
 				}
 				if (verb === "create") {

@@ -5,7 +5,6 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { peerArgv, parseRoleFile } from "../../ai/pi/roles/argv.mjs";
 
 const REPO = fileURLToPath(new URL("../..", import.meta.url));
 const INSTALLER = join(REPO, "packages", "installer", "src", "cli.ts");
@@ -46,20 +45,7 @@ test("cold start dest ships the opt-in agent file", () => {
       new RegExp(`^name: ${stem}$`, "m"),
     );
   }
-  for (const stem of [
-    "architect",
-    "coder",
-    "debugger",
-    "devops",
-    "documenter",
-    "planner",
-    "researcher",
-    "reviewer",
-    "spec",
-    "tester",
-  ]) {
-    assert.equal(existsSync(join(dest, ".pi", "roles", `${stem}.md`)), true);
-  }
+  assert.equal(existsSync(join(dest, ".pi", "roles")), false);
   const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
   assert.doesNotMatch(append, /running draconic-mode on Pi/);
   assert.doesNotMatch(append, FULL_READ);
@@ -78,16 +64,4 @@ test("pack append and agent files do not dump dest draconic-mode", () => {
     assert.doesNotMatch(text, FULL_READ);
     assert.doesNotMatch(text, /running draconic-mode on Pi/);
   }
-});
-
-test("teammate argv appends a pi/agents file", () => {
-  const role = parseRoleFile(join(REPO, "ai", "pi", "roles", "researcher.md"));
-  const { argv } = peerArgv(role, { project: "default", extraPiArgs: [] });
-  assert.equal(argv.includes("--system-prompt"), false);
-  assert.equal(argv.includes("--append-system-prompt"), false);
-  assert.equal(argv.includes("--cname"), true);
-  assert.equal(argv.includes("--purpose"), true);
-  assert.equal(argv.includes("--project"), true);
-  assert.equal(argv.includes("--agent"), false);
-  assert.doesNotMatch(argv.join(" "), /--mode rpc/);
 });

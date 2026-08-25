@@ -101,6 +101,7 @@ export function openDestination(target: string): Destination {
   const removeLeftovers = () => {
     remove(".pi/extensions");
     remove(".pi/lib");
+    remove(".pi/roles");
   };
 
   return {

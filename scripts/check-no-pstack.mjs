@@ -84,7 +84,6 @@ if (existsSync(piRoot)) {
     "draconic-models.md",
     "prompts",
     "packages.json",
-    "roles",
     "settings.json",
   ]);
   const required = new Set(allowed);
@@ -95,17 +94,6 @@ if (existsSync(piRoot)) {
   const extra = [...names].filter((n) => !allowed.has(n)).sort();
   if (extra.length) errors.push(`ai/pi/ unexpected ${extra.join(", ")}`);
   for (const rel of [
-    "ai/pi/roles/argv.mjs",
-    "ai/pi/roles/researcher.md",
-    "ai/pi/roles/architect.md",
-    "ai/pi/roles/coder.md",
-    "ai/pi/roles/spec.md",
-    "ai/pi/roles/planner.md",
-    "ai/pi/roles/reviewer.md",
-    "ai/pi/roles/tester.md",
-    "ai/pi/roles/debugger.md",
-    "ai/pi/roles/documenter.md",
-    "ai/pi/roles/devops.md",
     "ai/agents/draconic/draconic.md",
     "ai/agents/architect/architect.md",
     "ai/agents/spec/spec.md",

@@ -7,7 +7,7 @@ domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-08-25"
+updated_at: "2026-08-26"
 ---
 
 # Pack and packages
@@ -70,7 +70,7 @@ There is no npm publish. There is no git package source.
 
 ### Dest tree
 
-The dest tree is what a target project commits after install. It holds the copied agents, skills, playbooks, and prompts under `.pi/`. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
+The dest tree is what a target project commits after install. It holds the copied agents, skills, playbooks, and prompts under `.pi/`. Identity dest is only `.pi/agents/`. There is no dest roles tree. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
 
 A dest project never depends on this checkout at runtime.
 

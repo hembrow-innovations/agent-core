@@ -25,6 +25,8 @@ Identity is a markdown file under `ai/agents/`. Dest holds it at `.pi/agents/`. 
 
 `draconic-boot` is the switch. It appends the chosen file with `before_agent_start`. A command or `--agent` flag picks the name for this process. A new process attaches nothing. The last pick is not restored. See [[0007-agent-attach-is-opt-in]].
 
+`draconic-coms` stamps a second identity: `You are coms peer <cname> on project <project>.` That is how a session knows `--project` and `--cname`. Those flags are not in `PI_*` and not in the boot file. A new process without the flags binds as `agent-<id>` on project `default`. Resume without the flags does the same. Bind failure stamps `coms is not bound.`
+
 A lone session and a teammate share one file format and one attach meaning. Append. Spawn and switch differ only in how they name the file. Nicobailon children keep their own format.
 
 A team is a lead plus named living TUI peers. They talk on coms. They share tasks. The human can type into a member. Team UX follows Claude Code agent teams. The mailbox is still coms. Not `~/.claude` inboxes. Not `claude-code-teams-mcp`. Tmux spawn and panes are a separate build. Do not staff teammates with `--mode json -p` or `--mode rpc`.
@@ -47,6 +49,8 @@ Quality is proven by evals and tests on the real Pi session.
 ## Behaviour
 
 Cold start. Boot appends nothing. The chip shows `off`.
+
+Coms still binds. Without `--cname` and `--project` the name is `agent-<id>` and the project is `default`.
 
 Switch. The command appends a dest file for this process. Off and default clear it. The next turn has no pack identity.
 

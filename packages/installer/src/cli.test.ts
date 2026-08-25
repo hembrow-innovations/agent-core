@@ -81,7 +81,7 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
   assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "prompts", "arena.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
-  assert.equal(existsSync(join(dest, ".pi", "roles", "researcher.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "roles")), false);
   assert.deepEqual(
     JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8"))
       .packages,
@@ -128,12 +128,16 @@ test("install --profile agentic-core removes leftover dest extension files", () 
   const dest = mkdtempSync(join(tmpdir(), "installer-pi-stale-"));
   mkdirSync(join(dest, ".pi", "extensions"), { recursive: true });
   mkdirSync(join(dest, ".pi", "lib"), { recursive: true });
+  mkdirSync(join(dest, ".pi", "roles"), { recursive: true });
   writeFileSync(join(dest, ".pi", "extensions", "draconic-boot.ts"), "old\n");
   writeFileSync(join(dest, ".pi", "lib", "old.ts"), "old\n");
+  writeFileSync(join(dest, ".pi", "roles", "architect.md"), "old role\n");
   const r = runCli(["install", dest, "--profile", "agentic-core"]);
   assert.equal(r.status, 0, r.stderr || r.stdout);
   assert.equal(existsSync(join(dest, ".pi", "extensions")), false);
   assert.equal(existsSync(join(dest, ".pi", "lib")), false);
+  assert.equal(existsSync(join(dest, ".pi", "roles")), false);
+  assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
 });
 
 test("install --profile agentic-core writes .pi/skills and does not wire this checkout", () => {

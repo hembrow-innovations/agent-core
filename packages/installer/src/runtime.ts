@@ -1,15 +1,7 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { openDestination, type Destination } from "./dest.ts";
 import { packRoot } from "./pack.ts";
-
-const ROLE_STEM_RE = /^[a-z][a-z0-9-]{0,63}$/;
-const SHIPPED_ROLE_FILES = [
-  "argv.mjs",
-  "researcher.md",
-  "architect.md",
-  "coder.md",
-];
 
 const STUB_APPEND_SYSTEM =
   "# Pi runtime\n\nThis file is the required pack stub. Identity is a dest `.pi/agents/` file. Boot appends it only after /agent or --agent.\n";
@@ -24,15 +16,10 @@ export function installPiRuntime(
 
 export function writeRuntime(srcRoot: string, dest: Destination): void {
   const pack = join(packRoot(srcRoot), "pi");
-  const required = ["APPEND_SYSTEM.md", "draconic-models.md", "roles"];
+  const required = ["APPEND_SYSTEM.md", "draconic-models.md"];
   for (const name of required) {
     if (!existsSync(join(pack, name))) {
       throw new Error(`Pi pack missing: expected ai/pi/${name}`);
-    }
-  }
-  for (const name of SHIPPED_ROLE_FILES) {
-    if (!existsSync(join(pack, "roles", name))) {
-      throw new Error(`Pi pack missing: expected ai/pi/roles/${name}`);
     }
   }
 
@@ -50,21 +37,6 @@ export function writeRuntime(srcRoot: string, dest: Destination): void {
     { ifMissing: true },
   );
   dest.ensureGitignore();
-
-  const destRoles = ".pi/roles";
-  dest.ensureDir(destRoles);
-  const packRoles = join(pack, "roles");
-  for (const ent of readdirSync(packRoles, { withFileTypes: true })) {
-    if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
-    const stem = ent.name.slice(0, -3);
-    if (!ROLE_STEM_RE.test(stem)) continue;
-    dest.writeText(
-      join(destRoles, ent.name),
-      readFileSync(join(packRoles, ent.name), "utf8"),
-      { ifMissing: true },
-    );
-  }
-  dest.copyFile(join(packRoles, "argv.mjs"), join(destRoles, "argv.mjs"));
 }
 
 export function readPiPackages(pack: string): string[] {

@@ -26,8 +26,6 @@ Install writes `.pi/skills` and the Pi pack into `.pi/`:
 - `.pi/.gitignore` if that file is missing
 - package sources from `ai/pi/packages.json` into `.pi/settings.json`
 
-`ai/pi/roles/` is required. Install copies each pack `*.md` whose stem matches the role name pattern into `.pi/roles/` only when that dest file is missing, and overwrites `.pi/roles/argv.mjs` every time. Dest role files are not pruned.
-
-A missing `ai/pi/APPEND_SYSTEM.md`, `ai/pi/draconic-models.md`, or `ai/pi/roles/` is an error. `ai/pi/prompts/` is optional.
+A missing `ai/pi/APPEND_SYSTEM.md` or `ai/pi/draconic-models.md` is an error. `ai/pi/prompts/` is optional. Identity dest is `.pi/agents/`. Install deletes leftover dest `.pi/roles/`.
 
 `ai/pi/packages.json` is a JSON array of Pi package sources such as `npm:pi-lens`. Install merges those sources into `.pi/settings.json` `packages` and leaves other settings keys alone. An existing object-form entry with the same `source` counts as present. Pi then installs any missing project packages on the next trusted startup.
