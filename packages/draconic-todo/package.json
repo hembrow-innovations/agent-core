@@ -9,9 +9,6 @@
     "test": "bun test",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
-  "dependencies": {
-    "@agentic-core/lib": "workspace:*"
-  },
   "peerDependencies": {
     "@earendil-works/pi-ai": "0.84.2",
     "@earendil-works/pi-coding-agent": "0.84.2",

@@ -27,21 +27,18 @@ _Avoid_: live path
 A named install set in `profiles/`. Selected with `--profile`. Skills, playbooks, and extensions. Dest is always `.pi/`.
 
 **Workspace package**:
-A TypeScript package under `packages/`. Folders are `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, `lib`, and `installer`.
+A TypeScript package under `packages/`. Folders are `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, and `installer`.
 
 **First-party extension**:
 A product extension among the workspace packages. The four are `@agentic-core/draconic-todo`, `@agentic-core/draconic-coms`, `@agentic-core/draconic-boot`, and `@agentic-core/draconic-teams`.
 _Avoid_: loose extension file
 
 **Vendor copy**:
-The committed, lib-bundled extension at `.pi/vendor/@agentic-core/<name>`.
+The committed extension copy at `.pi/vendor/@agentic-core/<name>`.
 
 **Installer**:
 The CLI in `packages/installer`, invoked as `pnpm exec agentic-core install`.
 _Avoid_: curl install
-
-**Lib bundle**:
-The install-time copy of `packages/lib` inside each vendor copy. Dest has no sibling lib package.
 
 **This-checkout Pi**:
 The gitignored `.pi/` dest in this repo. It is not auto-wired to `packages/`.

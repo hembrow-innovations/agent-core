@@ -51,3 +51,4 @@ Workspace tests and imports can use `@agentic-core/*`. Install can treat each ex
 - [[architecture-pack-and-packages]]
 - [[spec-installer]]
 - [[plan-2-pnpm-pi-packages]]
+- [[0008-todo-owns-checklist-store]] removes `packages/lib`

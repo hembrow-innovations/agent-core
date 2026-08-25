@@ -10,7 +10,7 @@ import {
 	sessionTodoPath,
 	stubTodoPath,
 	writeSessionChecklist,
-} from "./index.ts";
+} from "./store.ts";
 
 const uuidA = "01a02e18-de1b-73f6-a111-111111111111";
 const uuidB = "01a02e18-de1b-73f6-b222-222222222222";
