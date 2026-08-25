@@ -8,6 +8,7 @@ export type FooterFields = {
 	tokens: number | null;
 	contextWindow: number;
 	cost: number;
+	autoCompact?: boolean;
 	model: string;
 	effort?: string;
 };
@@ -50,6 +51,7 @@ export function formatFooterLine(fields: FooterFields): string {
 		fields.teamStatus?.trim() || undefined,
 		`${tokens}/${formatTokens(fields.contextWindow)}`,
 		`$${fields.cost.toFixed(3)}`,
+		fields.autoCompact ? "(auto)" : undefined,
 		fields.model,
 		fields.effort,
 	].filter((part): part is string => Boolean(part && part.length > 0));

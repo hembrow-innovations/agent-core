@@ -51,6 +51,21 @@ test("footer line is cwd team tokens/limit cost model effort", () => {
 	);
 });
 
+test("footer line puts (auto) before the model when autocompact is on", () => {
+	assert.equal(
+		formatFooterLine({
+			cwd: "agentic-core",
+			tokens: 80,
+			contextWindow: 1000,
+			cost: 0,
+			autoCompact: true,
+			model: "gpt-5.4",
+			effort: "high",
+		}),
+		"agentic-core 80/1.0k $0.000 (auto) gpt-5.4 high",
+	);
+});
+
 test("footer line drops missing team and effort", () => {
 	assert.equal(
 		formatFooterLine({
