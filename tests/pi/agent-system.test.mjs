@@ -28,9 +28,12 @@ test("cold start dest ships the opt-in agent file", () => {
     "architect",
     "coder",
     "debugger",
+    "designer",
     "devops",
     "documenter",
+    "growth",
     "planner",
+    "product",
     "researcher",
     "reviewer",
     "spec",
@@ -42,6 +45,19 @@ test("cold start dest ships the opt-in agent file", () => {
       readFileSync(path, "utf8"),
       new RegExp(`^name: ${stem}$`, "m"),
     );
+  }
+  for (const stem of [
+    "architect",
+    "coder",
+    "debugger",
+    "devops",
+    "documenter",
+    "planner",
+    "researcher",
+    "reviewer",
+    "spec",
+    "tester",
+  ]) {
     assert.equal(existsSync(join(dest, ".pi", "roles", `${stem}.md`)), true);
   }
   const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");

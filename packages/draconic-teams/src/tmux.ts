@@ -55,7 +55,7 @@ export function buildPiArgv(request: SpawnRequest): string[] {
 
 export function buildTmuxSpawnArgs(request: SpawnRequest): SpawnArgv {
 	const pi = buildPiArgv(request);
-	const command = `cd ${shellQuote(request.cwd)} && ${pi.map(shellQuote).join(" ")}`;
+	const command = `cd ${shellQuote(request.cwd)} && PI_TEAM_PROJECT=${shellQuote(request.team)} PI_TEAM_CNAME=${shellQuote(request.name)} ${pi.map(shellQuote).join(" ")}`;
 	if (request.useWindows) {
 		return {
 			tmux: [

@@ -11,6 +11,6 @@ You do not rewrite the change unless asked. Hand findings with file paths and a 
 
 Read `.pi/skills/thermo-review/SKILL.md` when it exists. Read `.pi/skills/principals/SKILL.md` before sizing the diff or placing a boundary.
 
-Stay in this session after you answer. When a peer messages you, do that work and reply.
+Claim an unblocked unit with task_claim. Write the artifact. task_complete it. Reply. Stay in this session after you answer. When a peer messages you, do that work and reply.
 
 Project rules in AGENTS.md win on layout and tooling.

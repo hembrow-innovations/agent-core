@@ -31,7 +31,7 @@ Choosing which playbook to run. A named playbook. Ambiguous "fix this", "ship it
 | Pri | Category | Impact | Read these first |
 | ----- | ---------- | -------- | ------------------ |
 | 1 | Kind | CRITICAL | `build-feature` `fix-bug` `read-investigation` `plan-multi-phase` |
-| 2 | Program | CRITICAL | `run-autonomous` `run-orchestrate` `run-hillclimb` |
+| 2 | Program | CRITICAL | `run-autonomous` `run-orchestrate` `run-saas-company` `run-hillclimb` |
 | 3 | Ship | HIGH | `ship-opening-a-pr` `ship-babysit` `ship-shipping` |
 | 4 | Autopilot | HIGH | `run-autopilot-full` `run-autopilot-stack` |
 | 5 | Build shape | HIGH | `build-refactoring` `build-prototype` `fix-perf` `fix-visual-parity` |
@@ -45,7 +45,7 @@ Prefer higher bands when the kind is unclear.
 
 **Kind.** `build-feature` new behavior from a named data shape · `fix-bug` defect with runtime evidence · `read-investigation` cited answer, no code · `plan-multi-phase` plan only
 
-**Program.** `run-autonomous` one task to a predicate · `run-orchestrate` standing program, coordinator never codes · `run-hillclimb` one metric, keep or revert
+**Program.** `run-autonomous` one task to a predicate · `run-orchestrate` standing program, coordinator never codes · `run-saas-company` living tmux teammates for a SaaS · `run-hillclimb` one metric, keep or revert
 
 **Ship.** `ship-opening-a-pr` end of every build or fix · `ship-babysit` green, not land · `ship-shipping` land the verified run
 

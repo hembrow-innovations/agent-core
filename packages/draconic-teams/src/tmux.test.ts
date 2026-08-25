@@ -49,6 +49,8 @@ test("buildTmuxSpawnArgs defaults to a detached pane and quotes the cd", () => {
 		"#{pane_id}",
 	]);
 	assert.match(built.command, /cd \/work\/demo/);
+	assert.match(built.command, /PI_TEAM_PROJECT=demo/);
+	assert.match(built.command, /PI_TEAM_CNAME=researcher/);
 	assert.match(built.command, /pi --cname researcher/);
 	assert.match(built.command, /--project demo/);
 	assert.ok(!built.tmux.includes("send-keys"));

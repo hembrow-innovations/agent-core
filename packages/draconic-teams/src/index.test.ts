@@ -231,3 +231,53 @@ test("task tools create, block, claim, complete, and refuse a second claim", asy
 		else process.env.PI_TEAMS_DIR = prev;
 	}
 });
+
+test("task_claim in a second process uses --project without team_create", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const lead = loadExtension({ flags: { cname: "team-lead" } });
+		await tool(lead.tools, "team_create").execute(
+			"1",
+			{ name: "demo" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		await tool(lead.tools, "task_create").execute(
+			"2",
+			{ subject: "read", description: "first" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		const prevProject = process.env.PI_TEAM_PROJECT;
+		const prevCname = process.env.PI_TEAM_CNAME;
+		process.env.PI_TEAM_PROJECT = "demo";
+		process.env.PI_TEAM_CNAME = "researcher";
+		try {
+			const teammate = loadExtension({ flags: {} });
+			const claimed = await tool(teammate.tools, "task_claim").execute(
+				"3",
+				{ id: "1" },
+				undefined,
+				undefined,
+				{ cwd: "/work" },
+			);
+			assert.equal((claimed.details as { error?: string }).error, undefined);
+			assert.equal(
+				(claimed.details as { task: { owner: string } }).task.owner,
+				"researcher",
+			);
+		} finally {
+			if (prevProject === undefined) delete process.env.PI_TEAM_PROJECT;
+			else process.env.PI_TEAM_PROJECT = prevProject;
+			if (prevCname === undefined) delete process.env.PI_TEAM_CNAME;
+			else process.env.PI_TEAM_CNAME = prevCname;
+		}
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
