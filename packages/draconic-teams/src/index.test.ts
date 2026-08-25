@@ -31,17 +31,17 @@ type Command = {
 	) => Promise<void>;
 };
 
-function loadExtension(opts?: {
-	flags?: Record<string, string>;
-	env?: NodeJS.ProcessEnv;
-}) {
+function loadExtension(opts?: { flags?: Record<string, string> }) {
 	const tools: Tool[] = [];
 	const commands: Command[] = [];
 	const events: string[] = [];
 	const flags = opts?.flags ?? {};
+	const registered = new Set<string>();
 	const statuses: Array<[string, string | undefined]> = [];
 	teamsExtension({
-		registerFlag() {},
+		registerFlag(name: string) {
+			registered.add(name);
+		},
 		registerTool(tool: Tool) {
 			tools.push(tool);
 		},
@@ -52,6 +52,7 @@ function loadExtension(opts?: {
 			events.push(event);
 		},
 		getFlag(name: string) {
+			if (!registered.has(name)) return undefined;
 			return flags[name];
 		},
 	} as unknown as ExtensionAPI);
@@ -232,7 +233,7 @@ test("task tools create, block, claim, complete, and refuse a second claim", asy
 	}
 });
 
-test("task_claim in a second process uses --project without team_create", async () => {
+test("team_status binds --project without team_create in this process", async () => {
 	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-ext-"));
 	const prev = process.env.PI_TEAMS_DIR;
 	process.env.PI_TEAMS_DIR = teamsDir;
@@ -252,30 +253,107 @@ test("task_claim in a second process uses --project without team_create", async 
 			undefined,
 			{ cwd: "/work" },
 		);
-		const prevProject = process.env.PI_TEAM_PROJECT;
-		const prevCname = process.env.PI_TEAM_CNAME;
-		process.env.PI_TEAM_PROJECT = "demo";
-		process.env.PI_TEAM_CNAME = "researcher";
-		try {
-			const teammate = loadExtension({ flags: {} });
-			const claimed = await tool(teammate.tools, "task_claim").execute(
-				"3",
-				{ id: "1" },
-				undefined,
-				undefined,
-				{ cwd: "/work" },
-			);
-			assert.equal((claimed.details as { error?: string }).error, undefined);
-			assert.equal(
-				(claimed.details as { task: { owner: string } }).task.owner,
-				"researcher",
-			);
-		} finally {
-			if (prevProject === undefined) delete process.env.PI_TEAM_PROJECT;
-			else process.env.PI_TEAM_PROJECT = prevProject;
-			if (prevCname === undefined) delete process.env.PI_TEAM_CNAME;
-			else process.env.PI_TEAM_CNAME = prevCname;
-		}
+		const teammate = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		const status = await tool(teammate.tools, "team_status").execute(
+			"3",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal(
+			(status.details as { team?: { name: string } }).team?.name,
+			"demo",
+		);
+		const claimed = await tool(teammate.tools, "task_claim").execute(
+			"4",
+			{ id: "1" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal((claimed.details as { error?: string }).error, undefined);
+		assert.equal(
+			(claimed.details as { task: { owner: string } }).task.owner,
+			"researcher",
+		);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("team_status without flags stays leadless", async () => {
+	const { tools } = loadExtension();
+	const status = await tool(tools, "team_status").execute(
+		"1",
+		{},
+		undefined,
+		undefined,
+		{ cwd: "/work" },
+	);
+	assert.equal(status.content[0]?.text, "no team. /team create <name> first.");
+});
+
+test("coms default project without a team file stays leadless", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const { tools } = loadExtension({ flags: { project: "default" } });
+		const status = await tool(tools, "team_status").execute(
+			"1",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal(status.content[0]?.text, "no team. /team create <name> first.");
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("team_status follows live --project after factory load", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const lead = loadExtension({ flags: { cname: "team-lead" } });
+		await tool(lead.tools, "team_create").execute(
+			"1",
+			{ name: "default" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		await tool(lead.tools, "team_create").execute(
+			"2",
+			{ name: "demo" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		const flags: Record<string, string> = {
+			project: "default",
+			cname: "researcher",
+		};
+		const late = loadExtension({ flags });
+		flags.project = "demo";
+		const status = await tool(late.tools, "team_status").execute(
+			"3",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal(
+			(status.details as { team?: { name: string } }).team?.name,
+			"demo",
+		);
 	} finally {
 		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
 		else process.env.PI_TEAMS_DIR = prev;

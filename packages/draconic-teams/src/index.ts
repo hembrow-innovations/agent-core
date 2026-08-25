@@ -22,31 +22,9 @@ import {
 } from "./store.ts";
 import { applySpawn, killPane } from "./tmux.ts";
 
-function argvString(name: string): string | undefined {
-	const key = `--${name}`;
-	const argv = process.argv;
-	for (let i = 0; i < argv.length; i++) {
-		if (argv[i] !== key) continue;
-		const value = argv[i + 1];
-		if (typeof value === "string" && value.length > 0 && !value.startsWith("-")) {
-			return value;
-		}
-	}
-	return undefined;
-}
-
-function teamEnvName(name: string): string {
-	if (name === "project") return "PI_TEAM_PROJECT";
-	if (name === "cname") return "PI_TEAM_CNAME";
-	return `PI_TEAM_${name.toUpperCase()}`;
-}
-
 function flagString(pi: ExtensionAPI, name: string): string | undefined {
-	const fromFlag = pi.getFlag(name);
-	if (typeof fromFlag === "string" && fromFlag.length > 0) return fromFlag;
-	const fromEnv = process.env[teamEnvName(name)];
-	if (typeof fromEnv === "string" && fromEnv.length > 0) return fromEnv;
-	return argvString(name);
+	const value = pi.getFlag(name);
+	return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
 type NotifyType = "info" | "warning" | "error";
@@ -112,15 +90,35 @@ function formatTask(task: Task): string {
 }
 
 export default function (pi: ExtensionAPI) {
+	pi.registerFlag("cname", {
+		description:
+			"Coms agent name. Distinct from pi --name, which the harness owns.",
+		type: "string",
+		default: undefined,
+	});
+	pi.registerFlag("project", {
+		description: "Project namespace for peer discovery",
+		type: "string",
+		default: undefined,
+	});
+
 	const teamsDir = () => defaultTeamsDir();
-	let currentTeam = flagString(pi, "project");
+	let currentTeam: string | undefined;
 
 	const requireTeam = (): Team => {
 		const name = currentTeam || flagString(pi, "project");
 		if (!name) throw new Error("no team. /team create <name> first.");
-		const team = readTeam({ teamsDir: teamsDir(), name });
-		currentTeam = team.name;
-		return team;
+		try {
+			const team = readTeam({ teamsDir: teamsDir(), name });
+			currentTeam = team.name;
+			return team;
+		} catch (err) {
+			const message = err instanceof Error ? err.message : String(err);
+			if (message.startsWith("team not found:")) {
+				throw new Error("no team. /team create <name> first.");
+			}
+			throw err;
+		}
 	};
 
 	pi.on("session_start", async (_event, ctx) => {
