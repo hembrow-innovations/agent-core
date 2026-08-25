@@ -78,6 +78,8 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
   assert.ok(folders.includes("how"), folders.join(", "));
   assert.ok(folders.includes("playbooks"), folders.join(", "));
   assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "prompts", "arena.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "roles", "researcher.md")), true);
   assert.deepEqual(
@@ -87,6 +89,7 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
       "npm:pi-lens",
       "npm:pi-web-access",
       "npm:pi-subagents",
+      "npm:@ff-labs/pi-fff",
       "vendor/@agentic-core/draconic-todo",
       "vendor/@agentic-core/draconic-coms",
       "vendor/@agentic-core/draconic-boot",

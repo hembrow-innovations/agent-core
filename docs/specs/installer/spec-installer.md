@@ -27,7 +27,7 @@ Flags:
 - `--extension <name>`
 
 `--extension` may repeat.
-A profile install also installs that profile's `extensions` list.
+A profile install also installs that profile's `packages` list.
 Dest is always `.pi/`.
 
 The dest receives a vendor copy at `.pi/vendor/@agentic-core/<name>`.
@@ -55,10 +55,10 @@ A dest never depends on this checkout at runtime.
 
 `<target>` is a dest directory. `.` is allowed.
 
-`--profile <name>` writes that profile into `.pi/` and installs every name in `profile.extensions`.
+`--profile <name>` writes that profile into `.pi/` and installs every source in `profile.packages`.
 `--extension <name>` installs that first-party extension into `.pi/vendor/`.
 Repeated `--extension` flags install each named extension.
-`--profile` and `--extension` may be used together. Extra extensions install on top of the profile list.
+`--profile` and `--extension` may be used together. Extra vendor sources install on top of the profile list.
 
 Install copies each named first-party package as it is. Dest does not receive a vendor lib package.
 
@@ -67,19 +67,22 @@ The package `@agentic-core/draconic-todo` lands at `.pi/vendor/@agentic-core/dra
 The dest uses `.pi/vendor/` and `.pi/settings.json`.
 Settings record dest-relative paths only. No path back to this checkout.
 
-Third-party sources such as `npm:pi-lens` still merge into dest settings.
+Third-party sources such as `npm:pi-lens` come from `profile.packages` and merge into dest settings.
+Selected agents copy from `ai/agents/` to `.pi/agents/`.
+Selected prompts copy from `ai/prompts/` to `.pi/prompts/`.
 
 Re-run replaces the vendor tree and rewrites the dest-relative settings paths.
 
 This checkout's Pi is not wired to `packages/`. Nothing vendors until the installer is pointed at a target.
 
-A leftover `mode:`, `harness:`, `pi:`, `agents:`, `prompts:`, `templates:`, or `commands:` key on a profile is an error.
+A leftover `mode:`, `harness:`, `pi:`, `extensions:`, `templates:`, or `commands:` key on a profile is an error. `agents` and `prompts` select library files. Field rules are [[schema-profile]].
 
 ## Acceptance
 
 - The command accepts `<target>`, `--profile`, and `--extension`
 - `--extension` can be passed more than once
-- A profile install installs `profile.extensions` into `.pi/vendor/`
+- A profile install installs `profile.packages` into dest settings and vendors first-party sources
+- A profile can select `agents` and `prompts` from the source libraries
 - Vendor path is `.pi/vendor/@agentic-core/<name>`
 - Settings contain dest-relative paths to those folders
 - Re-run overwrites the vendor copy

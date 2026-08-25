@@ -1,26 +1,36 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { parseProfilePackage, type ProfilePackage } from "./extensions.ts";
 
-export type PlaybookSelection =
+export type NamedSelection =
   | { kind: "all" }
   | { kind: "list"; ids: string[] }
   | { kind: "omit" };
 
+export type PlaybookSelection = NamedSelection;
+
 export type Profile = {
   name: string;
   skills: string[];
-  playbooks: PlaybookSelection;
-  extensions: string[];
+  playbooks: NamedSelection;
+  agents: NamedSelection;
+  prompts: NamedSelection;
+  packages: ProfilePackage[];
 };
 
-const PROFILE_KEYS = new Set(["skills", "playbooks", "extensions"]);
+const PROFILE_KEYS = new Set([
+  "skills",
+  "playbooks",
+  "agents",
+  "prompts",
+  "packages",
+]);
 
 const LEFTOVER_KEYS = new Map([
   ["mode", 'leftover "mode:". dest playbooks live at .pi/playbooks'],
   ["harness", 'leftover "harness:". dest is always .pi'],
   ["pi", 'leftover "pi:". dest is always .pi'],
-  ["agents", 'leftover "agents:". dest is always .pi'],
-  ["prompts", 'leftover "prompts:". dest is always .pi'],
+  ["extensions", 'leftover "extensions:". use packages:'],
   ["templates", 'leftover "templates:". dest is always .pi'],
   ["commands", 'leftover "commands:". dest is always .pi'],
 ]);
@@ -93,8 +103,10 @@ export function loadProfile(srcRoot: string, name: string): Profile {
   return {
     name,
     skills: asStringList(raw.skills, "skills"),
-    playbooks: toPlaybooks(raw.playbooks),
-    extensions: asStringList(raw.extensions, "extensions"),
+    playbooks: toSelection(raw.playbooks, "playbooks"),
+    agents: toSelection(raw.agents, "agents"),
+    prompts: toSelection(raw.prompts, "prompts"),
+    packages: asStringList(raw.packages, "packages").map(parseProfilePackage),
   };
 }
 
@@ -107,11 +119,45 @@ export function listProfiles(srcRoot: string): string[] {
     .sort();
 }
 
-function toPlaybooks(value: unknown): PlaybookSelection {
+export type SelectionResolveOpts = {
+  replace: string[] | null;
+  add: string[];
+  remove: string[];
+};
+
+export function resolveNamedIds(
+  selection: NamedSelection,
+  opts: SelectionResolveOpts,
+  available: string[],
+  label: string,
+): string[] {
+  const avail = new Set(available);
+  let ids: string[];
+  if (opts.replace != null) ids = [...opts.replace];
+  else if (selection.kind === "all") ids = [...available];
+  else if (selection.kind === "list") ids = [...selection.ids];
+  else ids = [];
+  ids.push(...opts.add);
+  if (opts.remove.length > 0) {
+    const drop = new Set(opts.remove);
+    ids = ids.filter((id) => !drop.has(id));
+  }
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const id of ids) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    if (!avail.has(id)) throw new Error(`Unknown ${label} "${id}"`);
+    out.push(id);
+  }
+  return out;
+}
+
+function toSelection(value: unknown, key: string): NamedSelection {
   if (value === undefined || value === null) return { kind: "omit" };
   if (value === "all") return { kind: "all" };
   if (Array.isArray(value)) return { kind: "list", ids: value.map(String) };
-  throw new Error(`Invalid playbooks value: ${JSON.stringify(value)}`);
+  throw new Error(`Invalid ${key} value: ${JSON.stringify(value)}`);
 }
 
 function asStringList(value: unknown, key: string): string[] {

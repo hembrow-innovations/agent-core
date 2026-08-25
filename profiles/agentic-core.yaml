@@ -1,10 +1,16 @@
 # Develop this repo in Pi. Not an export profile.
 playbooks: all
-extensions:
-  - draconic-todo
-  - draconic-coms
-  - draconic-boot
-  - draconic-teams
+agents: all
+prompts: all
+packages:
+  - npm:pi-lens
+  - npm:pi-web-access
+  - npm:pi-subagents
+  - npm:@ff-labs/pi-fff
+  - vendor/@agentic-core/draconic-todo
+  - vendor/@agentic-core/draconic-coms
+  - vendor/@agentic-core/draconic-boot
+  - vendor/@agentic-core/draconic-teams
 skills:
   - agent-teams
   - architect

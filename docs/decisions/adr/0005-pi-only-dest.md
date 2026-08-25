@@ -35,7 +35,9 @@ Keep OpenCode source and stop installing it. Dead pack files would still look li
 
 ## Consequences
 
-Every profile install writes `.pi/skills` and the Pi runtime. Former OpenCode profiles become skill lists for Pi. Vendor write happens whenever a profile or `--extension` names a first-party package.
+Every profile install writes `.pi/skills` and the Pi runtime. Former OpenCode profiles become skill lists for Pi. Vendor write happens whenever a profile `packages` entry or `--extension` names a first-party package.
+
+`agents` and `prompts` later became install selection lists. That is not a dest key. See [[schema-profile]].
 
 [[0002-standalone-vendor-install]] still owns the vendor copy. [[0004-source-pack-under-ai]] still owns the `ai/` root. [[0006-source-libraries-beside-pi-runtime]] owns the libraries inside `ai/` and supersedes the claim that source identity lives under `ai/pi/agents/`. This note owns dest identity.
 
@@ -43,6 +45,7 @@ Every profile install writes `.pi/skills` and the Pi runtime. Former OpenCode pr
 
 - [[glossary]]
 - [[architecture-pack-and-packages]]
+- [[schema-profile]]
 - [[spec-installer]]
 - [[guides-install-from-this-repo]]
 - [[0002-standalone-vendor-install]]

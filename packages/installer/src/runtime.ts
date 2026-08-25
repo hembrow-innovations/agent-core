@@ -38,23 +38,6 @@ export function writeRuntime(srcRoot: string, dest: Destination): void {
 
   dest.removeLeftovers();
 
-  const destPrompts = ".pi/prompts";
-  dest.ensureDir(destPrompts);
-  const keep = new Set<string>();
-  const packPrompts = join(pack, "prompts");
-  if (existsSync(packPrompts)) {
-    for (const ent of readdirSync(packPrompts, { withFileTypes: true })) {
-      if (!ent.isFile() || !ent.name.endsWith(".md")) continue;
-      if (ent.name.toLowerCase() === "readme.md") continue;
-      keep.add(ent.name);
-      dest.copyFile(join(packPrompts, ent.name), join(destPrompts, ent.name));
-    }
-  }
-  for (const ent of dest.list(destPrompts)) {
-    if (!ent.isFile || !ent.name.endsWith(".md")) continue;
-    if (!keep.has(ent.name)) dest.remove(join(destPrompts, ent.name));
-  }
-
   writeAppendSystem(
     dest,
     ".pi/APPEND_SYSTEM.md",
@@ -82,24 +65,6 @@ export function writeRuntime(srcRoot: string, dest: Destination): void {
     );
   }
   dest.copyFile(join(packRoles, "argv.mjs"), join(destRoles, "argv.mjs"));
-
-  const packAgents = join(packRoot(srcRoot), "agents");
-  if (existsSync(packAgents)) {
-    const destAgents = ".pi/agents";
-    dest.ensureDir(destAgents);
-    for (const ent of readdirSync(packAgents, { withFileTypes: true })) {
-      if (!ent.isDirectory()) continue;
-      const stem = ent.name;
-      if (!ROLE_STEM_RE.test(stem)) continue;
-      const src = join(packAgents, stem, `${stem}.md`);
-      if (!existsSync(src)) continue;
-      const body = readFileSync(src, "utf8");
-      if (!body.trim()) continue;
-      dest.writeText(join(destAgents, `${stem}.md`), body, { ifMissing: true });
-    }
-  }
-
-  dest.mergePackages(readPiPackages(pack));
 }
 
 export function readPiPackages(pack: string): string[] {

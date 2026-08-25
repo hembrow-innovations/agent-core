@@ -11,7 +11,12 @@ export const FIRST_PARTY_EXTENSIONS = [
 
 export type FirstPartyExtension = (typeof FIRST_PARTY_EXTENSIONS)[number];
 
+export type ProfilePackage =
+  | { kind: "npm"; source: string }
+  | { kind: "vendor"; name: FirstPartyExtension };
+
 const FIRST_PARTY_EXTENSION_SET = new Set<string>(FIRST_PARTY_EXTENSIONS);
+const VENDOR_SOURCE_RE = /^(?:\.pi\/)?vendor\/@agentic-core\/([a-z0-9-]+)$/;
 
 export function isFirstPartyExtension(
   name: string,
@@ -23,6 +28,32 @@ export function vendorPackageSource(name: FirstPartyExtension): string {
   return `vendor/@agentic-core/${name}`;
 }
 
+export function packageRefSource(pkg: ProfilePackage): string {
+  if (pkg.kind === "npm") return pkg.source;
+  return vendorPackageSource(pkg.name);
+}
+
+export function parseProfilePackage(raw: string): ProfilePackage {
+  const src = raw.trim();
+  if (src.startsWith("npm:")) {
+    if (src === "npm:") throw new Error(`Invalid package source: ${raw}`);
+    return { kind: "npm", source: src };
+  }
+  const match = src.match(VENDOR_SOURCE_RE);
+  if (!match) {
+    throw new Error(
+      `Invalid package source: ${raw}. Use npm:... or vendor/@agentic-core/<name>`,
+    );
+  }
+  const name = match[1];
+  if (!isFirstPartyExtension(name)) {
+    throw new Error(
+      `Unknown extension: ${name}. Choose: ${FIRST_PARTY_EXTENSIONS.join(", ")}`,
+    );
+  }
+  return { kind: "vendor", name };
+}
+
 export function installVendorExtensions(
   srcRoot: string,
   target: string,
@@ -31,16 +62,24 @@ export function installVendorExtensions(
   writeExtensions(srcRoot, openDestination(target), names);
 }
 
+export function writeVendorTrees(
+  srcRoot: string,
+  dest: Destination,
+  names: readonly FirstPartyExtension[],
+): void {
+  for (const name of uniqueNames(names)) {
+    writeVendorExtension(srcRoot, dest, name);
+    console.log(`  vendor ${name} → .pi/vendor/@agentic-core/${name}`);
+  }
+}
+
 export function writeExtensions(
   srcRoot: string,
   dest: Destination,
   names: readonly FirstPartyExtension[],
 ): void {
   const unique = uniqueNames(names);
-  for (const name of unique) {
-    writeVendorExtension(srcRoot, dest, name);
-    console.log(`  vendor ${name} → .pi/vendor/@agentic-core/${name}`);
-  }
+  writeVendorTrees(srcRoot, dest, unique);
   dest.mergePackages(unique.map(vendorPackageSource));
 }
 

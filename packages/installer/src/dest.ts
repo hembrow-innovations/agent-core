@@ -11,6 +11,8 @@ import { dirname, join } from "node:path";
 
 export const SKILL_DEST = ".pi/skills";
 export const PLAYBOOK_DEST = ".pi/playbooks";
+export const AGENT_DEST = ".pi/agents";
+export const PROMPT_DEST = ".pi/prompts";
 export const SETTINGS_PATH = ".pi/settings.json";
 export const GITIGNORE_PATH = ".pi/.gitignore";
 export const GITIGNORE_BODY = "npm/\ngit/\n";

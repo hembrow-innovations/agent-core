@@ -87,7 +87,7 @@ The command is `pnpm exec agentic-core install`. The package lives in `packages/
 - **cli.ts**: parses argv and dispatches
 - **profile.ts**: reads `profiles/*.yaml` into a `Profile`
 - **dest.ts**: dest `.pi/` reads and writes
-- **skills.ts**, **playbooks.ts**, **extensions.ts**, **runtime.ts**: one module per install section
+- **skills.ts**, **playbooks.ts**, **agents.ts**, **prompts.ts**, **extensions.ts**, **runtime.ts**: one module per install section
 - **plan.ts**: merges the profile with CLI flags
 
 ```bash
@@ -97,13 +97,13 @@ pnpm exec agentic-core install <target> --extension draconic-todo
 
 `--extension` can repeat. Dest is always `.pi/`.
 
-A profile install copies the pack for that profile. It also installs that profile's `extensions` list. Profiles `agentic-core` and `life-engine` list `draconic-todo`, `draconic-coms`, `draconic-boot`, and `draconic-teams`.
+A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the npm sources plus `vendor/@agentic-core/` trees for todo, coms, boot, and teams.
 
 Playbooks land at `.pi/playbooks/`. A leftover `mode:` key is an error.
 
 An extension install names a first-party package for the vendor tree.
 
-See [[spec-installer]] for flags and outputs. See [[guides-install-from-this-repo]] for how to run it.
+See [[schema-profile]] for the YAML. See [[spec-installer]] for flags and outputs. See [[guides-install-from-this-repo]] for how to run it.
 
 ### This checkout is not auto-wired
 
@@ -115,7 +115,7 @@ The design optimises for dest independence. Dest can commit a self-contained ven
 
 It sacrifices a short inner loop that would load `packages/` from this checkout without install. Developers must run the installer against `.` to use the extensions here.
 
-It also refuses a meta package that would install every extension as one unit. Profile `extensions` lists stay the grouping mechanism.
+It also refuses a meta package that would install every extension as one unit. Profile `packages` lists stay the grouping mechanism.
 
 This cut has no uninstall.
 
@@ -125,7 +125,7 @@ Install is the only path from workspace packages to a dest. A dest never keeps a
 
 Todo tests and imports stay in the workspace. Dest never sees a sibling lib package.
 
-The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. It also does not keep prompts, skills, agents, or roles under `ai/pi/`. Profiles list skills, playbooks, and extensions. They do not name a dest. See [[0005-pi-only-dest]] and [[0006-source-libraries-beside-pi-runtime]].
+The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. It also does not keep prompts, skills, agents, or roles under `ai/pi/`. Profiles list skills, playbooks, agents, prompts, and packages. They do not name a dest. See [[0005-pi-only-dest]] and [[0006-source-libraries-beside-pi-runtime]].
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.
 

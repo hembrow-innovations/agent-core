@@ -2,19 +2,25 @@
 
 `pnpm exec agentic-core install <target> --profile NAME` loads `profiles/NAME.yaml`. Dest is always `.pi/`.
 
-## Schema
+Field rules, leftover keys, and the YAML subset live in `docs/api/schema/schema-profile.md`.
 
 ```yaml
-skills:               # skill folder names to copy. Default: []
+skills:
   - architect
-playbooks: all        # omit the key, `all`, or a list of playbook ids
-extensions:           # first-party package folder names. Default: []
-  - draconic-todo
+playbooks: all
+agents:
+  - architect
+  - coder
+prompts:
+  - arena
+packages:
+  - npm:pi-lens
+  - vendor/@agentic-core/draconic-todo
 ```
 
 Install writes `.pi/skills` and the Pi pack into `.pi/`:
 
-- first-party vendor packages from `profile.extensions` into `.pi/vendor/@agentic-core/`
+- first-party vendor packages from `profile.packages` into `.pi/vendor/@agentic-core/`
 - every `ai/pi/prompts/*.md` except README, into `.pi/prompts/`
 - `ai/pi/APPEND_SYSTEM.md` and `ai/pi/draconic-models.md` if those dest files are missing
 - `.pi/.gitignore` if that file is missing
@@ -25,19 +31,3 @@ Install writes `.pi/skills` and the Pi pack into `.pi/`:
 A missing `ai/pi/APPEND_SYSTEM.md`, `ai/pi/draconic-models.md`, or `ai/pi/roles/` is an error. `ai/pi/prompts/` is optional.
 
 `ai/pi/packages.json` is a JSON array of Pi package sources such as `npm:pi-lens`. Install merges those sources into `.pi/settings.json` `packages` and leaves other settings keys alone. An existing object-form entry with the same `source` counts as present. Pi then installs any missing project packages on the next trusted startup.
-
-A leftover `mode:`, `harness:`, `pi:`, `agents:`, `prompts:`, `templates:`, or `commands:` key is an error. Unknown YAML keys are an error.
-
-Boolean keys are not used. `skills` and `extensions` default to empty lists. A leftover `mode:` key is an error. A profile install also vendors `extensions`. `--extension` names install on top of that list.
-
-## Playbooks
-
-`ai/playbooks/` is the library. Install copies the selected files into dest `.pi/playbooks/`.
-
-- **key omitted**: Dest `.pi/playbooks/` is left alone
-- **`all`**: Every `playbooks/*.md` except README
-- **list of ids**: Those files, including an empty list
-
-`--playbooks a,b` replaces the profile selection. `--with-playbooks` and `--without-playbooks` add or remove ids after that.
-
-Playbook files live at `ai/playbooks/<id>.md` with `title` and `when` frontmatter. A profile names the ids it ships, or sets `playbooks: all`. Install overwrites dest `.pi/playbooks/` from the library.

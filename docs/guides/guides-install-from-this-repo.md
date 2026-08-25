@@ -66,6 +66,7 @@ This checkout does not vendor `packages/` until you point the installer at a tar
 
 ## Reference
 
+- Profile YAML in [[schema-profile]]
 - Command and dest rules in [[spec-installer]]
 - Pack layout in [[architecture-pack-and-packages]]
 - Decision record in [[0002-standalone-vendor-install]] and [[0005-pi-only-dest]]

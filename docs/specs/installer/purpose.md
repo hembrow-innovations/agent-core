@@ -20,7 +20,7 @@ Install a self-contained vendor tree a dest project can commit and run without t
 ## In scope
 
 - Install from this repo only
-- Profile install with that profile's `extensions` list
+- Profile install with that profile's `packages` list
 - One extension install with `--extension`
 - Repeatable `--extension`
 - Dest always `.pi/`
@@ -53,6 +53,7 @@ The dest tree is `.pi/` plus dest settings.
 ## Authority
 
 - Behaviour: [[spec-installer]]
+- Profile YAML: [[schema-profile]]
 - Decisions: [[0002-standalone-vendor-install]], [[0005-pi-only-dest]], and [[0008-todo-owns-checklist-store]]
 - Layout: [[architecture-pack-and-packages]]
 

@@ -14,8 +14,10 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import {
 	findSkillDir,
+	installAgents,
 	installPlaybooks,
 	installPiRuntime,
+	installPrompts,
 	listProfiles,
 	loadProfile,
 	mergePiSettingsPackages,
@@ -115,7 +117,9 @@ test("loadProfile: defaults and playbooks shapes", () => {
 		name: "bare",
 		skills: [],
 		playbooks: { kind: "omit" },
-		extensions: [],
+		agents: { kind: "omit" },
+		prompts: { kind: "omit" },
+		packages: [],
 	});
 
 	assert.deepEqual(loadProfile(root, "all").playbooks, { kind: "all" });
@@ -151,15 +155,10 @@ test("loadProfile: leftover dest keys die", () => {
 		() => loadProfile(root, "commands"),
 		/leftover "commands:". dest is always \.pi/,
 	);
-	writeYaml(root, "agents", "agents: true\nskills: []\n");
+	writeYaml(root, "extensions", "extensions:\n  - draconic-todo\n");
 	assert.throws(
-		() => loadProfile(root, "agents"),
-		/leftover "agents:". dest is always \.pi/,
-	);
-	writeYaml(root, "prompts", "prompts:\n  - wizard\n");
-	assert.throws(
-		() => loadProfile(root, "prompts"),
-		/leftover "prompts:". dest is always \.pi/,
+		() => loadProfile(root, "extensions"),
+		/leftover "extensions:". use packages:/,
 	);
 	writeYaml(root, "templates", "templates: true\nskills: []\n");
 	assert.throws(
@@ -174,22 +173,45 @@ test("loadProfile: unknown key dies", () => {
 	assert.throws(() => loadProfile(root, "x"), /Unknown profile key "foo"/);
 });
 
-test("loadProfile: extensions default empty and accept a list", () => {
+test("loadProfile: packages, agents, and prompts shapes", () => {
 	const root = tempRoot();
 	writeYaml(root, "bare", "skills: []\n");
 	writeYaml(
 		root,
-		"ext",
-		`extensions:
-  - draconic-todo
-  - draconic-coms
+		"listed",
+		`packages:
+  - npm:pi-lens
+  - vendor/@agentic-core/draconic-todo
+agents:
+  - architect
+  - coder
+prompts:
+  - arena
 `,
 	);
-	assert.deepEqual(loadProfile(root, "bare").extensions, []);
-	assert.deepEqual(loadProfile(root, "ext").extensions, [
-		"draconic-todo",
-		"draconic-coms",
+	writeYaml(root, "all", "agents: all\nprompts: all\n");
+	writeYaml(root, "bad-agents", "agents: true\n");
+	writeYaml(root, "bare-pkg", "packages:\n  - draconic-todo\n");
+	assert.deepEqual(loadProfile(root, "bare").packages, []);
+	assert.deepEqual(loadProfile(root, "listed").packages, [
+		{ kind: "npm", source: "npm:pi-lens" },
+		{ kind: "vendor", name: "draconic-todo" },
 	]);
+	assert.deepEqual(loadProfile(root, "listed").agents, {
+		kind: "list",
+		ids: ["architect", "coder"],
+	});
+	assert.deepEqual(loadProfile(root, "listed").prompts, {
+		kind: "list",
+		ids: ["arena"],
+	});
+	assert.deepEqual(loadProfile(root, "all").agents, { kind: "all" });
+	assert.deepEqual(loadProfile(root, "all").prompts, { kind: "all" });
+	assert.throws(() => loadProfile(root, "bad-agents"), /Invalid agents value/);
+	assert.throws(
+		() => loadProfile(root, "bare-pkg"),
+		/Invalid package source: draconic-todo/,
+	);
 });
 
 test("listProfiles skips README", () => {
@@ -391,14 +413,22 @@ test("repo agentic-core profile loads", () => {
 	assert.deepEqual(missing, []);
 });
 
-test("repo profiles list todo, coms, boot, and teams", () => {
+test("repo profiles list npm and vendor packages", () => {
+	const expected = [
+		{ kind: "npm", source: "npm:pi-lens" },
+		{ kind: "npm", source: "npm:pi-web-access" },
+		{ kind: "npm", source: "npm:pi-subagents" },
+		{ kind: "npm", source: "npm:@ff-labs/pi-fff" },
+		{ kind: "vendor", name: "draconic-todo" },
+		{ kind: "vendor", name: "draconic-coms" },
+		{ kind: "vendor", name: "draconic-boot" },
+		{ kind: "vendor", name: "draconic-teams" },
+	];
 	for (const name of ["agentic-core", "life-engine"]) {
-		assert.deepEqual(loadProfile(REPO, name).extensions, [
-			"draconic-todo",
-			"draconic-coms",
-			"draconic-boot",
-			"draconic-teams",
-		]);
+		const p = loadProfile(REPO, name);
+		assert.deepEqual(p.packages, expected);
+		assert.deepEqual(p.agents, { kind: "all" });
+		assert.deepEqual(p.prompts, { kind: "all" });
 	}
 });
 
@@ -439,7 +469,7 @@ test("repo agentic-core profile resolves every skill from skills/", () => {
 	]);
 });
 
-test("installPiRuntime writes boot, models, and every pack prompt", () => {
+test("installPiRuntime writes boot and models and leaves prompts alone", () => {
 	const root = tempRoot();
 	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
 	mkdirSync(join(root, "ai", "pi", "prompts"), { recursive: true });
@@ -450,8 +480,6 @@ test("installPiRuntime writes boot, models, and every pack prompt", () => {
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
 	writeFileSync(join(root, "ai", "pi", "draconic-models.md"), "models\n");
 	writeFileSync(join(root, "ai", "pi", "prompts", "how.md"), "how\n");
-	writeFileSync(join(root, "ai", "pi", "prompts", "why.md"), "why\n");
-	writeFileSync(join(root, "ai", "pi", "prompts", "orchestrate.md"), "orch\n");
 	writePiRolesPack(root);
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-"));
@@ -464,12 +492,11 @@ test("installPiRuntime writes boot, models, and every pack prompt", () => {
 		readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"),
 		"models\n",
 	);
-	assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), true);
-	assert.equal(existsSync(join(dest, ".pi", "prompts", "orchestrate.md")), true);
-	assert.equal(existsSync(join(dest, ".pi", "prompts", "why.md")), true);
+	assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), false);
 
 	writeFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "custom\n");
 	writeFileSync(join(dest, ".pi", "draconic-models.md"), "picked\n");
+	mkdirSync(join(dest, ".pi", "prompts"), { recursive: true });
 	writeFileSync(join(dest, ".pi", "prompts", "leftover.md"), "stale\n");
 	installPiRuntime(root, dest, { skills: ["how"], playbooks: ["orchestrate"] });
 	assert.equal(
@@ -480,14 +507,12 @@ test("installPiRuntime writes boot, models, and every pack prompt", () => {
 		readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"),
 		"picked\n",
 	);
-	assert.equal(existsSync(join(dest, ".pi", "prompts", "why.md")), true);
-	assert.equal(existsSync(join(dest, ".pi", "prompts", "leftover.md")), false);
+	assert.equal(existsSync(join(dest, ".pi", "prompts", "leftover.md")), true);
 });
 
-test("installPiRuntime merges pack packages into settings.json", () => {
+test("installPiRuntime does not merge pack packages into settings.json", () => {
 	const root = tempRoot();
 	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
-	mkdirSync(join(root, "ai", "pi", "prompts"), { recursive: true });
 	writeFileSync(
 		join(root, "ai", "pi", "extensions", "boot.ts"),
 		"export default function () {}\n",
@@ -502,37 +527,7 @@ test("installPiRuntime merges pack packages into settings.json", () => {
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-pkg-"));
 	installPiRuntime(root, dest);
-	assert.deepEqual(
-		JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8")),
-		{
-			packages: ["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"],
-		},
-	);
-
-	writeFileSync(
-		join(dest, ".pi", "settings.json"),
-		`${JSON.stringify(
-			{
-				theme: "dark",
-				packages: [{ source: "npm:pi-lens", extensions: [] }, "npm:custom"],
-			},
-			null,
-			2,
-		)}\n`,
-	);
-	installPiRuntime(root, dest);
-	assert.deepEqual(
-		JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8")),
-		{
-			theme: "dark",
-			packages: [
-				{ source: "npm:pi-lens", extensions: [] },
-				"npm:custom",
-				"npm:pi-web-access",
-				"npm:pi-subagents",
-			],
-		},
-	);
+	assert.equal(existsSync(join(dest, ".pi", "settings.json")), false);
 });
 
 test("readPiPackages rejects a bad pack list", () => {
@@ -615,38 +610,46 @@ test("installPiRuntime rewrites a dest APPEND_SYSTEM that still names the dest r
 	);
 });
 
-test("installPiRuntime writes dest agents and leaves a custom file alone", () => {
+test("installAgents writes selected files and prunes dest leftovers", () => {
 	const root = tempRoot();
-	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
-	mkdirSync(join(root, "ai", "pi", "prompts"), { recursive: true });
-	mkdirSync(join(root, "ai", "agents", "draconic"), { recursive: true });
+	mkdirSync(join(root, "ai", "agents", "architect"), { recursive: true });
+	mkdirSync(join(root, "ai", "agents", "coder"), { recursive: true });
 	writeFileSync(
-		join(root, "ai", "pi", "extensions", "boot.ts"),
-		"export default function () {}\n",
+		join(root, "ai", "agents", "architect", "architect.md"),
+		"architect body\n",
 	);
-	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-	writeFileSync(join(root, "ai", "pi", "draconic-models.md"), "models\n");
-	writeFileSync(
-		join(root, "ai", "agents", "draconic", "draconic.md"),
-		"---\nname: draconic\n---\n\npack body\n",
-	);
-	writePiRolesPack(root);
+	writeFileSync(join(root, "ai", "agents", "coder", "coder.md"), "coder body\n");
 
-	const dest = mkdtempSync(join(tmpdir(), "pi-rt-agents-"));
-	installPiRuntime(root, dest);
-	const destAgent = join(dest, ".pi", "agents", "draconic.md");
+	const dest = mkdtempSync(join(tmpdir(), "pi-agents-"));
+	mkdirSync(join(dest, ".pi", "agents"), { recursive: true });
+	writeFileSync(join(dest, ".pi", "agents", "leftover.md"), "gone\n");
+	installAgents(root, dest, ["architect"]);
+	assert.deepEqual(readdirSync(join(dest, ".pi", "agents")).sort(), [
+		"architect.md",
+	]);
 	assert.equal(
-		readFileSync(destAgent, "utf8"),
-		"---\nname: draconic\n---\n\npack body\n",
+		readFileSync(join(dest, ".pi", "agents", "architect.md"), "utf8"),
+		"architect body\n",
 	);
+});
 
-	writeFileSync(destAgent, "custom agent\n");
-	writeFileSync(
-		join(root, "ai", "agents", "draconic", "draconic.md"),
-		"---\nname: draconic\n---\n\nnew pack body\n",
+test("installPrompts writes selected files from ai/prompts", () => {
+	const root = tempRoot();
+	mkdirSync(join(root, "ai", "prompts"), { recursive: true });
+	writeFileSync(join(root, "ai", "prompts", "arena.md"), "arena body\n");
+	writeFileSync(join(root, "ai", "prompts", "swarm.md"), "swarm body\n");
+
+	const dest = mkdtempSync(join(tmpdir(), "pi-prompts-"));
+	mkdirSync(join(dest, ".pi", "prompts"), { recursive: true });
+	writeFileSync(join(dest, ".pi", "prompts", "leftover.md"), "gone\n");
+	installPrompts(root, dest, ["arena"]);
+	assert.deepEqual(readdirSync(join(dest, ".pi", "prompts")).sort(), [
+		"arena.md",
+	]);
+	assert.equal(
+		readFileSync(join(dest, ".pi", "prompts", "arena.md"), "utf8"),
+		"arena body\n",
 	);
-	installPiRuntime(root, dest);
-	assert.equal(readFileSync(destAgent, "utf8"), "custom agent\n");
 });
 
 test("installPiRuntime keeps a customized dest role file and replaces argv.mjs", () => {
@@ -716,6 +719,8 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), true);
 	assert.equal(existsSync(join(dest, ".pi", "roles", "researcher.md")), true);
 	assert.equal(existsSync(join(dest, ".pi", "agents", "draconic.md")), true);
+	assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
+	assert.equal(existsSync(join(dest, ".pi", "prompts", "arena.md")), true);
 	assert.doesNotMatch(
 		readFileSync(join(dest, ".pi", "agents", "draconic.md"), "utf8"),
 		/Skill|Task/,
@@ -755,6 +760,7 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 				"npm:pi-lens",
 				"npm:pi-web-access",
 				"npm:pi-subagents",
+				"npm:@ff-labs/pi-fff",
 				"vendor/@agentic-core/draconic-todo",
 				"vendor/@agentic-core/draconic-coms",
 				"vendor/@agentic-core/draconic-boot",

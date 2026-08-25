@@ -2,15 +2,25 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { openDestination, PLAYBOOK_DEST } from "./dest.ts";
+import {
+  AGENT_DEST,
+  openDestination,
+  PLAYBOOK_DEST,
+  PROMPT_DEST,
+} from "./dest.ts";
 import {
   FIRST_PARTY_EXTENSIONS,
-  writeExtensions,
   isFirstPartyExtension,
+  packageRefSource,
+  writeExtensions,
+  writeVendorTrees,
+  type FirstPartyExtension,
 } from "./extensions.ts";
 import { planFromProfile, type InstallRequest } from "./plan.ts";
 import { listPlaybookIds, writePlaybooks } from "./playbooks.ts";
+import { listAgentIds, writeAgents } from "./agents.ts";
 import { listProfiles, loadProfile } from "./profile.ts";
+import { listPromptIds, writePrompts } from "./prompts.ts";
 import { writeRuntime } from "./runtime.ts";
 import { installSkills } from "./skills.ts";
 
@@ -40,7 +50,7 @@ Options:
 Profiles (profiles/*.yaml):
   ${listed}
 
-Dest is always .pi/. Playbooks are selected in the YAML and copied to .pi/playbooks/.
+Dest is always .pi/. Playbooks, agents, prompts, and packages are selected in the YAML.
 
 Examples:
   pnpm exec agentic-core install . --profile agentic-core
@@ -169,7 +179,11 @@ function run(argv: string[]): void {
 
   let plan;
   try {
-    plan = planFromProfile(profile, opts, listPlaybookIds(srcRoot));
+    plan = planFromProfile(profile, opts, {
+      playbooks: listPlaybookIds(srcRoot),
+      agents: listAgentIds(srcRoot),
+      prompts: listPromptIds(srcRoot),
+    });
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));
   }
@@ -186,10 +200,25 @@ function run(argv: string[]): void {
         `  playbooks (${plan.playbookIds.length}) → ${PLAYBOOK_DEST}`,
       );
     }
+    if (plan.overlayAgents) {
+      writeAgents(srcRoot, dest, plan.agentIds);
+      console.log(`  agents (${plan.agentIds.length}) → ${AGENT_DEST}`);
+    }
+    if (plan.overlayPrompts) {
+      writePrompts(srcRoot, dest, plan.promptIds);
+      console.log(`  prompts (${plan.promptIds.length}) → ${PROMPT_DEST}`);
+    }
     writeRuntime(srcRoot, dest);
     console.log("  pi runtime → .pi");
-    if (plan.extensions.length > 0) {
-      writeExtensions(srcRoot, dest, plan.extensions);
+    const vendorNames: FirstPartyExtension[] = [];
+    for (const pkg of plan.packages) {
+      if (pkg.kind === "vendor") vendorNames.push(pkg.name);
+    }
+    if (vendorNames.length > 0) {
+      writeVendorTrees(srcRoot, dest, vendorNames);
+    }
+    if (plan.packages.length > 0) {
+      dest.mergePackages(plan.packages.map(packageRefSource));
     }
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));

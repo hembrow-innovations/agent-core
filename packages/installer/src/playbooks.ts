@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { openDestination, PLAYBOOK_DEST, type Destination } from "./dest.ts";
 import { packRoot } from "./pack.ts";
-import { unquote, type Profile } from "./profile.ts";
+import { resolveNamedIds, unquote, type Profile } from "./profile.ts";
 
 export type PlaybookMeta = {
   id: string;
@@ -33,31 +33,16 @@ export function resolvePlaybookIds(
   opts: PlaybookResolveOpts,
   available: string[],
 ): string[] {
-  const avail = new Set(available);
-  let ids: string[];
-  if (opts.playbooks != null) {
-    ids = [...opts.playbooks];
-  } else if (profile.playbooks.kind === "all") {
-    ids = [...available];
-  } else if (profile.playbooks.kind === "list") {
-    ids = [...profile.playbooks.ids];
-  } else {
-    ids = [];
-  }
-  if (opts.withPlaybooks) ids.push(...opts.withPlaybooks);
-  if (opts.withoutPlaybooks) {
-    const drop = new Set(opts.withoutPlaybooks);
-    ids = ids.filter((id) => !drop.has(id));
-  }
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const id of ids) {
-    if (seen.has(id)) continue;
-    seen.add(id);
-    if (!avail.has(id)) throw new Error(`Unknown playbook "${id}"`);
-    out.push(id);
-  }
-  return out;
+  return resolveNamedIds(
+    profile.playbooks,
+    {
+      replace: opts.playbooks,
+      add: opts.withPlaybooks,
+      remove: opts.withoutPlaybooks,
+    },
+    available,
+    "playbook",
+  );
 }
 
 export function readPlaybookMeta(srcRoot: string, id: string): PlaybookMeta {
