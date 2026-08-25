@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -59,6 +59,39 @@ test("pack file parses and omits Skill or Task wording", () => {
 	assert.match(def.body, /You are draconic on Pi/);
 	assert.doesNotMatch(def.body, /Skill|Task/);
 	assert.equal(def.tools, undefined);
+});
+
+test("every non-empty pack agent parses", () => {
+	const root = join(REPO, "ai", "agents");
+	const stems = readdirSync(root, { withFileTypes: true })
+		.filter((ent) => ent.isDirectory())
+		.map((ent) => ent.name)
+		.sort();
+	const parsed: string[] = [];
+	for (const stem of stems) {
+		const text = readFileSync(join(root, stem, `${stem}.md`), "utf8");
+		if (!text.trim()) continue;
+		const def = parseAgentDefinition(text);
+		assert.equal(def.name, stem);
+		assert.doesNotMatch(def.body, /Skill|Task/);
+		assert.equal(def.tools, undefined);
+		parsed.push(stem);
+	}
+	assert.deepEqual(
+		parsed.filter((name) => name !== "draconic"),
+		[
+			"architect",
+			"coder",
+			"debugger",
+			"devops",
+			"documenter",
+			"planner",
+			"researcher",
+			"reviewer",
+			"spec",
+			"tester",
+		],
+	);
 });
 
 test("unknown keys throw", () => {
