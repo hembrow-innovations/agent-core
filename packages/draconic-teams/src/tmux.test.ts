@@ -3,7 +3,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { createTeam } from "./store.ts";
+import { createTeam, parseMemberName, upsertMember } from "./store.ts";
 import { applySpawn, buildPiArgv, buildTmuxSpawnArgs } from "./tmux.ts";
 
 const request = {
@@ -54,6 +54,33 @@ test("buildTmuxSpawnArgs defaults to a detached pane and quotes the cd", () => {
 	assert.ok(!built.tmux.includes("send-keys"));
 	assert.ok(!built.command.includes("--mode rpc"));
 	assert.ok(!built.command.includes("send-keys"));
+});
+
+test("buildTmuxSpawnArgs opens to the right when member count is even", () => {
+	const built = buildTmuxSpawnArgs({ ...request, memberCount: 2 });
+	assert.deepEqual(built.tmux.slice(0, 6), [
+		"tmux",
+		"split-window",
+		"-h",
+		"-dP",
+		"-F",
+		"#{pane_id}",
+	]);
+	assert.ok(!built.tmux.includes("-t"));
+});
+
+test("buildTmuxSpawnArgs opens a third column when member count is even and double digit", () => {
+	const built = buildTmuxSpawnArgs({ ...request, memberCount: 10 });
+	assert.deepEqual(built.tmux, [
+		"tmux",
+		"split-window",
+		"-h",
+		"-dP",
+		"-F",
+		"#{pane_id}",
+		"-t",
+		"{right}",
+	]);
 });
 
 test("buildTmuxSpawnArgs can open a named window instead", () => {
@@ -133,9 +160,82 @@ test("applySpawn starts a missing member and records tmux argv", async () => {
 	assert.equal(calls.length, 1);
 	assert.equal(calls[0]?.[0], "tmux");
 	assert.equal(calls[0]?.[1], "split-window");
+	assert.ok(calls[0]?.includes("-h"));
+	assert.ok(!calls[0]?.includes("-t"));
 	assert.ok(calls[0]?.includes("#{pane_id}"));
 	assert.ok(!calls[0]?.includes("send-keys"));
 	assert.ok(!calls.flat().includes("--mode"));
+});
+
+test("applySpawn stacks the next odd member under the lead", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-tmux-"));
+	createTeam({
+		teamsDir,
+		name: "demo",
+		leadName: "team-lead",
+		cwd: "/work/demo",
+	});
+	const { calls, runner } = recordedRunner((argv) => {
+		if (argv[1] === "split-window") return `%${calls.length + 1}`;
+		throw new Error(`unexpected ${argv.join(" ")}`);
+	});
+	await applySpawn({
+		teamsDir,
+		request,
+		env: { TMUX: "/tmp/tmux-1000/default,1,0" },
+		runner,
+	});
+	await applySpawn({
+		teamsDir,
+		request: { ...request, name: "reviewer" },
+		env: { TMUX: "/tmp/tmux-1000/default,1,0" },
+		runner,
+	});
+	assert.ok(calls[0]?.includes("-h"));
+	assert.ok(!calls[1]?.includes("-h"));
+});
+
+test("applySpawn opens a third column on the tenth member", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-tmux-"));
+	createTeam({
+		teamsDir,
+		name: "demo",
+		leadName: "team-lead",
+		cwd: "/work/demo",
+	});
+	for (let i = 1; i <= 8; i++) {
+		upsertMember({
+			teamsDir,
+			team: "demo",
+			member: {
+				kind: "teammate",
+				name: parseMemberName(`seed${i}`, { role: "teammate" }),
+				purpose: "seed",
+				paneId: `%${i}`,
+				status: "spawned",
+			},
+		});
+	}
+	const { calls, runner } = recordedRunner((argv) => {
+		if (argv[1] === "split-window") return "%10";
+		throw new Error(`unexpected ${argv.join(" ")}`);
+	});
+	await applySpawn({
+		teamsDir,
+		request,
+		env: { TMUX: "/tmp/tmux-1000/default,1,0" },
+		runner,
+	});
+	assert.deepEqual(calls[0]?.slice(0, 8), [
+		"tmux",
+		"split-window",
+		"-h",
+		"-dP",
+		"-F",
+		"#{pane_id}",
+		"-t",
+		"{right}",
+	]);
 });
 
 test("applySpawn adopts a live matching pane on the second call", async () => {

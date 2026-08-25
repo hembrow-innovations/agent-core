@@ -14,6 +14,7 @@ export type SpawnRequest = {
 	cwd: string;
 	model?: string;
 	useWindows?: boolean;
+	memberCount?: number;
 };
 
 export type TmuxRunner = {
@@ -70,8 +71,13 @@ export function buildTmuxSpawnArgs(request: SpawnRequest): SpawnArgv {
 			command,
 		};
 	}
+	const tmux = ["tmux", "split-window"];
+	const memberCount = request.memberCount ?? 1;
+	if (memberCount % 2 === 0) tmux.push("-h");
+	tmux.push("-dP", "-F", "#{pane_id}");
+	if (memberCount % 2 === 0 && memberCount >= 10) tmux.push("-t", "{right}");
 	return {
-		tmux: ["tmux", "split-window", "-dP", "-F", "#{pane_id}"],
+		tmux,
 		command,
 	};
 }
@@ -165,13 +171,28 @@ export async function applySpawn(input: {
 	if (existing?.kind === "lead") {
 		throw new Error(`cannot spawn the lead as a teammate: ${existing.name}`);
 	}
+	const rosterSize = team.members.length;
 	if (existing?.kind === "teammate") {
 		if (await paneIsLive(runner, existing.paneId)) {
 			return { action: "adopt", member: existing };
 		}
-		return startPane({ ...input, runner }, "replace");
+		return startPane(
+			{
+				...input,
+				runner,
+				request: { ...input.request, memberCount: rosterSize },
+			},
+			"replace",
+		);
 	}
-	return startPane({ ...input, runner }, "start");
+	return startPane(
+		{
+			...input,
+			runner,
+			request: { ...input.request, memberCount: rosterSize + 1 },
+		},
+		"start",
+	);
 }
 
 export async function killPane(input: {
