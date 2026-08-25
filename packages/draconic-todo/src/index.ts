@@ -12,7 +12,7 @@ import {
 	type SessionId,
 	sessionTodoPath,
 	writeSessionChecklist,
-} from "@agentic-core/lib";
+} from "./store.ts";
 
 function toolPath(input: unknown): string | undefined {
 	if (!input || typeof input !== "object" || !("path" in input)) {

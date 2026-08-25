@@ -40,11 +40,17 @@ importers:
         specifier: 1.3.7
         version: 1.3.7
 
+  packages/draconic-teams:
+    dependencies:
+      '@earendil-works/pi-coding-agent':
+        specifier: 0.84.2
+        version: 0.84.2(ws@8.21.3)
+      typebox:
+        specifier: 1.3.7
+        version: 1.3.7
+
   packages/draconic-todo:
     dependencies:
-      '@agentic-core/lib':
-        specifier: workspace:*
-        version: link:../lib
       '@earendil-works/pi-ai':
         specifier: 0.84.2
         version: 0.84.2(ws@8.21.3)
@@ -56,8 +62,6 @@ importers:
         version: 1.3.7
 
   packages/installer: {}
-
-  packages/lib: {}
 
 packages:
 
