@@ -81,8 +81,8 @@ packages:
   - npm:pi-lens
   - vendor/@agentic-core/draconic-todo
 skills:
-  - how
-  - unslop
+  - diagnose
+  - tdd
 ```
 
 Shipped files are `profiles/agentic-core.yaml` and `profiles/life-engine.yaml`. Both use `agents: all` and `prompts: all`. `agentic-core` is the skill list for developing this pack.

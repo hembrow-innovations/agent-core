@@ -18,7 +18,6 @@ skills:
   - create-verification-skill
   - diagnose
   - docs
-  - how
   - improve-codebase-architecture
   - maestro
   - playwright-cli
@@ -33,10 +32,8 @@ skills:
   - triage
   - typescript-best-practices
   - typography
-  - unslop
   - vault-pack
   - vitest
   - wayfinder
   - webapp-testing
-  - why
   - create-skill

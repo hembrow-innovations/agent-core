@@ -838,19 +838,26 @@ test("install --profile life-engine writes .pi only", () => {
 	assert.equal(existsSync(join(dest, ".agents")), false);
 });
 
-test("install --profile agentic-core --without how omits the how skill", () => {
+test("install --profile agentic-core --without diagnose omits the diagnose skill", () => {
 	const dest = mkdtempSync(join(tmpdir(), "install-pi-without-"));
 	const r = spawnSync(
 		process.execPath,
-		[INSTALLER, "install", dest, "--profile", "agentic-core", "--without", "how"],
+		[
+			INSTALLER,
+			"install",
+			dest,
+			"--profile",
+			"agentic-core",
+			"--without",
+			"diagnose",
+		],
 		{ encoding: "utf8" },
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "how", "SKILL.md")),
+		existsSync(join(dest, ".pi", "skills", "diagnose", "SKILL.md")),
 		false,
 	);
-	assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), false);
 });
 
 test("install --profile agentic-core writes .pi/skills", () => {

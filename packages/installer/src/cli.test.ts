@@ -75,7 +75,9 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
   const skillRoot = join(dest, ".pi", "skills");
   const folders = readdirSync(skillRoot);
   assert.equal(folders.includes("draconic-mode"), false, folders.join(", "));
-  assert.ok(folders.includes("how"), folders.join(", "));
+  assert.equal(folders.includes("how"), false, folders.join(", "));
+  assert.equal(folders.includes("why"), false, folders.join(", "));
+  assert.equal(folders.includes("unslop"), false, folders.join(", "));
   assert.ok(folders.includes("playbooks"), folders.join(", "));
   assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
@@ -160,8 +162,10 @@ test("install --profile agentic-core writes .pi/skills and does not wire this ch
 
   const skillRoot = join(dest, ".pi", "skills");
   const folders = readdirSync(skillRoot);
-  assert.ok(folders.includes("unslop"), folders.join(", "));
-  assert.equal(existsSync(join(skillRoot, "unslop", "SKILL.md")), true);
+  assert.ok(folders.includes("create-skill"), folders.join(", "));
+  assert.equal(existsSync(join(skillRoot, "create-skill", "SKILL.md")), true);
+  assert.equal(folders.includes("how"), false, folders.join(", "));
+  assert.equal(folders.includes("unslop"), false, folders.join(", "));
   assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
   assert.equal(existsSync(join(dest, ".opencode")), false);
