@@ -1,5 +1,10 @@
 mode: draconic
 playbooks: all
+extensions:
+  - draconic-todo
+  - draconic-coms
+  - draconic-boot
+  - draconic-teams
 skills:
   - architect
   - behaviour-contracts
