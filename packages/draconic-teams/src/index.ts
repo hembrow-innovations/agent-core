@@ -15,7 +15,9 @@ import {
 	getTask,
 	listTasks,
 	parseMemberName,
+	readStandingContext,
 	readTeam,
+	recordTaskComplete,
 	setMemberStatus,
 	type Task,
 	type Team,
@@ -34,6 +36,28 @@ function argvString(name: string): string | undefined {
 		}
 	}
 	return undefined;
+}
+
+function takeNamedFlag(input: { args: string[]; name: string }): {
+	value?: string;
+	rest: string[];
+} {
+	const key = `--${input.name}`;
+	const rest: string[] = [];
+	let value: string | undefined;
+	for (let i = 0; i < input.args.length; i++) {
+		const token = input.args[i];
+		if (token !== key) {
+			if (token !== undefined) rest.push(token);
+			continue;
+		}
+		const next = input.args[i + 1];
+		if (typeof next === "string" && next.length > 0 && !next.startsWith("-")) {
+			value = next;
+			i += 1;
+		}
+	}
+	return { value, rest };
 }
 
 function flagString(pi: ExtensionAPI, name: string): string | undefined {
@@ -105,14 +129,15 @@ function formatTask(task: Task): string {
 }
 
 export default function (pi: ExtensionAPI) {
-	const teamsDir = () => defaultTeamsDir();
+	const teamsDir = (cwd?: string) => defaultTeamsDir({ cwd });
 	let currentTeam: string | undefined;
+	let standingContext: string | undefined;
 
-	const requireTeam = (): Team => {
+	const requireTeam = (cwd?: string): Team => {
 		const name = currentTeam || flagString(pi, "project");
 		if (!name) throw new Error("no team. /team create <name> first.");
 		try {
-			const team = readTeam({ teamsDir: teamsDir(), name });
+			const team = readTeam({ teamsDir: teamsDir(cwd), name });
 			currentTeam = team.name;
 			return team;
 		} catch (err) {
@@ -124,7 +149,9 @@ export default function (pi: ExtensionAPI) {
 		}
 	};
 
-	const loadStatus = (): {
+	const loadStatus = (
+		cwd?: string,
+	): {
 		text: string;
 		details: Record<string, unknown>;
 	} => {
@@ -135,7 +162,7 @@ export default function (pi: ExtensionAPI) {
 			return { text: message, details: { error: message } };
 		}
 		try {
-			const team = readTeam({ teamsDir: teamsDir(), name: project });
+			const team = readTeam({ teamsDir: teamsDir(cwd), name: project });
 			currentTeam = team.name;
 			return {
 				text: formatTeam(team),
@@ -153,11 +180,19 @@ export default function (pi: ExtensionAPI) {
 		}
 	};
 
-	pi.on("session_start", async (_event, ctx) => {
+	pi.on("session_start", (_event, ctx) => {
 		const project = flagString(pi, "project");
+		const cname = flagString(pi, "cname");
+		if (project && cname) {
+			standingContext = readStandingContext({
+				teamsDir: teamsDir(ctx.cwd),
+				team: project,
+				name: cname,
+			});
+		}
 		if (!project) return;
 		try {
-			const team = readTeam({ teamsDir: teamsDir(), name: project });
+			const team = readTeam({ teamsDir: teamsDir(ctx.cwd), name: project });
 			currentTeam = team.name;
 			setTeamStatus(ctx, `team ${team.name}`);
 		} catch {
@@ -165,16 +200,26 @@ export default function (pi: ExtensionAPI) {
 		}
 	});
 
-	const writeOwnStatus = (status: "working" | "idle"): void => {
+	pi.on("before_agent_start", (event) => {
+		if (!standingContext) return;
+		return {
+			systemPrompt: `${event.systemPrompt}\n\n${standingContext}`,
+		};
+	});
+
+	const writeOwnStatus = (input: {
+		status: "working" | "idle";
+		cwd?: string;
+	}): void => {
 		const name = flagString(pi, "cname");
 		const project = flagString(pi, "project") || currentTeam;
 		if (!name || !project) return;
 		try {
 			setMemberStatus({
-				teamsDir: teamsDir(),
+				teamsDir: teamsDir(input.cwd),
 				team: project,
 				name,
-				status,
+				status: input.status,
 			});
 		} catch {
 			// no team file yet
@@ -187,13 +232,13 @@ export default function (pi: ExtensionAPI) {
 		if (!name || !project) return;
 		let team: Team;
 		try {
-			team = readTeam({ teamsDir: teamsDir(), name: project });
+			team = readTeam({ teamsDir: teamsDir(ctx.cwd), name: project });
 		} catch {
 			return;
 		}
 		const member = findMember(team, name);
 		if (member?.kind !== "teammate") return;
-		writeOwnStatus("idle");
+		writeOwnStatus({ status: "idle", cwd: ctx.cwd });
 		try {
 			await sendComsPrompt({
 				project: team.name,
@@ -207,12 +252,12 @@ export default function (pi: ExtensionAPI) {
 		}
 	});
 
-	pi.on("message_start", (event) => {
+	pi.on("message_start", (event, ctx) => {
 		const message = event.message;
 		if (message.role !== "custom" || message.customType !== "coms-inbound") {
 			return;
 		}
-		writeOwnStatus("working");
+		writeOwnStatus({ status: "working", cwd: ctx.cwd });
 	});
 
 	pi.on("session_shutdown", () => {});
@@ -229,7 +274,7 @@ export default function (pi: ExtensionAPI) {
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			try {
 				const team = createTeam({
-					teamsDir: teamsDir(),
+					teamsDir: teamsDir(ctx.cwd),
 					name: params.name,
 					leadName: ownerName(flagString(pi, "cname")),
 					cwd: ctx.cwd,
@@ -251,6 +296,12 @@ export default function (pi: ExtensionAPI) {
 		parameters: Type.Object({
 			name: Type.String({ description: "Teammate name and --cname." }),
 			purpose: Type.String({ description: "What this teammate is for." }),
+			agent: Type.Optional(
+				Type.String({
+					description:
+						"Dest .pi/agents file. Defaults to the instance name or the last saved agent.",
+				}),
+			),
 			model: Type.Optional(Type.String({ description: "Optional pi --model." })),
 			useWindows: Type.Optional(
 				Type.Boolean({ description: "Open a tmux window instead of a pane." }),
@@ -258,19 +309,20 @@ export default function (pi: ExtensionAPI) {
 		}),
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			try {
-				const team = requireTeam();
+				const team = requireTeam(ctx.cwd);
 				const result = await applySpawn({
-					teamsDir: teamsDir(),
+					teamsDir: teamsDir(ctx.cwd),
 					request: {
 						team: team.name,
 						name: params.name,
 						purpose: params.purpose,
 						cwd: team.cwd || ctx.cwd,
+						agent: params.agent,
 						model: params.model,
 						useWindows: params.useWindows,
 					},
 				});
-				const next = readTeam({ teamsDir: teamsDir(), name: team.name });
+				const next = readTeam({ teamsDir: teamsDir(ctx.cwd), name: team.name });
 				return toolText(`${result.action} ${params.name}\n${formatTeam(next)}`, {
 					team: next,
 					members: next.members,
@@ -288,9 +340,9 @@ export default function (pi: ExtensionAPI) {
 		description: "Show the current team roster and pane ids.",
 		promptSnippet: "Show the current team roster.",
 		parameters: Type.Object({}),
-		async execute() {
+		async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
 			try {
-				const status = loadStatus();
+				const status = loadStatus(ctx.cwd);
 				return toolText(status.text, status.details);
 			} catch (err) {
 				return errorText(err);
@@ -310,8 +362,8 @@ export default function (pi: ExtensionAPI) {
 		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			try {
 				const result = await shutdownMember({
-					teamsDir: teamsDir(),
-					team: requireTeam(),
+					teamsDir: teamsDir(ctx.cwd),
+					team: requireTeam(ctx.cwd),
 					name: params.name,
 					senderName: ownerName(flagString(pi, "cname")),
 					senderCwd: ctx.cwd,
@@ -337,18 +389,18 @@ export default function (pi: ExtensionAPI) {
 				),
 			),
 		}),
-		async execute(_toolCallId, params) {
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			try {
-				const team = requireTeam();
+				const team = requireTeam(ctx.cwd);
 				let task = createTask({
-					teamsDir: teamsDir(),
+					teamsDir: teamsDir(ctx.cwd),
 					team: team.name,
 					subject: params.subject,
 					description: params.description,
 				});
 				for (const blocker of params.blockedBy ?? []) {
 					task = addBlockedBy({
-						teamsDir: teamsDir(),
+						teamsDir: teamsDir(ctx.cwd),
 						team: team.name,
 						id: task.id,
 						blocker,
@@ -367,10 +419,13 @@ export default function (pi: ExtensionAPI) {
 		description: "List tasks on the current team.",
 		promptSnippet: "List team tasks.",
 		parameters: Type.Object({}),
-		async execute() {
+		async execute(_toolCallId, _params, _signal, _onUpdate, ctx) {
 			try {
-				const team = requireTeam();
-				const tasks = listTasks({ teamsDir: teamsDir(), team: team.name });
+				const team = requireTeam(ctx.cwd);
+				const tasks = listTasks({
+					teamsDir: teamsDir(ctx.cwd),
+					team: team.name,
+				});
 				if (tasks.length === 0) return toolText("No tasks.", { tasks });
 				return toolText(tasks.map(formatTask).join("\n"), { tasks });
 			} catch (err) {
@@ -387,11 +442,11 @@ export default function (pi: ExtensionAPI) {
 		parameters: Type.Object({
 			id: Type.String({ description: "Decimal task id." }),
 		}),
-		async execute(_toolCallId, params) {
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			try {
-				const team = requireTeam();
+				const team = requireTeam(ctx.cwd);
 				const task = getTask({
-					teamsDir: teamsDir(),
+					teamsDir: teamsDir(ctx.cwd),
 					team: team.name,
 					id: params.id,
 				});
@@ -414,11 +469,11 @@ export default function (pi: ExtensionAPI) {
 		parameters: Type.Object({
 			id: Type.String({ description: "Decimal task id." }),
 		}),
-		async execute(_toolCallId, params) {
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			try {
-				const team = requireTeam();
+				const team = requireTeam(ctx.cwd);
 				const task = claimTask({
-					teamsDir: teamsDir(),
+					teamsDir: teamsDir(ctx.cwd),
 					team: team.name,
 					id: params.id,
 					owner: ownerName(flagString(pi, "cname")),
@@ -439,13 +494,19 @@ export default function (pi: ExtensionAPI) {
 		parameters: Type.Object({
 			id: Type.String({ description: "Decimal task id." }),
 		}),
-		async execute(_toolCallId, params) {
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
 			try {
-				const team = requireTeam();
+				const team = requireTeam(ctx.cwd);
 				const task = completeTask({
-					teamsDir: teamsDir(),
+					teamsDir: teamsDir(ctx.cwd),
 					team: team.name,
 					id: params.id,
+				});
+				recordTaskComplete({
+					teamsDir: teamsDir(ctx.cwd),
+					team: team.name,
+					name: ownerName(flagString(pi, "cname")),
+					task,
 				});
 				return toolText(formatTask(task), { task });
 			} catch (err) {
@@ -462,7 +523,7 @@ export default function (pi: ExtensionAPI) {
 			const [verb, ...rest] = text.split(/\s+/);
 			try {
 				if (!verb || verb === "status") {
-					const status = loadStatus();
+					const status = loadStatus(ctx.cwd);
 					notify(ctx, status.text);
 					return;
 				}
@@ -473,7 +534,7 @@ export default function (pi: ExtensionAPI) {
 						return;
 					}
 					const team = createTeam({
-						teamsDir: teamsDir(),
+						teamsDir: teamsDir(ctx.cwd),
 						name,
 						leadName: ownerName(flagString(pi, "cname")),
 						cwd: ctx.cwd,
@@ -483,10 +544,15 @@ export default function (pi: ExtensionAPI) {
 					return;
 				}
 				if (verb === "spawn") {
-					const name = rest[0];
-					const purpose = rest.slice(1).join(" ");
+					const taken = takeNamedFlag({ args: rest, name: "agent" });
+					const name = taken.rest[0];
+					const purpose = taken.rest.slice(1).join(" ");
 					if (!name || !purpose) {
-						notify(ctx, "usage: /team spawn <name> <purpose...>", "warning");
+						notify(
+							ctx,
+							"usage: /team spawn <name> [--agent <agent>] <purpose...>",
+							"warning",
+						);
 						return;
 					}
 					if (!process.env.TMUX) {
@@ -497,14 +563,15 @@ export default function (pi: ExtensionAPI) {
 						);
 						return;
 					}
-					const team = requireTeam();
+					const team = requireTeam(ctx.cwd);
 					const result = await applySpawn({
-						teamsDir: teamsDir(),
+						teamsDir: teamsDir(ctx.cwd),
 						request: {
 							team: team.name,
 							name,
 							purpose,
 							cwd: team.cwd || ctx.cwd,
+							agent: taken.value,
 						},
 					});
 					notify(ctx, `${result.action} ${name}`);
@@ -525,8 +592,8 @@ export default function (pi: ExtensionAPI) {
 						return;
 					}
 					const result = await shutdownMember({
-						teamsDir: teamsDir(),
-						team: requireTeam(),
+						teamsDir: teamsDir(ctx.cwd),
+						team: requireTeam(ctx.cwd),
 						name,
 						senderName: ownerName(flagString(pi, "cname")),
 						senderCwd: ctx.cwd,
@@ -536,8 +603,8 @@ export default function (pi: ExtensionAPI) {
 				}
 				if (verb === "task") {
 					await handleTaskCommand({
-						teamsDir: teamsDir(),
-						team: requireTeam(),
+						teamsDir: teamsDir(ctx.cwd),
+						team: requireTeam(ctx.cwd),
 						owner: ownerName(flagString(pi, "cname")),
 						args: rest,
 						notify: (message, type) => notify(ctx, message, type),
@@ -646,11 +713,18 @@ async function handleTaskCommand(input: {
 			);
 			return;
 		}
-		input.notify(
-			formatTask(
-				completeTask({ teamsDir: input.teamsDir, team: input.team.name, id }),
-			),
-		);
+		const completed = completeTask({
+			teamsDir: input.teamsDir,
+			team: input.team.name,
+			id,
+		});
+		recordTaskComplete({
+			teamsDir: input.teamsDir,
+			team: input.team.name,
+			name: input.owner,
+			task: completed,
+		});
+		input.notify(formatTask(completed));
 		return;
 	}
 	input.notify("usage: /team task create|list|get|claim|complete", "warning");

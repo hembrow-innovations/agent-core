@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -12,6 +12,7 @@ import {
 	listTasks,
 	parseMemberName,
 	readTeam,
+	writeMemberRecord,
 	writeTeam,
 } from "./store.ts";
 
@@ -139,6 +140,7 @@ test("factory registers /team and the team plus task tools", () => {
 	]);
 	assert.equal(commands[0]?.name, "team");
 	assert.ok(events.includes("session_start"));
+	assert.ok(events.includes("before_agent_start"));
 	assert.ok(events.includes("agent_settled"));
 	assert.ok(events.includes("session_shutdown"));
 	assert.match(
@@ -546,6 +548,113 @@ test("accepted inbound prompt writes working and team_status prints it", async (
 			{ cwd: "/work" },
 		);
 		assert.match(status.content[0]?.text ?? "", /researcher working/);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("task_complete writes a log row and handoff for the completing instance", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		seedSpawnedTeammate(teamsDir);
+		const { tools } = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		await tool(tools, "task_create").execute(
+			"1",
+			{ subject: "read AGENTS.md", description: "summarize" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		await tool(tools, "task_complete").execute(
+			"2",
+			{ id: "1" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		const roster = join(teamsDir, "demo", "roster", "researcher");
+		assert.match(
+			readFileSync(join(roster, "log.tsv"), "utf8"),
+			/completed\t1\tread AGENTS.md/,
+		);
+		assert.match(
+			readFileSync(join(roster, "handoff.md"), "utf8"),
+			/read AGENTS.md/,
+		);
+		assert.equal(existsSync(join(roster, "notes")), false);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("session_start hydrates identity and handoff into before_agent_start without a live pane", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		seedSpawnedTeammate(teamsDir);
+		writeMemberRecord({
+			teamsDir,
+			team: "demo",
+			name: "researcher",
+			purpose: "look at AGENTS.md",
+			agent: "builder",
+		});
+		const roster = join(teamsDir, "demo", "roster", "researcher");
+		writeFileSync(
+			join(roster, "handoff.md"),
+			"# Handoff\n\nstill true from last task\n",
+		);
+		writeFileSync(
+			join(roster, "log.tsv"),
+			"ts\tkind\ttask\tsummary\n2026-08-26T00:00:00.000Z\tcompleted\t1\thidden log\n",
+		);
+		const { handlers } = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		await handlers.get("session_start")?.({} as never, sessionCtx() as never);
+		const result = await handlers.get("before_agent_start")?.({
+			systemPrompt: "base",
+		} as never);
+		const identity = readFileSync(join(roster, "identity.md"), "utf8").trim();
+		assert.deepEqual(result, {
+			systemPrompt: `base\n\n${identity}\n\n# Handoff\n\nstill true from last task`,
+		});
+		const prompt =
+			result &&
+			typeof result === "object" &&
+			"systemPrompt" in result &&
+			typeof result.systemPrompt === "string"
+				? result.systemPrompt
+				: "";
+		assert.match(prompt, /look at AGENTS.md/);
+		assert.match(prompt, /still true from last task/);
+		assert.doesNotMatch(prompt, /hidden log/);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("session_start hydrate is fine when identity is missing on first spawn", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "draconic-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const { handlers } = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		await handlers.get("session_start")?.({} as never, sessionCtx() as never);
+		const result = await handlers.get("before_agent_start")?.({
+			systemPrompt: "base",
+		} as never);
+		assert.equal(result, undefined);
 	} finally {
 		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
 		else process.env.PI_TEAMS_DIR = prev;

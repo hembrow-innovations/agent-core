@@ -27,12 +27,11 @@ Create a folder when the first file needs it. The tree is optional until then.
 
 Reserved at the root, owned by other skills. Do not relocate them.
 
-| Path | Owner |
-| --- | --- |
-| `TODO.md` | session checklist |
-| `decisions.tsv` | long-run decision trail |
-| `worktrees/` | isolated child work |
-| `sessions/` | child session transcripts |
+- **TODO.md**: session checklist
+- **decisions.tsv**: long-run decision trail
+- **worktrees/**: isolated child work
+- **sessions/**: child session transcripts
+- **teams/**: agent-teams
 
 ## What each folder holds
 
@@ -49,6 +48,8 @@ Reserved at the root, owned by other skills. Do not relocate them.
 **logs/journal/{YYYY}/{MM}/**. One file per calendar day. Filename is `YYYY-MM-DD.md`. Skip empty days.
 
 **logs/reports/**. Reviews, audits, investigations. Filename is `YYYY-MM-DD-report-<slug>.md`.
+
+**teams/**. Owned by agent-teams. Per team at `teams/<team>/`: roster `config.json`, board `tasks/`, member records under `roster/<cname>/`. Team board tasks are not management tasks. Not `planning/tasks`. Not `logs/journal`.
 
 ## Numbers
 

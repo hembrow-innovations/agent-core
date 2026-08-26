@@ -27,7 +27,11 @@ Done when this session is inside tmux and the system prompt names the bound proj
 
 If `team_status` lists this team, skip create. If it says `no team file yet` for the bound project, `team_create` with that bound name. `no team. /team create` with no project means the flags never reached this process. One team per lead session.
 
-`team_spawn` each teammate. Purpose is what they are for. Name is `--cname` and `--agent`. Prefer names that match dest `.pi/agents/` files. A second spawn of the same name adopts a live pane or replaces a dead one. Default is a split pane. Set `useWindows` only when the user asked for a window.
+Store is `<cwd>/.draconic/teams/<team>/`. `PI_TEAMS_DIR` still overrides.
+
+`team_spawn` each teammate. Purpose is what they are for. `--cname` is the instance. Optional spawn `agent` is the dest `.pi/agents/` file, distinct from `--cname`. Prefer agent names that match dest `.pi/agents/` files.
+
+A second spawn of the same `--cname` adopts a live pane or replaces a dead one. Never adopt `shutdown`. Live check is pane id plus `@pi-member=<team>/<cname>`. Default is a split pane, then `select-layout tiled` after start and replace. Adopt does not rebalance. Set `useWindows` only when the user asked for a window; that pane stays a dedicated window.
 
 Share the team cwd.
 
@@ -35,13 +39,21 @@ Done when `team_status` lists every requested teammate.
 
 ## Work
 
-`task_create` each unit. `description` is what done looks like. Put open dependencies in `blockedBy`.
+`task_create` each unit. `description` is what done looks like. Put open dependencies in `blockedBy`. Team board tasks live in the team store `tasks/`. They are not management `planning/tasks`.
 
 `coms_list`. You appear as `this-session`. Wait until every spawned teammate appears. Only you after that wait means those panes bound to another project: `team_shutdown` them and `team_spawn` again on this team.
 
 `coms_send` the job. Tell them to `task_claim` an unblocked pending task, do the work, `task_complete` it, reply, and stay ready. Then `coms_await`.
 
-Inbound `idle: <name> settled` means that teammate is free. Send more work or shut them down.
+After `task_complete` and `coms_await`, a new task is `team_shutdown` then `team_spawn` of that `--cname`. That is the lead-owned wipe. A related follow-up on the same task is `coms_send` into the live pane.
+
+The teammate does not wipe itself. There is no flush tool. `/compact` is not a reset. `/new` is a human gesture only.
+
+- **Standing**: identity plus last handoff. Re-injected after every clean spawn.
+- **Working**: live JSONL. What a wipe drops.
+- **History**: TSV and notes. Stay on disk. The lead sends a slice only when review needs it.
+
+Inbound `idle: <name> settled` means that teammate is free. A new task still goes through the lead-owned wipe. A related follow-up stays on the live pane. Shut them down when that seat is done.
 
 Claim fails when the task is not pending or a blocker is still open. Complete drops this id from other tasks' `blockedBy`.
 

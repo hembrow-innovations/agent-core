@@ -2,9 +2,11 @@ import { spawn } from "node:child_process";
 import {
 	findMember,
 	parseMemberName,
+	readMemberRecord,
 	readTeam,
 	type TeammateMember,
 	upsertMember,
+	writeMemberRecord,
 } from "./store.ts";
 
 export type SpawnRequest = {
@@ -12,6 +14,7 @@ export type SpawnRequest = {
 	name: string;
 	purpose: string;
 	cwd: string;
+	agent?: string;
 	model?: string;
 	useWindows?: boolean;
 	memberCount?: number;
@@ -48,7 +51,7 @@ export function buildPiArgv(request: SpawnRequest): string[] {
 		"--name",
 		request.name,
 		"--agent",
-		request.name,
+		request.agent ?? request.name,
 	];
 	if (request.model) argv.push("--model", request.model);
 	return argv;
@@ -71,13 +74,8 @@ export function buildTmuxSpawnArgs(request: SpawnRequest): SpawnArgv {
 			command,
 		};
 	}
-	const tmux = ["tmux", "split-window"];
-	const memberCount = request.memberCount ?? 1;
-	if (memberCount % 2 === 0) tmux.push("-h");
-	tmux.push("-dP", "-F", "#{pane_id}");
-	if (memberCount % 2 === 0 && memberCount >= 10) tmux.push("-t", "{right}");
 	return {
-		tmux,
+		tmux: ["tmux", "split-window", "-dP", "-F", "#{pane_id}"],
 		command,
 	};
 }
@@ -110,7 +108,7 @@ export function defaultTmuxRunner(): TmuxRunner {
 	};
 }
 
-async function paneIsLive(
+async function paneExists(
 	runner: TmuxRunner,
 	paneId: string,
 ): Promise<boolean> {
@@ -129,6 +127,28 @@ async function paneIsLive(
 	}
 }
 
+async function paneBelongsToMember(input: {
+	runner: TmuxRunner;
+	paneId: string;
+	team: string;
+	name: string;
+}): Promise<boolean> {
+	if (!(await paneExists(input.runner, input.paneId))) return false;
+	try {
+		const marker = await input.runner.run([
+			"tmux",
+			"display-message",
+			"-p",
+			"-t",
+			input.paneId,
+			"#{@pi-member}",
+		]);
+		return marker.trim() === `${input.team}/${input.name}`;
+	} catch {
+		return false;
+	}
+}
+
 async function startPane(
 	input: {
 		teamsDir: string;
@@ -140,6 +160,18 @@ async function startPane(
 	const built = buildTmuxSpawnArgs(input.request);
 	const paneId = await input.runner.run([...built.tmux, built.command]);
 	if (!paneId) throw new Error("tmux spawn returned an empty pane id");
+	await input.runner.run([
+		"tmux",
+		"set-option",
+		"-p",
+		"-t",
+		paneId,
+		"@pi-member",
+		`${input.request.team}/${input.request.name}`,
+	]);
+	if (!input.request.useWindows) {
+		await input.runner.run(["tmux", "select-layout", "tiled"]);
+	}
 	const member: TeammateMember = {
 		kind: "teammate",
 		name: parseMemberName(input.request.name, { role: "teammate" }),
@@ -171,16 +203,39 @@ export async function applySpawn(input: {
 	if (existing?.kind === "lead") {
 		throw new Error(`cannot spawn the lead as a teammate: ${existing.name}`);
 	}
-	const rosterSize = team.members.length;
+	const prior = readMemberRecord({
+		teamsDir: input.teamsDir,
+		team: input.request.team,
+		name: input.request.name,
+	});
+	const agent =
+		input.request.agent ?? prior?.identity?.agent ?? input.request.name;
+	writeMemberRecord({
+		teamsDir: input.teamsDir,
+		team: input.request.team,
+		name: input.request.name,
+		purpose: input.request.purpose,
+		agent,
+		model: input.request.model ?? prior?.identity?.model,
+	});
+	const request = { ...input.request, agent };
 	if (existing?.kind === "teammate") {
-		if (await paneIsLive(runner, existing.paneId)) {
+		const canAdopt =
+			existing.status !== "shutdown" &&
+			(await paneBelongsToMember({
+				runner,
+				paneId: existing.paneId,
+				team: input.request.team,
+				name: input.request.name,
+			}));
+		if (canAdopt) {
 			return { action: "adopt", member: existing };
 		}
 		return startPane(
 			{
 				...input,
 				runner,
-				request: { ...input.request, memberCount: rosterSize },
+				request,
 			},
 			"replace",
 		);
@@ -189,7 +244,7 @@ export async function applySpawn(input: {
 		{
 			...input,
 			runner,
-			request: { ...input.request, memberCount: rosterSize + 1 },
+			request,
 		},
 		"start",
 	);
@@ -204,7 +259,7 @@ export async function killPane(input: {
 	if (!env.TMUX)
 		throw new Error("TMUX is empty. Run /team from inside a tmux session.");
 	const runner = input.runner ?? defaultTmuxRunner();
-	if (!(await paneIsLive(runner, input.paneId))) return "absent";
+	if (!(await paneExists(runner, input.paneId))) return "absent";
 	try {
 		await runner.run(["tmux", "kill-pane", "-t", input.paneId]);
 		return "killed";

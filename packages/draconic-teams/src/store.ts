@@ -9,7 +9,6 @@ import {
 	unlinkSync,
 	writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
 import { join } from "node:path";
 
 export type TeamName = string & { readonly __brand: "TeamName" };
@@ -54,8 +53,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null;
 }
 
-export function defaultTeamsDir(): string {
-	return process.env.PI_TEAMS_DIR || join(homedir(), ".pi", "teams");
+export function defaultTeamsDir(input?: { cwd?: string }): string {
+	if (process.env.PI_TEAMS_DIR) return process.env.PI_TEAMS_DIR;
+	return join(input?.cwd ?? process.cwd(), ".draconic", "teams");
 }
 
 export function parseTeamName(raw: string): TeamName {
@@ -222,6 +222,168 @@ export function setMemberStatus(input: {
 	});
 }
 
+export type MemberIdentity = {
+	name: MemberName;
+	purpose: string;
+	agent?: string;
+	model?: string;
+	notes?: string;
+};
+
+const LOG_HEADER = "ts\tkind\ttask\tsummary";
+
+export function memberRecordDir(input: {
+	teamsDir: string;
+	team: string;
+	name: string;
+}): string {
+	const team = parseTeamName(input.team);
+	const name = parseOwnerName(input.name);
+	return join(teamDir(input.teamsDir, team), "roster", name);
+}
+
+function emptyToUndefined(value: string | undefined): string | undefined {
+	if (value === undefined || value.length === 0) return undefined;
+	return value;
+}
+
+export function parseIdentity(raw: string): MemberIdentity {
+	const fields = new Map<string, string>();
+	const noteLines: string[] = [];
+	let inNotes = false;
+	for (const line of raw.split(/\r?\n/)) {
+		if (inNotes) {
+			noteLines.push(line);
+			continue;
+		}
+		if (/^##\s+Notes\s*$/.test(line)) {
+			inNotes = true;
+			continue;
+		}
+		const match = /^- \*\*([^*]+)\*\*:\s*(.*)$/.exec(line);
+		if (!match || match[1] === undefined || match[2] === undefined) continue;
+		fields.set(match[1].trim(), match[2].trim());
+	}
+	const nameRaw = fields.get("name");
+	const purpose = fields.get("purpose");
+	if (!nameRaw || purpose === undefined) {
+		throw new Error("invalid identity");
+	}
+	const notes = noteLines.join("\n").trim();
+	const identity: MemberIdentity = {
+		name: parseOwnerName(nameRaw),
+		purpose,
+	};
+	const agent = emptyToUndefined(fields.get("agent"));
+	const model = emptyToUndefined(fields.get("model"));
+	if (agent) identity.agent = agent;
+	if (model) identity.model = model;
+	if (notes.length > 0) identity.notes = notes;
+	return identity;
+}
+
+export function formatIdentity(identity: MemberIdentity): string {
+	const lines = [
+		`# ${identity.name}`,
+		"",
+		`- **name**: ${identity.name}`,
+		`- **purpose**: ${identity.purpose}`,
+	];
+	if (identity.agent) lines.push(`- **agent**: ${identity.agent}`);
+	if (identity.model) lines.push(`- **model**: ${identity.model}`);
+	lines.push("", "## Notes", "");
+	if (identity.notes) lines.push(identity.notes, "");
+	return lines.join("\n");
+}
+
+export function writeMemberRecord(input: {
+	teamsDir: string;
+	team: string;
+	name: string;
+	purpose: string;
+	agent?: string;
+	model?: string;
+}): MemberIdentity {
+	const dir = memberRecordDir(input);
+	mkdirSync(dir, { recursive: true });
+	const identityPath = join(dir, "identity.md");
+	let notes: string | undefined;
+	if (existsSync(identityPath)) {
+		try {
+			notes = parseIdentity(readFileSync(identityPath, "utf8")).notes;
+		} catch {
+			notes = undefined;
+		}
+	}
+	const identity: MemberIdentity = {
+		name: parseOwnerName(input.name),
+		purpose: input.purpose,
+	};
+	if (input.agent) identity.agent = input.agent;
+	if (input.model) identity.model = input.model;
+	if (notes) identity.notes = notes;
+	writeFileSync(identityPath, `${formatIdentity(identity)}\n`);
+	const logPath = join(dir, "log.tsv");
+	if (!existsSync(logPath)) {
+		writeFileSync(logPath, `${LOG_HEADER}\n`);
+	}
+	return identity;
+}
+
+export function readMemberRecord(input: {
+	teamsDir: string;
+	team: string;
+	name: string;
+}):
+	| {
+			identity?: MemberIdentity;
+			handoff?: string;
+			log?: string;
+	  }
+	| undefined {
+	const dir = memberRecordDir(input);
+	if (!existsSync(dir)) return undefined;
+	const result: {
+		identity?: MemberIdentity;
+		handoff?: string;
+		log?: string;
+	} = {};
+	const identityPath = join(dir, "identity.md");
+	if (existsSync(identityPath)) {
+		try {
+			result.identity = parseIdentity(readFileSync(identityPath, "utf8"));
+		} catch {
+			// missing identity on first spawn is fine
+		}
+	}
+	const handoffPath = join(dir, "handoff.md");
+	if (existsSync(handoffPath)) {
+		const handoff = readFileSync(handoffPath, "utf8");
+		if (handoff.trim().length > 0) result.handoff = handoff;
+	}
+	const logPath = join(dir, "log.tsv");
+	if (existsSync(logPath)) result.log = readFileSync(logPath, "utf8");
+	return result;
+}
+
+export function readStandingContext(input: {
+	teamsDir: string;
+	team: string;
+	name: string;
+}): string | undefined {
+	const record = readMemberRecord(input);
+	if (!record) return undefined;
+	const parts: string[] = [];
+	const identityPath = join(memberRecordDir(input), "identity.md");
+	if (existsSync(identityPath)) {
+		const identity = readFileSync(identityPath, "utf8").trim();
+		if (identity.length > 0) parts.push(identity);
+	}
+	if (record.handoff) parts.push(record.handoff.trim());
+	if (parts.length === 0) return undefined;
+	return parts.join("\n\n");
+}
+
 export type TaskId = string & { readonly __brand: "TaskId" };
 export type TaskStatus = "pending" | "in_progress" | "completed";
 
@@ -278,6 +440,94 @@ export function parseTask(value: unknown): Task {
 			return parseTaskId(item);
 		}),
 	};
+}
+
+function oneLineCell(text: string): string {
+	return text.replace(/[\t\r\n]+/g, " ").trim();
+}
+
+function needsNoteBlob(text: string): boolean {
+	return /[\t\r\n]/.test(text);
+}
+
+function noteStamp(now: string): string {
+	return now.replace(/[:.]/g, "-");
+}
+
+function formatHandoff(input: {
+	finished: string;
+	stillTrue: string;
+	next?: string;
+}): string {
+	const lines = [
+		"# Handoff",
+		"",
+		`- **finished**: ${input.finished}`,
+		`- **still true**: ${input.stillTrue}`,
+	];
+	if (input.next) lines.push(`- **next**: ${input.next}`);
+	lines.push("");
+	return lines.join("\n");
+}
+
+export function recordTaskComplete(input: {
+	teamsDir: string;
+	team: string;
+	name: string;
+	task: Task;
+	now?: string;
+}): void {
+	const team = readTeam({ teamsDir: input.teamsDir, name: input.team });
+	const member = findMember(team, input.name);
+	if (!member || member.kind !== "teammate") return;
+	const now = input.now ?? new Date().toISOString();
+	const prior = readMemberRecord({
+		teamsDir: input.teamsDir,
+		team: team.name,
+		name: member.name,
+	});
+	const identity =
+		prior?.identity ??
+		writeMemberRecord({
+			teamsDir: input.teamsDir,
+			team: team.name,
+			name: member.name,
+			purpose: member.purpose,
+		});
+	const dir = memberRecordDir({
+		teamsDir: input.teamsDir,
+		team: team.name,
+		name: member.name,
+	});
+	mkdirSync(dir, { recursive: true });
+	const summary = oneLineCell(input.task.subject);
+	const logPath = join(dir, "log.tsv");
+	const existingLog = existsSync(logPath)
+		? readFileSync(logPath, "utf8")
+		: `${LOG_HEADER}\n`;
+	const headered = existingLog.startsWith(LOG_HEADER)
+		? existingLog
+		: `${LOG_HEADER}\n${existingLog}`;
+	const withNl = headered.endsWith("\n") ? headered : `${headered}\n`;
+	writeFileSync(
+		logPath,
+		`${withNl}${now}\tcompleted\t${input.task.id}\t${summary}\n`,
+	);
+	writeFileSync(
+		join(dir, "handoff.md"),
+		`${formatHandoff({
+			finished: `${input.task.id} ${summary}`,
+			stillTrue: identity.purpose,
+		})}\n`,
+	);
+	if (needsNoteBlob(input.task.description)) {
+		const notesDir = join(dir, "notes");
+		mkdirSync(notesDir, { recursive: true });
+		writeFileSync(
+			join(notesDir, `${noteStamp(now)}-${input.task.id}.md`),
+			`# Task ${input.task.id}\n\n${input.task.description}\n`,
+		);
+	}
 }
 
 function tasksDir(teamsDir: string, team: TeamName): string {

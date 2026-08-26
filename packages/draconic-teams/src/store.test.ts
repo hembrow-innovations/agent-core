@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import {
+	existsSync,
 	mkdirSync,
 	mkdtempSync,
 	readFileSync,
@@ -18,19 +19,52 @@ import {
 	completeTask,
 	createTask,
 	createTeam,
+	defaultTeamsDir,
 	getTask,
 	listTasks,
+	parseIdentity,
 	parseMemberName,
 	parseTeam,
 	parseTeamName,
+	readMemberRecord,
+	readStandingContext,
 	readTeam,
+	recordTaskComplete,
 	setMemberStatus,
+	writeMemberRecord,
 	writeTeam,
 } from "./store.ts";
 
 function tempDir(): string {
 	return mkdtempSync(join(tmpdir(), "draconic-teams-"));
 }
+
+function withTeamsDirEnv<T>(value: string | undefined, fn: () => T): T {
+	const prev = process.env.PI_TEAMS_DIR;
+	if (value === undefined) delete process.env.PI_TEAMS_DIR;
+	else process.env.PI_TEAMS_DIR = value;
+	try {
+		return fn();
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+}
+
+test("defaultTeamsDir joins cwd with .draconic/teams when PI_TEAMS_DIR is unset", () => {
+	withTeamsDirEnv(undefined, () => {
+		const dir = defaultTeamsDir({ cwd: "/work/demo" });
+		assert.equal(dir, join("/work/demo", ".draconic", "teams"));
+		assert.ok(dir.endsWith(join(".draconic", "teams")));
+		assert.equal(defaultTeamsDir(), join(process.cwd(), ".draconic", "teams"));
+	});
+});
+
+test("defaultTeamsDir lets PI_TEAMS_DIR win as a full override", () => {
+	withTeamsDirEnv("/tmp/custom-teams", () => {
+		assert.equal(defaultTeamsDir({ cwd: "/work/demo" }), "/tmp/custom-teams");
+	});
+});
 
 test("parseTeamName accepts a short token and rejects illegal names", () => {
 	assert.equal(parseTeamName("demo"), "demo");
@@ -511,4 +545,279 @@ test("addBlockedBy rejects a cycle", () => {
 			}),
 		/cycle/,
 	);
+});
+
+test("writeMemberRecord creates identity.md and empty log.tsv without handoff or notes", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	const identity = writeMemberRecord({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		purpose: "look at AGENTS.md",
+		model: "grok-4.6",
+	});
+	assert.deepEqual(identity, {
+		name: "researcher",
+		purpose: "look at AGENTS.md",
+		model: "grok-4.6",
+	});
+	const roster = join(teamsDir, "demo", "roster", "researcher");
+	assert.deepEqual(readdirSync(roster).sort(), ["identity.md", "log.tsv"]);
+	assert.equal(
+		readFileSync(join(roster, "log.tsv"), "utf8"),
+		"ts\tkind\ttask\tsummary\n",
+	);
+	assert.equal(existsSync(join(roster, "handoff.md")), false);
+	assert.equal(existsSync(join(roster, "notes")), false);
+	const parsed = parseIdentity(
+		readFileSync(join(roster, "identity.md"), "utf8"),
+	);
+	assert.equal(parsed.name, "researcher");
+	assert.equal(parsed.purpose, "look at AGENTS.md");
+	assert.equal(parsed.model, "grok-4.6");
+	assert.match(readFileSync(join(roster, "identity.md"), "utf8"), /## Notes/);
+});
+
+test("writeMemberRecord updates identity fields and keeps the log", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	writeMemberRecord({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		purpose: "look at AGENTS.md",
+	});
+	const roster = join(teamsDir, "demo", "roster", "researcher");
+	writeFileSync(
+		join(roster, "log.tsv"),
+		"ts\tkind\ttask\tsummary\n2026-08-26T00:00:00.000Z\tcompleted\t1\tdid work\n",
+	);
+	writeFileSync(
+		join(roster, "identity.md"),
+		"# researcher\n\n- **name**: researcher\n- **purpose**: look at AGENTS.md\n\n## Notes\n\nkeep these notes\n",
+	);
+	writeMemberRecord({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		purpose: "review the store",
+		agent: "builder",
+		model: "grok-4.6",
+	});
+	const updated = parseIdentity(
+		readFileSync(join(roster, "identity.md"), "utf8"),
+	);
+	assert.equal(updated.purpose, "review the store");
+	assert.equal(updated.agent, "builder");
+	assert.equal(updated.model, "grok-4.6");
+	assert.match(updated.notes ?? "", /keep these notes/);
+	assert.match(readFileSync(join(roster, "log.tsv"), "utf8"), /did work/);
+	assert.equal(existsSync(join(roster, "handoff.md")), false);
+});
+
+test("parseIdentity reads name, purpose, optional agent and model, and notes", () => {
+	const parsed = parseIdentity(
+		"# builder-1\n\n- **name**: builder-1\n- **purpose**: implement the store\n- **agent**: builder\n- **model**: grok-4.6\n\n## Notes\n\nseat notes\n",
+	);
+	assert.deepEqual(parsed, {
+		name: "builder-1",
+		purpose: "implement the store",
+		agent: "builder",
+		model: "grok-4.6",
+		notes: "seat notes",
+	});
+});
+
+test("readMemberRecord returns undefined when the roster folder is missing", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	assert.equal(
+		readMemberRecord({
+			teamsDir,
+			team: "demo",
+			name: "researcher",
+		}),
+		undefined,
+	);
+});
+
+function seedTeammate(teamsDir: string) {
+	const created = readTeam({ teamsDir, name: "demo" });
+	writeTeam({
+		teamsDir,
+		team: {
+			...created,
+			members: [
+				...created.members,
+				{
+					kind: "teammate",
+					name: parseMemberName("researcher", { role: "teammate" }),
+					purpose: "look at AGENTS.md",
+					paneId: "%12",
+					status: "spawned",
+				},
+			],
+		},
+	});
+}
+
+test("recordTaskComplete appends a completed log row and overwrites handoff.md", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	seedTeammate(teamsDir);
+	writeMemberRecord({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		purpose: "look at AGENTS.md",
+	});
+	const roster = join(teamsDir, "demo", "roster", "researcher");
+	writeFileSync(
+		join(roster, "log.tsv"),
+		"ts\tkind\ttask\tsummary\n2026-08-01T00:00:00.000Z\tstarted\t1\told row\n",
+	);
+	const task = createTask({
+		teamsDir,
+		team: "demo",
+		subject: "read AGENTS.md",
+		description: "summarize the pack",
+	});
+	recordTaskComplete({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		task,
+		now: "2026-08-26T12:00:00.000Z",
+	});
+	const log = readFileSync(join(roster, "log.tsv"), "utf8");
+	assert.match(log, /old row/);
+	assert.match(log, /2026-08-26T12:00:00.000Z\tcompleted\t1\tread AGENTS.md\n/);
+	const handoff = readFileSync(join(roster, "handoff.md"), "utf8");
+	assert.match(handoff, /read AGENTS.md/);
+	assert.match(handoff, /look at AGENTS.md/);
+	assert.equal(existsSync(join(roster, "notes")), false);
+});
+
+test("recordTaskComplete creates a missing roster folder for a rostered teammate", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	seedTeammate(teamsDir);
+	const task = createTask({
+		teamsDir,
+		team: "demo",
+		subject: "read AGENTS.md",
+		description: "summarize the pack",
+	});
+	recordTaskComplete({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		task,
+		now: "2026-08-26T12:00:00.000Z",
+	});
+	const roster = join(teamsDir, "demo", "roster", "researcher");
+	assert.equal(existsSync(join(roster, "identity.md")), true);
+	assert.match(
+		readFileSync(join(roster, "log.tsv"), "utf8"),
+		/completed\t1\tread AGENTS.md/,
+	);
+	assert.equal(existsSync(join(roster, "handoff.md")), true);
+});
+
+test("recordTaskComplete writes notes when the card needs more than a cell", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	seedTeammate(teamsDir);
+	const task = createTask({
+		teamsDir,
+		team: "demo",
+		subject: "read AGENTS.md",
+		description: "line one\nline two\twith a tab",
+	});
+	recordTaskComplete({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		task,
+		now: "2026-08-26T12:00:00.000Z",
+	});
+	const roster = join(teamsDir, "demo", "roster", "researcher");
+	const notes = readdirSync(join(roster, "notes"));
+	assert.equal(notes.length, 1);
+	assert.match(notes[0] ?? "", /2026-08-26T12-00-00-000Z-1\.md/);
+	assert.match(
+		readFileSync(join(roster, "notes", notes[0] ?? ""), "utf8"),
+		/line two/,
+	);
+	assert.match(
+		readFileSync(join(roster, "log.tsv"), "utf8"),
+		/completed\t1\tread AGENTS.md\n/,
+	);
+});
+
+test("recordTaskComplete no-ops when the name is not a teammate", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	const task = createTask({
+		teamsDir,
+		team: "demo",
+		subject: "read AGENTS.md",
+		description: "summarize",
+	});
+	recordTaskComplete({
+		teamsDir,
+		team: "demo",
+		name: "team-lead",
+		task,
+	});
+	assert.equal(existsSync(join(teamsDir, "demo", "roster")), false);
+});
+
+test("readStandingContext returns identity and handoff but not the log", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	writeMemberRecord({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+		purpose: "look at AGENTS.md",
+		agent: "builder",
+	});
+	const roster = join(teamsDir, "demo", "roster", "researcher");
+	writeFileSync(join(roster, "handoff.md"), "# Handoff\n\nstill true\n");
+	writeFileSync(
+		join(roster, "log.tsv"),
+		"ts\tkind\ttask\tsummary\n2026-08-26T00:00:00.000Z\tcompleted\t1\thidden\n",
+	);
+	const standing = readStandingContext({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+	});
+	assert.match(standing ?? "", /look at AGENTS.md/);
+	assert.match(standing ?? "", /still true/);
+	assert.doesNotMatch(standing ?? "", /hidden/);
+});
+
+test("readStandingContext is fine when identity or handoff is missing", () => {
+	const teamsDir = tempDir();
+	seedTeam(teamsDir);
+	assert.equal(
+		readStandingContext({
+			teamsDir,
+			team: "demo",
+			name: "researcher",
+		}),
+		undefined,
+	);
+	const roster = join(teamsDir, "demo", "roster", "researcher");
+	mkdirSync(roster, { recursive: true });
+	writeFileSync(join(roster, "handoff.md"), "# Handoff\n\nonly card\n");
+	const standing = readStandingContext({
+		teamsDir,
+		team: "demo",
+		name: "researcher",
+	});
+	assert.match(standing ?? "", /only card/);
 });
