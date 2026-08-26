@@ -550,7 +550,16 @@ Do not edit .pi/, run/, or .coms/.
 
 async function main() {
   if (
-    !existsSync(join(PLAY, ".pi", "vendor", "@agentic-core", "draconic-coms"))
+    !existsSync(
+      join(
+        PLAY,
+        ".pi",
+        "npm",
+        "node_modules",
+        "@agentic-core",
+        "draconic-coms",
+      ),
+    )
   ) {
     throw new Error(
       "playground missing coms package. run: pnpm exec agentic-core install playground --profile agentic-core",

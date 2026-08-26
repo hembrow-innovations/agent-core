@@ -102,6 +102,7 @@ export function openDestination(target: string): Destination {
     remove(".pi/extensions");
     remove(".pi/lib");
     remove(".pi/roles");
+    remove(".pi/vendor/@agentic-core");
   };
 
   return {
@@ -189,7 +190,7 @@ function canonicalizePackageSource(source: string): string {
     /^(?:\.pi\/)?vendor\/@agentic-core\/([a-z0-9-]+)$/,
   );
   if (!match) return source;
-  return `vendor/@agentic-core/${match[1]}`;
+  return `npm/node_modules/@agentic-core/${match[1]}`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

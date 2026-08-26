@@ -28,9 +28,87 @@ function writePackAgent(cwd: string, body = DEFAULT_BODY) {
 	writeAgent(cwd, "draconic", body);
 }
 
+type ToolSource = {
+	name: string;
+	sourceInfo: { source: string; path?: string };
+};
+
+type RegisteredTool = {
+	name: string;
+	execute: (
+		toolCallId: string,
+		params: { tools?: unknown },
+	) => Promise<{
+		content: Array<{ type: string; text: string }>;
+		details?: unknown;
+		isError?: boolean;
+	}>;
+};
+
+function destCatalog(): { active: string[]; all: ToolSource[] } {
+	return {
+		active: [
+			"read",
+			"bash",
+			"draconic_todo",
+			"coms_send",
+			"team_status",
+			"task_list",
+			"web_search",
+			"fetch_content",
+			"subagent",
+			"lens_diagnostics",
+			"pi_lens_activate_tools",
+		],
+		all: [
+			{ name: "read", sourceInfo: { source: "builtin" } },
+			{ name: "bash", sourceInfo: { source: "builtin" } },
+			{ name: "draconic_todo", sourceInfo: { source: "extension" } },
+			{ name: "coms_send", sourceInfo: { source: "extension" } },
+			{ name: "team_status", sourceInfo: { source: "extension" } },
+			{ name: "task_list", sourceInfo: { source: "extension" } },
+			{
+				name: "web_search",
+				sourceInfo: {
+					source: "extension",
+					path: "/npm/pi-web-access/index.ts",
+				},
+			},
+			{
+				name: "fetch_content",
+				sourceInfo: {
+					source: "extension",
+					path: "/npm/pi-web-access/index.ts",
+				},
+			},
+			{
+				name: "subagent",
+				sourceInfo: {
+					source: "extension",
+					path: "/npm/pi-subagents/index.ts",
+				},
+			},
+			{
+				name: "lens_diagnostics",
+				sourceInfo: {
+					source: "extension",
+					path: "/npm/pi-lens/dist/index.js",
+				},
+			},
+			{
+				name: "pi_lens_activate_tools",
+				sourceInfo: {
+					source: "extension",
+					path: "/npm/pi-lens/dist/index.js",
+				},
+			},
+		],
+	};
+}
+
 function loadBoot(
 	active = ["read", "bash", "coms_send", "subagent"],
-	all = [
+	all: ToolSource[] = [
 		{ name: "read", sourceInfo: { source: "builtin" } },
 		{ name: "bash", sourceInfo: { source: "builtin" } },
 		{ name: "coms_send", sourceInfo: { source: "extension" } },
@@ -40,6 +118,8 @@ function loadBoot(
 	const statuses: Status[] = [];
 	const notices: string[] = [];
 	let live = [...active];
+	let catalog = [...all];
+	const tools: RegisteredTool[] = [];
 	const handlers = new Map<string, (...args: never[]) => unknown>();
 	const commands = new Map<
 		string,
@@ -54,6 +134,18 @@ function loadBoot(
 			commands.set(name, options.handler);
 		},
 		registerFlag() {},
+		registerTool(tool: RegisteredTool) {
+			tools.push(tool);
+			if (!catalog.some((item) => item.name === tool.name)) {
+				catalog = [
+					...catalog,
+					{ name: tool.name, sourceInfo: { source: "extension" } },
+				];
+			}
+			if (!live.includes(tool.name)) {
+				live = [...live, tool.name];
+			}
+		},
 		getFlag(name: string) {
 			return flags[name];
 		},
@@ -61,7 +153,7 @@ function loadBoot(
 			return [...live];
 		},
 		getAllTools() {
-			return all;
+			return catalog;
 		},
 		setActiveTools(names: string[]) {
 			live = [...names];
@@ -73,7 +165,9 @@ function loadBoot(
 		handlers,
 		commands,
 		flags,
+		tools,
 		getActive: () => [...live],
+		getAll: () => catalog.map((item) => item.name),
 	};
 }
 
@@ -221,7 +315,12 @@ test("tools allowlist keeps coms and subagent", async () => {
 	const boot = loadBoot();
 	const ctx = { cwd, ui: ui(boot.statuses, boot.notices) };
 	await boot.commands.get("agent")?.("reader", ctx);
-	assert.deepEqual(boot.getActive().sort(), ["coms_send", "read", "subagent"]);
+	assert.deepEqual(boot.getActive().sort(), [
+		"coms_send",
+		"dest_activate_tools",
+		"read",
+		"subagent",
+	]);
 });
 
 test("unknown tool names do not throw", async () => {
@@ -233,7 +332,12 @@ test("unknown tool names do not throw", async () => {
 		cwd,
 		ui: ui(boot.statuses, boot.notices),
 	});
-	assert.deepEqual(boot.getActive().sort(), ["coms_send", "read", "subagent"]);
+	assert.deepEqual(boot.getActive().sort(), [
+		"coms_send",
+		"dest_activate_tools",
+		"read",
+		"subagent",
+	]);
 });
 
 test("empty valid tools list leaves the live set", async () => {
@@ -248,6 +352,7 @@ test("empty valid tools list leaves the live set", async () => {
 	assert.deepEqual(boot.getActive().sort(), [
 		"bash",
 		"coms_send",
+		"dest_activate_tools",
 		"read",
 		"subagent",
 	]);
@@ -264,7 +369,161 @@ test("return-to-off restores the tools snapshot", async () => {
 	assert.deepEqual(boot.getActive().sort(), [
 		"bash",
 		"coms_send",
+		"dest_activate_tools",
 		"read",
 		"subagent",
 	]);
+});
+
+test("session_start parks third-party tools and keeps first-party tools active", async () => {
+	const cwd = mkdtempSync(join(tmpdir(), "boot-park-"));
+	writePackAgent(cwd);
+	const catalog = destCatalog();
+	const boot = loadBoot(catalog.active, catalog.all);
+	await boot.handlers.get("session_start")?.(
+		{} as never,
+		{ cwd, ui: ui(boot.statuses, boot.notices) } as never,
+	);
+	assert.deepEqual(boot.getActive().sort(), [
+		"bash",
+		"coms_send",
+		"dest_activate_tools",
+		"draconic_todo",
+		"pi_lens_activate_tools",
+		"read",
+		"task_list",
+		"team_status",
+	]);
+	assert.equal(boot.getAll().includes("web_search"), true);
+	assert.equal(boot.getAll().includes("fetch_content"), true);
+	assert.equal(boot.getAll().includes("subagent"), true);
+	assert.equal(boot.getAll().includes("lens_diagnostics"), true);
+	assert.equal(boot.getAll().includes("dest_activate_tools"), true);
+});
+
+test("dest loader stays registered and active after session_start", async () => {
+	const cwd = mkdtempSync(join(tmpdir(), "boot-dest-loader-"));
+	writePackAgent(cwd);
+	const catalog = destCatalog();
+	const boot = loadBoot(catalog.active, catalog.all);
+	assert.equal(
+		boot.tools.some((tool) => tool.name === "dest_activate_tools"),
+		true,
+	);
+	await boot.handlers.get("session_start")?.(
+		{} as never,
+		{ cwd, ui: ui(boot.statuses, boot.notices) } as never,
+	);
+	assert.equal(boot.getAll().includes("dest_activate_tools"), true);
+	assert.equal(boot.getActive().includes("dest_activate_tools"), true);
+});
+
+test("dest loader activates a named parked tool", async () => {
+	const cwd = mkdtempSync(join(tmpdir(), "boot-dest-activate-"));
+	writePackAgent(cwd);
+	const catalog = destCatalog();
+	const boot = loadBoot(catalog.active, catalog.all);
+	const ctx = { cwd, ui: ui(boot.statuses, boot.notices) };
+	await boot.handlers.get("session_start")?.({} as never, ctx as never);
+	const loader = boot.tools.find((tool) => tool.name === "dest_activate_tools");
+	assert.equal(typeof loader?.execute, "function");
+	await loader?.execute("call-1", { tools: ["web_search", "missing_tool"] });
+	assert.equal(boot.getActive().includes("web_search"), true);
+	assert.equal(boot.getActive().includes("fetch_content"), false);
+	assert.equal(boot.getActive().includes("subagent"), false);
+	assert.equal(boot.getActive().includes("lens_diagnostics"), false);
+	assert.equal(boot.getActive().includes("dest_activate_tools"), true);
+	assert.equal(boot.getAll().includes("fetch_content"), true);
+});
+
+test("tools allowlist after park keeps first-party tools and dest loader", async () => {
+	const cwd = mkdtempSync(join(tmpdir(), "boot-park-allowlist-"));
+	writePackAgent(cwd);
+	writeAgent(cwd, "reader", "Read only.", "tools: [read]");
+	const catalog = destCatalog();
+	const boot = loadBoot(catalog.active, catalog.all);
+	const ctx = { cwd, ui: ui(boot.statuses, boot.notices) };
+	await boot.handlers.get("session_start")?.({} as never, ctx as never);
+	await boot.commands.get("agent")?.("reader", ctx);
+	assert.deepEqual(boot.getActive().sort(), [
+		"coms_send",
+		"dest_activate_tools",
+		"draconic_todo",
+		"pi_lens_activate_tools",
+		"read",
+		"task_list",
+		"team_status",
+	]);
+	assert.equal(boot.getActive().includes("web_search"), false);
+	assert.equal(boot.getActive().includes("subagent"), false);
+	assert.equal(boot.getAll().includes("subagent"), true);
+});
+
+test("bindActiveTools after dest activate keeps that tool parked others off", async () => {
+	const cwd = mkdtempSync(join(tmpdir(), "boot-park-bind-"));
+	writePackAgent(cwd);
+	writeAgent(cwd, "reader", "Read only.", "tools: [read]");
+	const catalog = destCatalog();
+	const boot = loadBoot(catalog.active, catalog.all);
+	const ctx = { cwd, ui: ui(boot.statuses, boot.notices) };
+	await boot.handlers.get("session_start")?.({} as never, ctx as never);
+	const loader = boot.tools.find((tool) => tool.name === "dest_activate_tools");
+	await loader?.execute("call-1", { tools: ["web_search"] });
+	await boot.handlers.get("before_agent_start")?.(
+		{ systemPrompt: "base" } as never,
+		ctx as never,
+	);
+	await boot.commands.get("agent")?.("reader", ctx);
+	assert.equal(boot.getActive().includes("web_search"), true);
+	assert.equal(boot.getActive().includes("fetch_content"), false);
+	assert.equal(boot.getActive().includes("subagent"), false);
+	assert.equal(boot.getActive().includes("lens_diagnostics"), false);
+	assert.equal(boot.getActive().includes("dest_activate_tools"), true);
+	assert.equal(boot.getActive().includes("coms_send"), true);
+});
+
+test("return-to-off after park does not restore parked tools", async () => {
+	const cwd = mkdtempSync(join(tmpdir(), "boot-park-restore-"));
+	writePackAgent(cwd);
+	writeAgent(cwd, "reader", "Read only.", "tools: [read]");
+	const catalog = destCatalog();
+	const boot = loadBoot(catalog.active, catalog.all);
+	const ctx = { cwd, ui: ui(boot.statuses, boot.notices) };
+	await boot.handlers.get("session_start")?.({} as never, ctx as never);
+	await boot.commands.get("agent")?.("reader", ctx);
+	await boot.commands.get("agent")?.("default", ctx);
+	assert.equal(boot.getActive().includes("subagent"), false);
+	assert.equal(boot.getActive().includes("web_search"), false);
+	assert.equal(boot.getActive().includes("dest_activate_tools"), true);
+	assert.equal(boot.getActive().includes("coms_send"), true);
+	assert.equal(boot.getAll().includes("subagent"), true);
+});
+
+test("session_start parks renamed third-party tools by sourceInfo path", async () => {
+	const cwd = mkdtempSync(join(tmpdir(), "boot-park-path-"));
+	writePackAgent(cwd);
+	const boot = loadBoot(
+		["read", "coms_send", "custom_web_search", "subagent_wait"],
+		[
+			{ name: "read", sourceInfo: { source: "builtin" } },
+			{ name: "coms_send", sourceInfo: { source: "extension" } },
+			{
+				name: "custom_web_search",
+				sourceInfo: {
+					source: "extension",
+					path: "/npm/pi-web-access/index.ts",
+				},
+			},
+			{ name: "subagent_wait", sourceInfo: { source: "extension" } },
+		],
+	);
+	await boot.handlers.get("session_start")?.(
+		{} as never,
+		{ cwd, ui: ui(boot.statuses, boot.notices) } as never,
+	);
+	assert.equal(boot.getActive().includes("custom_web_search"), false);
+	assert.equal(boot.getActive().includes("subagent_wait"), false);
+	assert.equal(boot.getActive().includes("coms_send"), true);
+	assert.equal(boot.getAll().includes("custom_web_search"), true);
+	assert.equal(boot.getAll().includes("subagent_wait"), true);
 });

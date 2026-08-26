@@ -2,13 +2,13 @@
 id: "spec-installer"
 title: "Installer spec"
 kind: spec
-description: "CLI, dest vendor tree, settings merge, and overwrite rules for install from this repo."
+description: "CLI, dest npm tree, settings merge, and overwrite rules for install from this repo."
 status: draft
 domain: pack
 area: installer
 tags: [spec]
 created_at: "2026-08-23"
-updated_at: "2026-08-26"
+updated_at: "2026-08-27"
 ---
 
 # Installer spec
@@ -24,7 +24,7 @@ The command is `pnpm exec agentic-core install <target>`.
 `parseArgs` in `packages/installer/src/cli.ts` accepts:
 
 - **`--profile`**: load `profiles/<name>.yaml`
-- **`--extension`**: first-party vendor package. Repeatable.
+- **`--extension`**: first-party package. Repeatable.
 - **`--with`**: comma-separated skill folder names to add
 - **`--without`**: comma-separated skill folder names to drop
 - **`--playbooks`**: replace the profile playbook selection
@@ -36,15 +36,16 @@ The command is `pnpm exec agentic-core install <target>`.
 A profile install also installs that profile's `packages` list.
 Dest is always `.pi/`.
 
-The dest receives a vendor copy at `.pi/vendor/@agentic-core/<name>`.
-Dest settings gain a dest-relative `vendor/@agentic-core/<name>` source.
-Re-running install overwrites the vendor copy.
+The dest receives a first-party copy at `.pi/npm/node_modules/@agentic-core/<name>`.
+Dest settings gain a dest-relative `npm/node_modules/@agentic-core/<name>` source.
+Settings do not list `npm:@agentic-core/<name>`.
+Re-running install overwrites the copy.
 The dest has no sibling lib package.
 
 Agents, skills, playbooks, prompts, and third-party `npm:` sources still merge the way they do today.
-First-party extensions never copy from `pi/extensions/`. `writeVendorExtension` reads `packages/<name>`.
+Dest extras stay. Overlay writers update listed files and do not prune other dest markdown.
+First-party extensions never copy from `pi/extensions/`. The copy reads `packages/<name>`.
 
-The dest must commit `.pi/vendor/` and the settings that point at it.
 This checkout is the only install source.
 A dest never depends on this checkout at runtime.
 
@@ -81,10 +82,10 @@ else if (a === "--without-playbooks")
 
 `run` splits after `openDestination`.
 
-- **Extensions-only**: `--profile` omitted and at least one `--extension`. No default profile. `run` still calls `dest.ensureGitignore`. `writeExtensions` vendors those packages and merges their settings sources. Skills, playbooks, agents, prompts, and `writeRuntime` do not run.
+- **Extensions-only**: `--profile` omitted and at least one `--extension`. No default profile. `run` still calls `dest.ensureGitignore`. `writeExtensions` copies those packages into dest npm and merges their settings sources. Skills, playbooks, agents, prompts, and `writeRuntime` do not run.
 - **Profile install**: `--profile <name>`, or no `--profile` and no `--extension`. The name is `opts.profile ?? DEFAULT_PROFILE`. `DEFAULT_PROFILE` is `agentic-core`. `loadProfile` then `planFromProfile` then dest writes.
 
-`--profile` and `--extension` may be used together. That is a profile install. `resolvePackages` appends the CLI vendor names after `profile.packages`. First source wins. Duplicates drop.
+`--profile` and `--extension` may be used together. That is a profile install. `resolvePackages` appends the CLI local names after `profile.packages`. First source wins. Duplicates drop.
 
 ### Plan
 
@@ -100,20 +101,20 @@ Unknown playbook, agent, or prompt ids fail in `resolveNamedIds` when the plan i
 
 ### Dest writes
 
-Selected skills copy from `ai/skills/` to `.pi/skills/<name>/`. `findSkillDir` walks with `walkSkillDirs`. A missing name fails with `Skill not found in source`. Overlay playbooks write `.pi/playbooks/`. Overlay agents write `.pi/agents/<id>.md`. Overlay prompts write `.pi/prompts/<id>.md`. Each overlay deletes other dest markdown of that kind, then copies the selected ids.
+Selected skills copy from `ai/skills/` to `.pi/skills/<name>/`. `findSkillDir` walks with `walkSkillDirs`. A missing name fails with `Skill not found in source`. Overlay playbooks write `.pi/playbooks/`. Overlay agents write `.pi/agents/<id>.md`. Overlay prompts write `.pi/prompts/<id>.md`. Each overlay updates listed ids. Extra dest markdown of that kind stays. Extra dest skill dirs and extra settings packages stay.
 
-Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md` and `ai/pi/draconic-models.md`. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, and `.pi/roles`. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. It writes `.pi/draconic-models.md` only when missing. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing. Vendor is not gitignored.
+Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md` and `ai/pi/draconic-models.md`. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, `.pi/roles`, and installer-owned `.pi/vendor/@agentic-core`. Other dest extras stay. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. It writes `.pi/draconic-models.md` only when missing. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing.
 
 `ai/pi/packages.json` is not merged on install.
 
-### Vendor and settings
+### Local packages and settings
 
-`writeVendorTrees` copies each named first-party package as it is. Dest does not receive a vendor lib package.
+`writeVendorTrees` copies each named first-party package as it is into dest npm. Dest does not receive a sibling lib package. It also removes installer-owned `.pi/vendor/@agentic-core`.
 
 ```ts
 // packages/installer/src/extensions.ts — writeVendorExtension
 const srcPkg = join(srcRoot, "packages", name);
-const destRel = join(".pi", "vendor", "@agentic-core", name);
+const destRel = join(".pi", "npm", "node_modules", "@agentic-core", name);
 dest.remove(destRel);
 dest.ensureDir(destRel);
 dest.copyFile(join(srcPkg, "package.json"), join(destRel, "package.json"));
@@ -122,9 +123,9 @@ copyTsSources(join(srcPkg, "src"), dest, join(destRel, "src"));
 
 `copyTsSources` copies `.ts` files and skips `*.test.ts`. Re-run deletes the dest folder first, so leftover files go away.
 
-The package `@agentic-core/draconic-todo` lands at `.pi/vendor/@agentic-core/draconic-todo`. The same shape holds for `draconic-coms`, `draconic-boot`, `draconic-teams`, and `draconic-footer`.
+The package `@agentic-core/draconic-todo` lands at `.pi/npm/node_modules/@agentic-core/draconic-todo`. The same shape holds for `draconic-coms`, `draconic-boot`, `draconic-teams`, and `draconic-footer`.
 
-`dest.mergePackages` writes `.pi/settings.json`. Sources are dest-relative. `canonicalizePackageSource` rewrites `.pi/vendor/@agentic-core/<name>` to `vendor/@agentic-core/<name>`. No path back to this checkout.
+`dest.mergePackages` writes `.pi/settings.json`. Sources are dest-relative. `canonicalizePackageSource` rewrites `vendor/@agentic-core/<name>` and `.pi/vendor/@agentic-core/<name>` to `npm/node_modules/@agentic-core/<name>`. Leftover vendor settings drop when that npm path is present. No path back to this checkout.
 
 Third-party sources such as `npm:pi-lens` come from `profile.packages` and merge into dest settings in list order.
 
@@ -134,16 +135,20 @@ This checkout's Pi is not wired to `packages/`. Nothing vendors until the instal
 
 - The command accepts `<target>`, `--profile`, `--extension`, `--with`, `--without`, `--playbooks`, `--with-playbooks`, and `--without-playbooks`
 - `--extension` can be passed more than once
-- A profile install installs `profile.packages` into dest settings and vendors first-party sources
+- A profile install installs `profile.packages` into dest settings and copies first-party sources into dest npm
 - A profile can select `agents` and `prompts` from the source libraries
-- An extensions-only run vendors packages and does not copy skills
-- Vendor path is `.pi/vendor/@agentic-core/<name>`
-- Settings contain dest-relative paths to those folders
-- Re-run overwrites the vendor copy
+- An extensions-only run copies packages into dest npm and does not copy skills
+- First-party path is `.pi/npm/node_modules/@agentic-core/<name>`
+- Settings contain dest-relative `npm/node_modules/@agentic-core/<name>` paths
+- Settings do not list `npm:@agentic-core/<name>`
+- Re-run overwrites the dest npm copy
+- Extra dest skills, agents, playbooks, prompts, and settings packages survive a reinstall
+- Dest rewrite removes installer-owned `.pi/vendor/@agentic-core` and keeps other dest extras
+- `vendor:` and `vendor/` sources fail at profile load
 - Third-party `npm:` sources still merge
 - First-party extensions are not read from `pi/extensions/`
 - `--harness` is an unknown flag
-- Installer tests write a temp dest and check settings plus the vendor tree
+- Installer tests write a temp dest and check settings plus the dest npm tree
 - Dest has no live path back to this checkout
 - Dest has no sibling lib package
 

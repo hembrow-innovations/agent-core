@@ -13,6 +13,8 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { parseProfilePackage } from "./extensions.ts";
+import { loadProfile } from "./profile.ts";
 
 const SRC = dirname(fileURLToPath(import.meta.url));
 const PKG = join(SRC, "..");
@@ -78,8 +80,21 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
   assert.equal(folders.includes("how"), false, folders.join(", "));
   assert.equal(folders.includes("why"), false, folders.join(", "));
   assert.equal(folders.includes("unslop"), false, folders.join(", "));
-  assert.ok(folders.includes("playbooks"), folders.join(", "));
-  assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), true);
+  for (const name of [
+    "docs",
+    "domain-modeling",
+    "handoff",
+    "management",
+    "planning",
+    "planning-with-docs",
+    "to-issues",
+    "triage",
+    "wayfinder",
+    "create-verification-skill",
+  ]) {
+    assert.ok(folders.includes(name), folders.join(", "));
+    assert.equal(existsSync(join(skillRoot, name, "SKILL.md")), true);
+  }
   assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "prompts", "arena.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
@@ -92,15 +107,15 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
       "npm:pi-web-access",
       "npm:pi-subagents",
       "npm:@ff-labs/pi-fff",
-      "vendor/@agentic-core/draconic-todo",
-      "vendor/@agentic-core/draconic-coms",
-      "vendor/@agentic-core/draconic-boot",
-      "vendor/@agentic-core/draconic-teams",
-      "vendor/@agentic-core/draconic-footer",
+      "npm/node_modules/@agentic-core/draconic-todo",
+      "npm/node_modules/@agentic-core/draconic-coms",
+      "npm/node_modules/@agentic-core/draconic-boot",
+      "npm/node_modules/@agentic-core/draconic-teams",
+      "npm/node_modules/@agentic-core/draconic-footer",
     ],
   );
-  const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
-  assert.deepEqual(readdirSync(vendorRoot).sort(), [
+  const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
+  assert.deepEqual(readdirSync(npmRoot).sort(), [
     "draconic-boot",
     "draconic-coms",
     "draconic-footer",
@@ -108,26 +123,33 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
     "draconic-todo",
   ]);
   assert.equal(
-    existsSync(join(vendorRoot, "draconic-todo", "src", "index.ts")),
+    existsSync(join(npmRoot, "draconic-todo", "src", "index.ts")),
     true,
   );
   assert.equal(
-    existsSync(join(vendorRoot, "draconic-coms", "src", "index.ts")),
+    existsSync(join(npmRoot, "draconic-coms", "src", "index.ts")),
     true,
   );
   assert.equal(
-    existsSync(join(vendorRoot, "draconic-boot", "src", "index.ts")),
+    existsSync(join(npmRoot, "draconic-boot", "src", "index.ts")),
     true,
   );
   assert.equal(
-    existsSync(join(vendorRoot, "draconic-teams", "src", "index.ts")),
+    existsSync(join(npmRoot, "draconic-teams", "src", "index.ts")),
     true,
   );
   assert.equal(
-    existsSync(join(vendorRoot, "draconic-footer", "src", "index.ts")),
+    existsSync(join(npmRoot, "draconic-footer", "src", "index.ts")),
     true,
   );
-  assert.equal(existsSync(join(vendorRoot, "lib")), false);
+  assert.equal(existsSync(join(npmRoot, "lib")), false);
+  assert.doesNotMatch(
+    JSON.stringify(
+      JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8"))
+        .packages,
+    ),
+    /npm:@agentic-core\//,
+  );
   assert.equal(existsSync(join(dest, ".opencode")), false);
   assertNoCheckoutPath(dest);
 });
@@ -166,11 +188,19 @@ test("install --profile agentic-core writes .pi/skills and does not wire this ch
   assert.equal(existsSync(join(skillRoot, "create-skill", "SKILL.md")), true);
   assert.equal(folders.includes("how"), false, folders.join(", "));
   assert.equal(folders.includes("unslop"), false, folders.join(", "));
-  assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
   assert.equal(existsSync(join(dest, ".opencode")), false);
   assert.equal(
-    existsSync(join(dest, ".pi", "vendor", "@agentic-core", "draconic-todo")),
+    existsSync(
+      join(
+        dest,
+        ".pi",
+        "npm",
+        "node_modules",
+        "@agentic-core",
+        "draconic-todo",
+      ),
+    ),
     true,
   );
 
@@ -184,6 +214,92 @@ test("install --profile agentic-core writes .pi/skills and does not wire this ch
       /packages\/(?:lib|draconic-todo|draconic-coms|draconic-boot|draconic-teams|draconic-footer)/,
     );
   }
+});
+
+test("install --profile agentic-core keeps dest extras and updates listed files", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-keep-extras-"));
+  const first = runCli(["install", dest, "--profile", "agentic-core"]);
+  assert.equal(first.status, 0, first.stderr || first.stdout);
+
+  const extraSkill = join(dest, ".pi", "skills", "extra-skill");
+  mkdirSync(extraSkill, { recursive: true });
+  writeFileSync(join(extraSkill, "SKILL.md"), "# extra skill\n");
+  writeFileSync(
+    join(dest, ".pi", "agents", "extra-agent.md"),
+    "# extra agent\n",
+  );
+  mkdirSync(join(dest, ".pi", "playbooks"), { recursive: true });
+  writeFileSync(
+    join(dest, ".pi", "playbooks", "extra-playbook.md"),
+    "# extra playbook\n",
+  );
+  writeFileSync(
+    join(dest, ".pi", "prompts", "extra-prompt.md"),
+    "# extra prompt\n",
+  );
+
+  const settingsPath = join(dest, ".pi", "settings.json");
+  const settings = JSON.parse(readFileSync(settingsPath, "utf8")) as {
+    packages: string[];
+  };
+  settings.packages.push("npm:extra-survives");
+  writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
+
+  writeFileSync(join(dest, ".pi", "agents", "architect.md"), "STALE AGENT\n");
+  writeFileSync(
+    join(dest, ".pi", "skills", "create-skill", "SKILL.md"),
+    "STALE SKILL\n",
+  );
+  writeFileSync(join(dest, ".pi", "prompts", "arena.md"), "STALE PROMPT\n");
+
+  const second = runCli(["install", dest, "--profile", "agentic-core"]);
+  assert.equal(second.status, 0, second.stderr || second.stdout);
+
+  assert.equal(
+    readFileSync(join(extraSkill, "SKILL.md"), "utf8"),
+    "# extra skill\n",
+  );
+  assert.equal(
+    readFileSync(join(dest, ".pi", "agents", "extra-agent.md"), "utf8"),
+    "# extra agent\n",
+  );
+  assert.equal(
+    readFileSync(join(dest, ".pi", "playbooks", "extra-playbook.md"), "utf8"),
+    "# extra playbook\n",
+  );
+  assert.equal(
+    readFileSync(join(dest, ".pi", "prompts", "extra-prompt.md"), "utf8"),
+    "# extra prompt\n",
+  );
+  const afterPackages = JSON.parse(readFileSync(settingsPath, "utf8")) as {
+    packages: string[];
+  };
+  assert.ok(
+    afterPackages.packages.includes("npm:extra-survives"),
+    afterPackages.packages.join(", "),
+  );
+
+  assert.equal(
+    readFileSync(join(dest, ".pi", "agents", "architect.md"), "utf8"),
+    readFileSync(
+      join(REPO, "ai", "agents", "architect", "architect.md"),
+      "utf8",
+    ),
+  );
+  assert.equal(
+    readFileSync(
+      join(dest, ".pi", "skills", "create-skill", "SKILL.md"),
+      "utf8",
+    ),
+    readFileSync(
+      join(REPO, "ai", "skills", "engineering", "create-skill", "SKILL.md"),
+      "utf8",
+    ),
+  );
+  assert.equal(
+    readFileSync(join(dest, ".pi", "prompts", "arena.md"), "utf8"),
+    readFileSync(join(REPO, "ai", "prompts", "arena.md"), "utf8"),
+  );
 });
 
 function destFiles(root: string): string[] {
@@ -209,27 +325,26 @@ function assertNoCheckoutPath(root: string): void {
   }
 }
 
-test("install --extension draconic-todo vendors a dest-relative package", () => {
+test("install --extension draconic-todo writes a dest-relative npm package", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-ext-"));
   const r = runCli(["install", dest, "--extension", "draconic-todo"]);
   assert.equal(r.status, 0, r.stderr || r.stdout);
 
-  const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
-  const vendor = join(vendorRoot, "draconic-todo");
-  assert.equal(existsSync(vendor), true);
-  assert.deepEqual(readdirSync(vendorRoot), ["draconic-todo"]);
+  const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
+  const local = join(npmRoot, "draconic-todo");
+  assert.equal(existsSync(local), true);
+  assert.deepEqual(readdirSync(npmRoot), ["draconic-todo"]);
   assert.equal(existsSync(join(dest, ".pi", "skills")), false);
-  assert.equal(existsSync(join(vendorRoot, "lib")), false);
-  assert.equal(existsSync(join(vendor, "src", "lib")), false);
-  assert.equal(existsSync(join(vendor, "src", "store.ts")), true);
+  assert.equal(existsSync(join(npmRoot, "lib")), false);
+  assert.equal(existsSync(join(local, "src", "lib")), false);
+  assert.equal(existsSync(join(local, "src", "store.ts")), true);
+  assert.equal(existsSync(join(local, "src", "index.test.ts")), false);
 
-  const index = readFileSync(join(vendor, "src", "index.ts"), "utf8");
+  const index = readFileSync(join(local, "src", "index.ts"), "utf8");
   assert.match(index, /from "\.\/store\.ts"/);
   assert.doesNotMatch(index, /@agentic-core\/lib/);
 
-  const pkg = JSON.parse(
-    readFileSync(join(vendor, "package.json"), "utf8"),
-  ) as {
+  const pkg = JSON.parse(readFileSync(join(local, "package.json"), "utf8")) as {
     dependencies?: Record<string, string>;
   };
   assert.equal(pkg.dependencies?.["@agentic-core/lib"], undefined);
@@ -238,7 +353,9 @@ test("install --extension draconic-todo vendors a dest-relative package", () => 
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   ) as { packages?: unknown };
   assert.ok(Array.isArray(settings.packages), "settings.packages");
-  assert.deepEqual(settings.packages, ["vendor/@agentic-core/draconic-todo"]);
+  assert.deepEqual(settings.packages, [
+    "npm/node_modules/@agentic-core/draconic-todo",
+  ]);
 
   const gitignore = readFileSync(join(dest, ".pi", ".gitignore"), "utf8");
   assert.equal(gitignore, "npm/\ngit/\n");
@@ -247,31 +364,76 @@ test("install --extension draconic-todo vendors a dest-relative package", () => 
   assertNoCheckoutPath(dest);
 });
 
-test("install rewrites stale .pi/vendor package sources to vendor/", () => {
-  const dest = mkdtempSync(join(tmpdir(), "installer-vendor-migrate-"));
-  mkdirSync(join(dest, ".pi"), { recursive: true });
+test("install removes installer-owned vendor trees and keeps other dest extras", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-drop-vendor-"));
+  const vendorTodo = join(
+    dest,
+    ".pi",
+    "vendor",
+    "@agentic-core",
+    "draconic-todo",
+  );
+  mkdirSync(vendorTodo, { recursive: true });
+  writeFileSync(join(vendorTodo, "old.ts"), "old vendor\n");
+  mkdirSync(join(dest, ".pi", "vendor", "other-extra"), { recursive: true });
+  writeFileSync(
+    join(dest, ".pi", "vendor", "other-extra", "keep.txt"),
+    "keep\n",
+  );
   writeFileSync(
     join(dest, ".pi", "settings.json"),
     `${JSON.stringify(
       {
         packages: [
-          ".pi/vendor/@agentic-core/draconic-todo",
           "vendor/@agentic-core/draconic-todo",
+          "npm/node_modules/@agentic-core/draconic-todo",
         ],
       },
       null,
       2,
     )}\n`,
   );
-  const r = runCli(["install", dest, "--extension", "draconic-todo"]);
+
+  const r = runCli(["install", dest, "--profile", "agentic-core"]);
   assert.equal(r.status, 0, r.stderr || r.stdout);
+
+  assert.equal(existsSync(join(dest, ".pi", "vendor", "@agentic-core")), false);
+  assert.equal(
+    readFileSync(
+      join(dest, ".pi", "vendor", "other-extra", "keep.txt"),
+      "utf8",
+    ),
+    "keep\n",
+  );
+  assert.equal(
+    existsSync(
+      join(
+        dest,
+        ".pi",
+        "npm",
+        "node_modules",
+        "@agentic-core",
+        "draconic-todo",
+        "src",
+        "index.ts",
+      ),
+    ),
+    true,
+  );
   const settings = JSON.parse(
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
-  ) as { packages?: unknown };
-  assert.deepEqual(settings.packages, ["vendor/@agentic-core/draconic-todo"]);
+  ) as { packages: string[] };
+  assert.ok(
+    settings.packages.includes("npm/node_modules/@agentic-core/draconic-todo"),
+  );
+  assert.equal(
+    settings.packages.includes("vendor/@agentic-core/draconic-todo"),
+    false,
+  );
+  assert.doesNotMatch(JSON.stringify(settings.packages), /npm:@agentic-core\//);
 });
 
-test("install --extension can repeat and a second run overwrites vendor", () => {
+test("install --extension can repeat and a second run overwrites the npm copy", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-ext-repeat-"));
   const first = runCli([
     "install",
@@ -283,12 +445,28 @@ test("install --extension can repeat and a second run overwrites vendor", () => 
   ]);
   assert.equal(first.status, 0, first.stderr || first.stdout);
 
-  const todo = join(dest, ".pi", "vendor", "@agentic-core", "draconic-todo");
-  const boot = join(dest, ".pi", "vendor", "@agentic-core", "draconic-boot");
+  const todo = join(
+    dest,
+    ".pi",
+    "npm",
+    "node_modules",
+    "@agentic-core",
+    "draconic-todo",
+  );
+  const boot = join(
+    dest,
+    ".pi",
+    "npm",
+    "node_modules",
+    "@agentic-core",
+    "draconic-boot",
+  );
   assert.equal(existsSync(todo), true);
   assert.equal(existsSync(boot), true);
   assert.equal(
-    existsSync(join(dest, ".pi", "vendor", "@agentic-core", "lib")),
+    existsSync(
+      join(dest, ".pi", "npm", "node_modules", "@agentic-core", "lib"),
+    ),
     false,
   );
 
@@ -303,8 +481,63 @@ test("install --extension can repeat and a second run overwrites vendor", () => 
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   ) as { packages?: unknown };
   assert.deepEqual(settings.packages, [
-    "vendor/@agentic-core/draconic-todo",
-    "vendor/@agentic-core/draconic-boot",
+    "npm/node_modules/@agentic-core/draconic-todo",
+    "npm/node_modules/@agentic-core/draconic-boot",
   ]);
   assertNoCheckoutPath(dest);
+});
+
+test("parseProfilePackage accepts local:@agentic-core/draconic-todo", () => {
+  assert.deepEqual(parseProfilePackage("local:@agentic-core/draconic-todo"), {
+    kind: "local",
+    name: "draconic-todo",
+  });
+});
+
+test("parseProfilePackage and loadProfile reject vendor: and vendor/ sources", () => {
+  assert.throws(
+    () => parseProfilePackage("vendor:@agentic-core/draconic-todo"),
+    /vendor:@agentic-core\/draconic-todo/,
+  );
+  assert.throws(
+    () => parseProfilePackage("vendor/@agentic-core/draconic-todo"),
+    /vendor\/@agentic-core\/draconic-todo/,
+  );
+
+  const srcRoot = mkdtempSync(join(tmpdir(), "installer-vendor-src-"));
+  mkdirSync(join(srcRoot, "profiles"));
+  writeFileSync(
+    join(srcRoot, "profiles", "vendor-colon.yaml"),
+    "packages:\n  - vendor:@agentic-core/draconic-todo\n",
+  );
+  writeFileSync(
+    join(srcRoot, "profiles", "vendor-slash.yaml"),
+    "packages:\n  - vendor/@agentic-core/draconic-todo\n",
+  );
+  assert.throws(
+    () => loadProfile(srcRoot, "vendor-colon"),
+    /vendor:@agentic-core\/draconic-todo/,
+  );
+  assert.throws(
+    () => loadProfile(srcRoot, "vendor-slash"),
+    /vendor\/@agentic-core\/draconic-todo/,
+  );
+});
+
+test("parseProfilePackage and loadProfile reject unknown local names", () => {
+  assert.throws(
+    () => parseProfilePackage("local:@agentic-core/not-a-package"),
+    /Unknown extension: not-a-package/,
+  );
+
+  const srcRoot = mkdtempSync(join(tmpdir(), "installer-profile-"));
+  mkdirSync(join(srcRoot, "profiles"));
+  writeFileSync(
+    join(srcRoot, "profiles", "bad.yaml"),
+    "packages:\n  - local:@agentic-core/not-a-package\n",
+  );
+  assert.throws(
+    () => loadProfile(srcRoot, "bad"),
+    /Unknown extension: not-a-package/,
+  );
 });

@@ -181,7 +181,7 @@ test("loadProfile: packages, agents, and prompts shapes", () => {
 		"listed",
 		`packages:
   - npm:pi-lens
-  - vendor/@agentic-core/draconic-todo
+  - local:@agentic-core/draconic-todo
 agents:
   - architect
   - coder
@@ -195,7 +195,7 @@ prompts:
 	assert.deepEqual(loadProfile(root, "bare").packages, []);
 	assert.deepEqual(loadProfile(root, "listed").packages, [
 		{ kind: "npm", source: "npm:pi-lens" },
-		{ kind: "vendor", name: "draconic-todo" },
+		{ kind: "local", name: "draconic-todo" },
 	]);
 	assert.deepEqual(loadProfile(root, "listed").agents, {
 		kind: "list",
@@ -340,7 +340,12 @@ test("installPlaybooks: selected files only, second run converges", () => {
 	installPlaybooks(root, dest, ids);
 	assert.deepEqual(snapshotInstall(dest), first);
 
-	assert.deepEqual(readdirSync(pbDir).sort(), ["bug-fix.md", "feature.md"]);
+	assert.deepEqual(readdirSync(pbDir).sort(), [
+		"bug-fix.md",
+		"eval.md",
+		"feature.md",
+		"leftover.md",
+	]);
 	assert.match(readFileSync(join(pbDir, "feature.md"), "utf8"), /### Feature/);
 	assert.doesNotMatch(readFileSync(join(pbDir, "bug-fix.md"), "utf8"), /Eval/);
 });
@@ -413,17 +418,17 @@ test("repo agentic-core profile loads", () => {
 	assert.deepEqual(missing, []);
 });
 
-test("repo profiles list npm and vendor packages", () => {
+test("repo profiles list npm and local packages", () => {
 	const expected = [
 		{ kind: "npm", source: "npm:pi-lens" },
 		{ kind: "npm", source: "npm:pi-web-access" },
 		{ kind: "npm", source: "npm:pi-subagents" },
 		{ kind: "npm", source: "npm:@ff-labs/pi-fff" },
-		{ kind: "vendor", name: "draconic-todo" },
-		{ kind: "vendor", name: "draconic-coms" },
-		{ kind: "vendor", name: "draconic-boot" },
-		{ kind: "vendor", name: "draconic-teams" },
-		{ kind: "vendor", name: "draconic-footer" },
+		{ kind: "local", name: "draconic-todo" },
+		{ kind: "local", name: "draconic-coms" },
+		{ kind: "local", name: "draconic-boot" },
+		{ kind: "local", name: "draconic-teams" },
+		{ kind: "local", name: "draconic-footer" },
 	];
 	for (const name of ["agentic-core", "life-engine"]) {
 		const p = loadProfile(REPO, name);
@@ -607,7 +612,7 @@ test("installPiRuntime rewrites a dest APPEND_SYSTEM that still names the dest r
 	);
 });
 
-test("installAgents writes selected files and prunes dest leftovers", () => {
+test("installAgents writes selected files and keeps dest extras", () => {
 	const root = tempRoot();
 	mkdirSync(join(root, "ai", "agents", "architect"), { recursive: true });
 	mkdirSync(join(root, "ai", "agents", "coder"), { recursive: true });
@@ -623,6 +628,7 @@ test("installAgents writes selected files and prunes dest leftovers", () => {
 	installAgents(root, dest, ["architect"]);
 	assert.deepEqual(readdirSync(join(dest, ".pi", "agents")).sort(), [
 		"architect.md",
+		"leftover.md",
 	]);
 	assert.equal(
 		readFileSync(join(dest, ".pi", "agents", "architect.md"), "utf8"),
@@ -642,6 +648,7 @@ test("installPrompts writes selected files from ai/prompts", () => {
 	installPrompts(root, dest, ["arena"]);
 	assert.deepEqual(readdirSync(join(dest, ".pi", "prompts")).sort(), [
 		"arena.md",
+		"leftover.md",
 	]);
 	assert.equal(
 		readFileSync(join(dest, ".pi", "prompts", "arena.md"), "utf8"),
@@ -705,28 +712,28 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 		readFileSync(join(dest, ".pi", "agents", "draconic.md"), "utf8"),
 		/Skill|Task/,
 	);
-	const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
+	const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
 	assert.equal(
-		existsSync(join(vendorRoot, "draconic-todo", "src", "index.ts")),
+		existsSync(join(npmRoot, "draconic-todo", "src", "index.ts")),
 		true,
 	);
 	assert.equal(
-		existsSync(join(vendorRoot, "draconic-coms", "src", "index.ts")),
+		existsSync(join(npmRoot, "draconic-coms", "src", "index.ts")),
 		true,
 	);
 	assert.equal(
-		existsSync(join(vendorRoot, "draconic-boot", "src", "index.ts")),
+		existsSync(join(npmRoot, "draconic-boot", "src", "index.ts")),
 		true,
 	);
 	assert.equal(
-		existsSync(join(vendorRoot, "draconic-teams", "src", "index.ts")),
+		existsSync(join(npmRoot, "draconic-teams", "src", "index.ts")),
 		true,
 	);
 	assert.equal(
-		existsSync(join(vendorRoot, "draconic-footer", "src", "index.ts")),
+		existsSync(join(npmRoot, "draconic-footer", "src", "index.ts")),
 		true,
 	);
-	assert.equal(existsSync(join(vendorRoot, "lib")), false);
+	assert.equal(existsSync(join(dest, ".pi", "vendor", "@agentic-core")), false);
 	const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
 	assert.doesNotMatch(append, /running draconic-mode on Pi/);
 	assert.doesNotMatch(
@@ -745,11 +752,11 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 				"npm:pi-web-access",
 				"npm:pi-subagents",
 				"npm:@ff-labs/pi-fff",
-				"vendor/@agentic-core/draconic-todo",
-				"vendor/@agentic-core/draconic-coms",
-				"vendor/@agentic-core/draconic-boot",
-				"vendor/@agentic-core/draconic-teams",
-				"vendor/@agentic-core/draconic-footer",
+				"npm/node_modules/@agentic-core/draconic-todo",
+				"npm/node_modules/@agentic-core/draconic-coms",
+				"npm/node_modules/@agentic-core/draconic-boot",
+				"npm/node_modules/@agentic-core/draconic-teams",
+				"npm/node_modules/@agentic-core/draconic-footer",
 			],
 		},
 	);
@@ -827,12 +834,12 @@ test("install --profile life-engine writes .pi only", () => {
 		existsSync(join(dest, ".pi", "skills", "vault-pack", "SKILL.md")),
 		true,
 	);
-	const vendorRoot = join(dest, ".pi", "vendor", "@agentic-core");
+	const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
 	assert.equal(
-		existsSync(join(vendorRoot, "draconic-todo", "src", "index.ts")),
+		existsSync(join(npmRoot, "draconic-todo", "src", "index.ts")),
 		true,
 	);
-	assert.equal(existsSync(join(vendorRoot, "lib")), false);
+	assert.equal(existsSync(join(dest, ".pi", "vendor", "@agentic-core")), false);
 	assert.equal(existsSync(join(dest, ".opencode")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
 	assert.equal(existsSync(join(dest, ".agents")), false);

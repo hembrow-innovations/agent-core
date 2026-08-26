@@ -1,4 +1,5 @@
 # Develop this repo in Pi. Not an export profile.
+playbooks: all
 agents: all
 prompts: all
 packages:
@@ -6,20 +7,30 @@ packages:
   - npm:pi-web-access
   - npm:pi-subagents
   - npm:@ff-labs/pi-fff
-  - vendor/@agentic-core/draconic-todo
-  - vendor/@agentic-core/draconic-coms
-  - vendor/@agentic-core/draconic-boot
-  - vendor/@agentic-core/draconic-teams
-  - vendor/@agentic-core/draconic-footer
+  - local:@agentic-core/draconic-todo
+  - local:@agentic-core/draconic-coms
+  - local:@agentic-core/draconic-boot
+  - local:@agentic-core/draconic-teams
+  - local:@agentic-core/draconic-footer
 skills:
   - agent-teams
   - architect
   - codebase-design
+  - create-verification-skill
   - diagnose
+  - docs
+  - domain-modeling
+  - handoff
   - improve-codebase-architecture
+  - management
+  - planning
+  - planning-with-docs
   - research
   - setup-draconic
   - tdd
   - thermo-review
+  - to-issues
+  - triage
   - typescript-best-practices
+  - wayfinder
   - create-skill

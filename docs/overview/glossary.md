@@ -34,8 +34,8 @@ A TypeScript package under `packages/`. Folders are `draconic-todo`, `draconic-c
 A product extension among the workspace packages. The five are `@agentic-core/draconic-todo`, `@agentic-core/draconic-coms`, `@agentic-core/draconic-boot`, `@agentic-core/draconic-teams`, and `@agentic-core/draconic-footer`.
 _Avoid_: loose extension file
 
-**Vendor copy**:
-The committed extension copy at `.pi/vendor/@agentic-core/<name>`.
+**Local first-party copy**:
+The committed extension copy at `.pi/npm/node_modules/@agentic-core/<name>`. Profile YAML marks the source as `local:@agentic-core/<name>`.
 
 **Installer**:
 The CLI in `packages/installer`, invoked as `pnpm exec agentic-core install`.

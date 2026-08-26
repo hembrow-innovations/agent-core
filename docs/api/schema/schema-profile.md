@@ -8,7 +8,7 @@ area: installer
 tags: [schema, installer, profiles]
 source: "packages/installer/src/profile.ts"
 created_at: "2026-08-25"
-updated_at: "2026-08-26"
+updated_at: "2026-08-27"
 ---
 
 # Profile YAML schema
@@ -23,13 +23,13 @@ Allowed keys are `skills`, `playbooks`, `agents`, `prompts`, and `packages`. All
 
 - **skills.** String list of skill folder names. Missing or `null` becomes `[]`. A present non-list is an error. Each name must be a directory under `ai/skills/` that holds `SKILL.md`. `findSkillDir` walks with `walkSkillDirs` from `pack-walk.ts`. If two directories share a basename, install prefers `ai/skills/workflow/`, then `ai/skills/setup/`, then the first walk hit. Install copies each name to `.pi/skills/<name>/`. A typo parses. Copy then fails with `Skill not found in source`. CLI `--with` and `--without` change the planned list. That overlay is [[spec-installer]].
 
-- **playbooks.** One of three shapes. Missing, `null`, or `~` is omit. Dest `.pi/playbooks/` stays put unless a CLI playbook flag writes it. `all` selects every `ai/playbooks/*.md` except `README.md`. A list selects those ids, including an empty list. An empty list is not omit. It overlays dest and deletes the markdown already there. Any other scalar, including `true` or `false`, is `Invalid playbooks value`.
+- **playbooks.** One of three shapes. Missing, `null`, or `~` is omit. Dest `.pi/playbooks/` stays put unless a CLI playbook flag writes it. `all` selects every `ai/playbooks/*.md` except `README.md`. A list selects those ids, including an empty list. An empty list is not omit. It overlays dest and updates the listed ids. Extra dest playbook markdown stays. Any other scalar, including `true` or `false`, is `Invalid playbooks value`.
 
-- **agents.** Same three shapes as playbooks. `all` selects every `ai/agents/<id>/` directory that holds `<id>.md`. The stem must match `^[a-z][a-z0-9-]{0,63}$`. A list selects those ids. Overlay writes `.pi/agents/<id>.md` and deletes other dest agent markdown.
+- **agents.** Same three shapes as playbooks. `all` selects every `ai/agents/<id>/` directory that holds `<id>.md`. The stem must match `^[a-z][a-z0-9-]{0,63}$`. A list selects those ids. Overlay writes `.pi/agents/<id>.md`. Extra dest agent markdown stays.
 
-- **prompts.** Same three shapes as playbooks. `all` selects every `ai/prompts/*.md` except `README.md`. Overlay writes `.pi/prompts/<id>.md` and deletes other dest prompt markdown.
+- **prompts.** Same three shapes as playbooks. `all` selects every `ai/prompts/*.md` except `README.md`. Overlay writes `.pi/prompts/<id>.md`. Extra dest prompt markdown stays.
 
-- **packages.** String list of Pi package sources. Missing or `null` becomes `[]`. A present non-list is an error. Each item is `npm:<name>` or `vendor/@agentic-core/<name>`. A leading `.pi/` on the vendor path is allowed and then stripped. Vendor names must be `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, or `draconic-footer`. A bare first-party name is an error. Use the vendor path. `npm:` with nothing after the prefix is `Invalid package source`. Install vendors those trees to `.pi/vendor/@agentic-core/<name>` and merges every source into `.pi/settings.json` `packages` in list order. `--extension` appends a vendor source. Profile order wins, then CLI, duplicates dropped.
+- **packages.** String list of Pi package sources. Missing or `null` becomes `[]`. A present non-list is an error. Each item is `npm:<name>` or `local:@agentic-core/<name>`. Local names must be `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, or `draconic-footer`. A bare first-party name is an error. Use the `local:` source. `vendor:` and `vendor/` sources fail at load. `npm:` with nothing after the prefix is `Invalid package source`. Install copies those trees to `.pi/npm/node_modules/@agentic-core/<name>` and merges dest-relative `npm/node_modules/@agentic-core/<name>` into `.pi/settings.json` `packages` in list order. Settings do not list `npm:@agentic-core/<name>`. `--extension` appends a local source. Profile order wins, then CLI, duplicates dropped.
 
 ```ts
 // packages/installer/src/profile.ts — loadProfile leftover keys
@@ -79,7 +79,7 @@ agents: all
 prompts: all
 packages:
   - npm:pi-lens
-  - vendor/@agentic-core/draconic-todo
+  - local:@agentic-core/draconic-todo
 skills:
   - diagnose
   - tdd

@@ -39,7 +39,7 @@ Usage:
 
 Options:
   --profile <name>         YAML profile in profiles/ (default: ${DEFAULT_PROFILE})
-  --extension <name>       first-party vendor package (repeatable)
+  --extension <name>       first-party package (repeatable)
   --with <skills>          comma-separated skills to add
   --without <skills>       comma-separated skills to remove
   --playbooks <ids>        replace profile playbook selection
@@ -210,12 +210,14 @@ function run(argv: string[]): void {
     }
     writeRuntime(srcRoot, dest);
     console.log("  pi runtime → .pi");
-    const vendorNames: FirstPartyExtension[] = [];
+    const localNames: FirstPartyExtension[] = [];
     for (const pkg of plan.packages) {
-      if (pkg.kind === "vendor") vendorNames.push(pkg.name);
+      if (pkg.kind === "local") localNames.push(pkg.name);
     }
-    if (vendorNames.length > 0) {
-      writeVendorTrees(srcRoot, dest, vendorNames);
+    if (localNames.length > 0) {
+      writeVendorTrees(srcRoot, dest, localNames);
+    } else {
+      dest.remove(".pi/vendor/@agentic-core");
     }
     if (plan.packages.length > 0) {
       dest.mergePackages(plan.packages.map(packageRefSource));

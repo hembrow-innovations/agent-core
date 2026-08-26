@@ -115,11 +115,6 @@ export function writePlaybooks(
   ids: string[],
 ): void {
   dest.ensureDir(PLAYBOOK_DEST);
-  for (const ent of dest.list(PLAYBOOK_DEST)) {
-    if (ent.isFile && ent.name.endsWith(".md")) {
-      dest.remove(join(PLAYBOOK_DEST, ent.name));
-    }
-  }
   for (const id of ids) {
     const src = join(packRoot(srcRoot), "playbooks", `${id}.md`);
     if (!existsSync(src)) throw new Error(`Playbook not found: ${id}`);

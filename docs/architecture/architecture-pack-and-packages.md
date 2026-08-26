@@ -2,12 +2,12 @@
 id: "architecture-pack-and-packages"
 title: "Pack and packages"
 kind: architecture
-description: "Four trees keep the markdown pack, workspace packages, dest copy, and vendor extensions apart."
+description: "Four trees keep the markdown pack, workspace packages, dest copy, and first-party npm copies apart."
 domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-08-26"
+updated_at: "2026-08-27"
 ---
 
 # Pack and packages
@@ -16,7 +16,7 @@ updated_at: "2026-08-26"
 
 This repo is a pnpm workspace. It is the only place you install from. A dest project never depends on this checkout at runtime. The installer copies a self-contained tree the dest can commit.
 
-The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus the Pi runtime pack and profiles. `scripts/` holds the checks. The installer package owns profile parse and dest writes. Workspace packages are the TypeScript products under `packages/`. The dest tree is the copied project layout after install. The vendor copy is the first-party package under `.pi/vendor/`.
+The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus the Pi runtime pack and profiles. `scripts/` holds the checks. The installer package owns profile parse and dest writes. Workspace packages are the TypeScript products under `packages/`. The dest tree is the copied project layout after install. First-party packages land under `.pi/npm/node_modules/@agentic-core/`.
 
 See [[glossary]] for the names used here.
 
@@ -26,9 +26,9 @@ The old installer copied a profile into a dest tree. For harness pi it copied `p
 
 That mix left dest coupled to loose files. It also left a sibling lib that dest should not own.
 
-The settled layout keeps the markdown pack. It moves first-party extensions into workspace packages. Dest receives a vendor copy. Dest has no live path back to this checkout.
+The settled layout keeps the markdown pack. It moves first-party extensions into workspace packages. Dest receives a local copy under `.pi/npm/node_modules/`. Dest has no live path back to this checkout.
 
-[[0001-pnpm-workspace-pi-packages]], [[0002-standalone-vendor-install]], [[0004-source-pack-under-ai]], [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], and [[0008-todo-owns-checklist-store]] record those choices.
+[[0001-pnpm-workspace-pi-packages]], [[0002-standalone-vendor-install]], [[0010-local-packages-in-npm]], [[0004-source-pack-under-ai]], [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], and [[0008-todo-owns-checklist-store]] record those choices.
 
 ## Design
 
@@ -77,16 +77,16 @@ The dest tree is what a target project commits after install. It holds the copie
 
 A dest project never depends on this checkout at runtime.
 
-### Vendor copy
+### Local first-party copy
 
-Each first-party extension lands as a copied package at `.pi/vendor/@agentic-core/<name>`. Settings gain a dest-relative path to that folder. The target commits `.pi/vendor/` and those settings. Re-running install overwrites the copy.
+Each first-party extension lands as a copied package at `.pi/npm/node_modules/@agentic-core/<name>`. Settings gain a dest-relative path to that folder. Settings do not list `npm:@agentic-core/<name>`. Re-running install overwrites the copy. Dest extras stay. A dest rewrite removes only installer-owned `.pi/vendor/@agentic-core` trees.
 
-`writeVendorExtension` copies `package.json` and non-test `.ts` files from `packages/<name>/src` into that vendor tree. First-party extensions do not copy from `pi/extensions/`. That folder is not part of the pack.
+The copy writes `package.json` and non-test `.ts` files from `packages/<name>/src` into that npm tree. First-party extensions do not copy from `pi/extensions/`. That folder is not part of the pack.
 
 ```ts
 // packages/installer/src/extensions.ts writeVendorExtension
 const srcPkg = join(srcRoot, "packages", name);
-const destRel = join(".pi", "vendor", "@agentic-core", name);
+const destRel = join(".pi", "npm", "node_modules", "@agentic-core", name);
 dest.copyFile(join(srcPkg, "package.json"), join(destRel, "package.json"));
 copyTsSources(join(srcPkg, "src"), dest, join(destRel, "src"));
 ```
@@ -120,11 +120,11 @@ pnpm exec agentic-core install <target> --extension draconic-todo
 
 `--extension` can repeat. Dest is always `.pi/`.
 
-A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the npm sources plus `vendor/@agentic-core/` trees for todo, coms, boot, teams, and footer.
+A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the third-party `npm:` sources plus `local:@agentic-core/` packages for todo, coms, boot, teams, and footer.
 
 Playbooks land at `.pi/playbooks/`. A leftover `mode:` key is an error.
 
-An extension install names a first-party package for the vendor tree.
+An extension install names a first-party package for the dest npm tree.
 
 See [[schema-profile]] for the YAML. See [[spec-installer]] for flags and outputs. See [[guides-install-from-this-repo]] for how to run it.
 
@@ -134,7 +134,7 @@ This checkout's Pi is not wired to `packages/`. Nothing appears in this checkout
 
 ## Trade-offs
 
-The design optimises for dest independence. Dest can commit a self-contained vendor tree. Re-install is overwrite, not a live link.
+The design optimises for dest independence. Dest can keep a self-contained first-party copy under `.pi/npm/node_modules/`. Re-install is overwrite, not a live link.
 
 It sacrifices a short inner loop that would load `packages/` from this checkout without install. Developers must run the installer against `.` to use the extensions here.
 
@@ -152,4 +152,4 @@ The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. It also does not kee
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.
 
-Installer tests write a temp dest and check settings plus the vendor tree.
+Installer tests write a temp dest and check settings plus the dest npm tree.

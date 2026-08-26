@@ -14,10 +14,10 @@ export type FirstPartyExtension = (typeof FIRST_PARTY_EXTENSIONS)[number];
 
 export type ProfilePackage =
   | { kind: "npm"; source: string }
-  | { kind: "vendor"; name: FirstPartyExtension };
+  | { kind: "local"; name: FirstPartyExtension };
 
 const FIRST_PARTY_EXTENSION_SET = new Set<string>(FIRST_PARTY_EXTENSIONS);
-const VENDOR_SOURCE_RE = /^(?:\.pi\/)?vendor\/@agentic-core\/([a-z0-9-]+)$/;
+const LOCAL_SOURCE_RE = /^local:@agentic-core\/([a-z0-9-]+)$/;
 
 export function isFirstPartyExtension(
   name: string,
@@ -25,13 +25,21 @@ export function isFirstPartyExtension(
   return FIRST_PARTY_EXTENSION_SET.has(name);
 }
 
-export function vendorPackageSource(name: FirstPartyExtension): string {
-  return `vendor/@agentic-core/${name}`;
+export function localPackageSource(name: FirstPartyExtension): string {
+  return `npm/node_modules/@agentic-core/${name}`;
 }
 
 export function packageRefSource(pkg: ProfilePackage): string {
-  if (pkg.kind === "npm") return pkg.source;
-  return vendorPackageSource(pkg.name);
+  switch (pkg.kind) {
+    case "npm":
+      return pkg.source;
+    case "local":
+      return localPackageSource(pkg.name);
+    default: {
+      const _exhaustive: never = pkg;
+      return _exhaustive;
+    }
+  }
 }
 
 export function parseProfilePackage(raw: string): ProfilePackage {
@@ -40,19 +48,28 @@ export function parseProfilePackage(raw: string): ProfilePackage {
     if (src === "npm:") throw new Error(`Invalid package source: ${raw}`);
     return { kind: "npm", source: src };
   }
-  const match = src.match(VENDOR_SOURCE_RE);
-  if (!match) {
+  if (
+    src.startsWith("vendor:") ||
+    src.startsWith("vendor/") ||
+    src.startsWith(".pi/vendor/")
+  ) {
     throw new Error(
-      `Invalid package source: ${raw}. Use npm:... or vendor/@agentic-core/<name>`,
+      `Invalid package source: ${raw}. Use npm:... or local:@agentic-core/<name>`,
     );
   }
-  const name = match[1];
-  if (!isFirstPartyExtension(name)) {
-    throw new Error(
-      `Unknown extension: ${name}. Choose: ${FIRST_PARTY_EXTENSIONS.join(", ")}`,
-    );
+  const local = src.match(LOCAL_SOURCE_RE);
+  if (local) {
+    const name = local[1];
+    if (!isFirstPartyExtension(name)) {
+      throw new Error(
+        `Unknown extension: ${name}. Choose: ${FIRST_PARTY_EXTENSIONS.join(", ")}`,
+      );
+    }
+    return { kind: "local", name };
   }
-  return { kind: "vendor", name };
+  throw new Error(
+    `Invalid package source: ${raw}. Use npm:... or local:@agentic-core/<name>`,
+  );
 }
 
 export function installVendorExtensions(
@@ -68,9 +85,10 @@ export function writeVendorTrees(
   dest: Destination,
   names: readonly FirstPartyExtension[],
 ): void {
+  dest.remove(".pi/vendor/@agentic-core");
   for (const name of uniqueNames(names)) {
     writeVendorExtension(srcRoot, dest, name);
-    console.log(`  vendor ${name} → .pi/vendor/@agentic-core/${name}`);
+    console.log(`  local ${name} → .pi/npm/node_modules/@agentic-core/${name}`);
   }
 }
 
@@ -81,7 +99,7 @@ export function writeExtensions(
 ): void {
   const unique = uniqueNames(names);
   writeVendorTrees(srcRoot, dest, unique);
-  dest.mergePackages(unique.map(vendorPackageSource));
+  dest.mergePackages(unique.map(localPackageSource));
 }
 
 function uniqueNames(
@@ -103,7 +121,7 @@ function writeVendorExtension(
   name: FirstPartyExtension,
 ): void {
   const srcPkg = join(srcRoot, "packages", name);
-  const destRel = join(".pi", "vendor", "@agentic-core", name);
+  const destRel = join(".pi", "npm", "node_modules", "@agentic-core", name);
   if (!existsSync(srcPkg)) {
     throw new Error(`Extension package not found: ${name}`);
   }

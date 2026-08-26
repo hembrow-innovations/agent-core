@@ -52,7 +52,7 @@ export function resolvePackages(
   const out: ProfilePackage[] = [];
   const seen = new Set<string>();
   const cli: ProfilePackage[] = cliNames.map((name) => ({
-    kind: "vendor",
+    kind: "local",
     name,
   }));
   for (const pkg of [...profilePackages, ...cli]) {

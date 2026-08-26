@@ -2,7 +2,7 @@
 id: "purpose-installer"
 title: "Installer purpose"
 kind: purpose
-description: "Copy a committable vendor tree into a dest so the dest never depends on this checkout."
+description: "Copy committable first-party packages into dest npm/node_modules so the dest never depends on this checkout."
 status: active
 domain: pack
 area: installer
@@ -15,12 +15,12 @@ updated_at: "2026-08-26"
 
 ## Job
 
-Install a self-contained vendor tree a dest project can commit and run without this checkout.
+Install self-contained first-party copies a dest project can commit and run without this checkout.
 
 ```ts
-// packages/installer/src/extensions.ts — vendorPackageSource
-export function vendorPackageSource(name: FirstPartyExtension): string {
-  return `vendor/@agentic-core/${name}`;
+// packages/installer/src/extensions.ts — localPackageSource
+export function localPackageSource(name: FirstPartyExtension): string {
+  return `npm/node_modules/@agentic-core/${name}`;
 }
 ```
 
@@ -31,10 +31,11 @@ export function vendorPackageSource(name: FirstPartyExtension): string {
 - One extension install with `--extension`
 - Repeatable `--extension`
 - Dest always `.pi/`
-- Vendor copy of each named first-party package
-- Vendor copy at `.pi/vendor/@agentic-core/<name>`
+- Local copy of each named first-party package
+- Local copy at `.pi/npm/node_modules/@agentic-core/<name>`
 - Dest-relative paths written into dest settings
-- Overwrite of the vendor copy on re-run
+- Overwrite of the local copy on re-run
+- Never prune dest extras
 - Merge of third-party `npm:` sources the way they merge today
 - Copy of agents, skills, playbooks, and prompts the way they copy today
 
@@ -61,7 +62,7 @@ The dest tree is `.pi/` plus dest settings.
 
 - Behaviour: [[spec-installer]]
 - Profile YAML: [[schema-profile]]
-- Decisions: [[0002-standalone-vendor-install]], [[0005-pi-only-dest]], and [[0008-todo-owns-checklist-store]]
+- Decisions: [[0010-local-packages-in-npm]], [[0005-pi-only-dest]], and [[0008-todo-owns-checklist-store]]
 - Layout: [[architecture-pack-and-packages]]
 
 ## Open product questions

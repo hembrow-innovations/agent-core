@@ -6,11 +6,11 @@ packages:
   - npm:pi-web-access
   - npm:pi-subagents
   - npm:@ff-labs/pi-fff
-  - vendor/@agentic-core/draconic-todo
-  - vendor/@agentic-core/draconic-coms
-  - vendor/@agentic-core/draconic-boot
-  - vendor/@agentic-core/draconic-teams
-  - vendor/@agentic-core/draconic-footer
+  - local:@agentic-core/draconic-todo
+  - local:@agentic-core/draconic-coms
+  - local:@agentic-core/draconic-boot
+  - local:@agentic-core/draconic-teams
+  - local:@agentic-core/draconic-footer
 skills:
   - agent-teams
   - architect

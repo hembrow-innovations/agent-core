@@ -19,7 +19,7 @@ A lead Pi session can spawn named teammate TUIs in tmux panes. They talk on exis
 
 ## Requirements
 
-- Source lives in `packages/draconic-teams`. Dest receives a vendor copy.
+- Source lives in `packages/draconic-teams`. Dest receives a local npm copy.
 - `/team` plus tools `team_create`, `team_spawn`, `team_status`, `team_shutdown`, `task_create`, `task_list`, `task_get`, `task_claim`, and `task_complete`.
 - Default spawn is `tmux split-window`. After start and replace, run `select-layout tiled`. Adopt does not rebalance. `team_spawn` may pass `useWindows` and then opens `tmux new-window`; that pane stays a dedicated window.
 - Spawned `pi` gets `--cname` (instance), `--purpose`, `--project <team>`, and `--name` (same instance). Optional spawn `agent` is the dest `.pi/agents/` file and becomes `--agent`, distinct from `--cname`. Optional `--model` follows when `team_spawn` is given a model.
@@ -130,7 +130,7 @@ Lead-owned wipe is shutdown then spawn of that `--cname`. The new process reads 
 
 ## Acceptance
 
-- Dest `.pi/vendor/@agentic-core/draconic-teams` exists after `pnpm exec agentic-core install . --profile agentic-core`
+- Dest `.pi/npm/node_modules/@agentic-core/draconic-teams` exists after `pnpm exec agentic-core install . --profile agentic-core`
 - `pnpm --filter @agentic-core/draconic-teams test` is green
 - `pnpm --filter @agentic-core/draconic-coms test` is green
 - `pnpm run typecheck` is clean

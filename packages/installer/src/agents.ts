@@ -30,11 +30,6 @@ export function writeAgents(
   ids: string[],
 ): void {
   dest.ensureDir(AGENT_DEST);
-  for (const ent of dest.list(AGENT_DEST)) {
-    if (ent.isFile && ent.name.endsWith(".md")) {
-      dest.remove(join(AGENT_DEST, ent.name));
-    }
-  }
   for (const id of ids) {
     const src = join(packRoot(srcRoot), "agents", id, `${id}.md`);
     if (!existsSync(src)) throw new Error(`Agent not found: ${id}`);

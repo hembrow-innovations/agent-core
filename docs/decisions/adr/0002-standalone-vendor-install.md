@@ -3,15 +3,17 @@ id: "adr-2"
 title: "ADR-0002: dest vendor copy with lib bundled"
 kind: adr
 description: "The installer copies a lib-bundled extension into dest vendor and writes a dest-relative packages path."
-status: accepted
+status: superseded
 domain: pack
 area: decisions
 tags: [installer, vendor]
 created_at: "2026-08-23"
-updated_at: "2026-08-23"
+updated_at: "2026-08-27"
 ---
 
 # ADR-0002: dest vendor copy with lib bundled
+
+Superseded by [[0010-local-packages-in-npm]]. First-party packages land at `.pi/npm/node_modules/@agentic-core/<name>`.
 
 ## Context
 
@@ -49,5 +51,5 @@ Dest can commit a self-contained vendor tree. Settings point only at dest-relati
 - [[architecture-pack-and-packages]]
 - [[spec-installer]]
 - [[guides-install-from-this-repo]]
-- [[plan-2-pnpm-pi-packages]]
+- [[0010-local-packages-in-npm]]
 - [[0008-todo-owns-checklist-store]] drops the lib bundle. Dest vendor is a package copy.

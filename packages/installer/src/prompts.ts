@@ -26,11 +26,6 @@ export function writePrompts(
   ids: string[],
 ): void {
   dest.ensureDir(PROMPT_DEST);
-  for (const ent of dest.list(PROMPT_DEST)) {
-    if (ent.isFile && ent.name.endsWith(".md")) {
-      dest.remove(join(PROMPT_DEST, ent.name));
-    }
-  }
   for (const id of ids) {
     const src = join(packRoot(srcRoot), "prompts", `${id}.md`);
     if (!existsSync(src)) throw new Error(`Prompt not found: ${id}`);

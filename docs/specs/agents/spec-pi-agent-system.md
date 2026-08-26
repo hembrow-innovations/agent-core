@@ -40,9 +40,9 @@ A lone session and a teammate share one dest file format and one attach meaning.
 
 A team is a lead plus named living TUI peers on coms. Tmux spawn is a separate build. Do not staff teammates with `--mode json -p` or `--mode rpc`.
 
-`tools` on a definition is an allowlist of builtin tool names. `bindActiveTools` snapshots the live set, keeps active extension tools, and unions those with the listed builtins. Off restores the snapshot. Never pass `definition.tools` to `setActiveTools` unchanged.
+`tools` on a definition is an allowlist of builtin tool names. `session_start` parks fat third-party tools first and keeps `dest_activate_tools` plus first-party tools hot. `bindActiveTools` snapshots the live set after park. Restore and allowlist union omit parked names. Off restores the snapshot without parked names. Never pass `definition.tools` to `setActiveTools` unchanged.
 
-`skills` and `model` parse into `AgentDefinition`. Boot does not load skills or set the model from those fields.
+`skills` and `model` parse into `AgentDefinition`. Boot does not load skills or set the model from those fields. Applying them is tracked as `issue-36-apply-definition-skills` and `issue-37-apply-definition-model`.
 
 Quality is proven by tests in `packages/draconic-boot/src/*.test.ts` and by evals on a real Pi session.
 
@@ -55,7 +55,7 @@ Quality is proven by tests in `packages/draconic-boot/src/*.test.ts` and by eval
 - A new switcher package
 - Replacing nicobailon children
 - Persisting the last `/agent` pick
-- Applying `skills` or `model` at attach time
+- Applying `skills` or `model` at attach time. That is `issue-36-apply-definition-skills` and `issue-37-apply-definition-model`
 
 ## Behaviour
 
@@ -66,6 +66,7 @@ Quality is proven by tests in `packages/draconic-boot/src/*.test.ts` and by eval
 ```ts
 // packages/draconic-boot/src/index.ts — session_start
 pi.on("session_start", (_event, ctx) => {
+  parkedNames = parkThirdPartyTools(pi);
   const flagged = flagString(pi, "agent");
   if (flagged && loadAgent(ctx.cwd, flagged)) selected = flagged;
   applyDefinition(ctx, loadCurrent(ctx.cwd));
@@ -131,32 +132,32 @@ Tests: `valid fixture parses to name, body, and optional lists`, `omitted option
 
 No definition, or a definition with `tools` omitted, restores `toolsSnapshot` when one exists.
 
-When `tools` is present, the first bind snapshots `getActiveTools()`. Names that are not builtin are dropped. If no valid builtin remains, `setActiveTools` is not called. Otherwise the live set is the valid builtins plus every currently active tool whose `sourceInfo.source` is not `builtin`.
+When `tools` is present, the first bind snapshots the live set after park. Names that are not builtin are dropped. If no valid builtin remains, `setActiveTools` is not called. Otherwise the live set is the valid builtins, currently active unparked extensions, first-party tools, and `dest_activate_tools`. Parked third-party names stay registered and inactive. `dest_activate_tools` is the only unpark path.
 
 ```ts
 // packages/draconic-boot/src/index.ts — bindActiveTools
-const valid = definition.tools.filter((name) => builtin.has(name));
-if (valid.length === 0) return nextSnapshot;
 const extensions = all
   .filter(
-    (tool) => tool.sourceInfo.source !== "builtin" && active.has(tool.name),
+    (tool) =>
+      tool.sourceInfo.source !== "builtin" &&
+      active.has(tool.name) &&
+      !parked.has(tool.name),
   )
   .map((tool) => tool.name);
-pi.setActiveTools([...new Set([...valid, ...extensions])]);
 ```
 
-Tests: `tools allowlist keeps coms and subagent`, `unknown tool names do not throw`, `empty valid tools list leaves the live set`, `return-to-off restores the tools snapshot`.
+Tests: `session_start parks third-party tools and keeps first-party tools active`, `dest loader activates a named parked tool`, `tools allowlist after park keeps first-party tools and dest loader`, `return-to-off after park does not restore parked tools`.
 
 ### Load
 
-Skill catalog and playbook bodies are not boot. `skills` on the definition is stored and unused at attach. `APPEND_SYSTEM` is not a persona and is not this switch.
+Skill catalog and playbook bodies are not boot. `skills` and `model` on the definition are stored unused at attach. Applying them is tracked as `issue-36-apply-definition-skills` and `issue-37-apply-definition-model`. `APPEND_SYSTEM` is not a persona and is not this switch.
 
 ## Acceptance
 
 - A new Pi process attaches no dest `.pi/agents/` file. `/agent` and `--agent` are the only attach path. The last switch is not restored. `APPEND_SYSTEM` is not a persona
 - `/agent` or `--agent` changes the appended file for this process only
 - A missing or broken dest file is `undefined`. The session stays up. The chip stays `off` unless another stem is already selected
-- A `tools` allowlist keeps active extension tools. Unknown builtin names drop. An empty valid list leaves the live set. Off restores the snapshot
+- A `tools` allowlist keeps first-party tools and `dest_activate_tools`. Parked third-party tools stay inactive. Unknown builtin names drop. An empty valid list leaves the live set. Off restores the snapshot without parked names
 - `parseAgentDefinition` rejects unknown keys and an empty body. Pack agents under `ai/agents/` parse
 - Tests in `packages/draconic-boot/src/index.test.ts` and `definition.test.ts` fail if those bars regress
 

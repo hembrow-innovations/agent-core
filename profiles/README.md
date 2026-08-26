@@ -15,12 +15,12 @@ prompts:
   - arena
 packages:
   - npm:pi-lens
-  - vendor/@agentic-core/draconic-todo
+  - local:@agentic-core/draconic-todo
 ```
 
 Install writes `.pi/skills` and the Pi pack into `.pi/`:
 
-- first-party vendor packages from `profile.packages` into `.pi/vendor/@agentic-core/`
+- first-party local packages from `profile.packages` into `.pi/npm/node_modules/@agentic-core/`
 - every `ai/prompts/*.md` except README, into `.pi/prompts/`
 - `ai/pi/APPEND_SYSTEM.md` and `ai/pi/draconic-models.md` if those dest files are missing
 - `.pi/.gitignore` if that file is missing
