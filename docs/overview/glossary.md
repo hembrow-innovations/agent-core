@@ -75,8 +75,24 @@ A lead Pi session plus named living TUI peers that talk on coms and share tasks.
 _Avoid_: swarm, nicobailon fan-out
 
 **Teammate**:
-A living TUI `pi` in a team. The human can type into it.
+A living TUI `pi` in a team. It is an instance of one agent definition. The human can type into it.
 _Avoid_: child, subagent
+
+**Teammate instance**:
+The unique seat name on `--cname`. `builder-1` and `builder-2` are two instances of `builder`.
+_Avoid_: agent, identity, role
+
+**Member record**:
+The on-disk folder `.draconic/teams/<team>/roster/<cname>/`. Identity, work log, handoff, optional notes.
+_Avoid_: session file, agent definition
+
+**Handoff**:
+The latest restore card for one instance. Overwritten on task complete. Injected after a clean spawn.
+_Avoid_: compact summary, /new
+
+**Work log**:
+The append-only TSV index of instance events. History for review. Not loaded into the model by default.
+_Avoid_: journal, session JSONL
 
 **Child**:
 A nicobailon `subagent` process. Parent-owned, not a TUI, exits when the task ends.
