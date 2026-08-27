@@ -88,6 +88,7 @@ test("every non-empty pack agent parses", () => {
 			"documenter",
 			"growth",
 			"lead",
+			"orchestrator",
 			"planner",
 			"product",
 			"researcher",
@@ -114,6 +115,41 @@ test("lead carries its recipes and has no dest file hops", () => {
 	assert.match(def.body, /## Refactoring/);
 	assert.doesNotMatch(def.body, /\.pi\/playbooks\//);
 	assert.doesNotMatch(def.body, /\.pi\/skills\//);
+});
+
+test("orchestrator carries its recipes and has no dest file hops", () => {
+	const text = readFileSync(
+		join(REPO, "ai", "agents", "orchestrator", "orchestrator.md"),
+		"utf8",
+	);
+	const def = parseAgentDefinition(text);
+	assert.equal(def.name, "orchestrator");
+	assert.equal(def.skills, undefined);
+	assert.match(def.body, /team-lead/);
+	assert.match(def.body, /team_spawn/);
+	assert.match(def.body, /## Shape/);
+	assert.match(def.body, /## Sequence/);
+	assert.match(def.body, /## Build/);
+	assert.match(def.body, /## Gate/);
+	assert.doesNotMatch(def.body, /\.pi\/playbooks\//);
+	assert.doesNotMatch(def.body, /\.pi\/skills\//);
+});
+
+test("plan roster agents carry teammate recipes and have no dest file hops", () => {
+	for (const stem of ["architect", "planner", "coder", "reviewer"]) {
+		const text = readFileSync(
+			join(REPO, "ai", "agents", stem, `${stem}.md`),
+			"utf8",
+		);
+		const def = parseAgentDefinition(text);
+		assert.equal(def.name, stem);
+		assert.match(def.body, /## Seat/);
+		assert.match(def.body, /## Claim/);
+		assert.match(def.body, /## Craft/);
+		assert.doesNotMatch(def.body, /Skill|Task/);
+		assert.doesNotMatch(def.body, /\.pi\/playbooks\//);
+		assert.doesNotMatch(def.body, /\.pi\/skills\//);
+	}
 });
 
 test("unknown keys throw", () => {

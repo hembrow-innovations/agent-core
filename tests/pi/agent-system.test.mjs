@@ -31,6 +31,8 @@ test("cold start dest ships the opt-in agent file", () => {
     "devops",
     "documenter",
     "growth",
+    "lead",
+    "orchestrator",
     "planner",
     "product",
     "researcher",
