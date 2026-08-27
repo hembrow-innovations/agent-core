@@ -33,7 +33,7 @@ A lead Pi session can spawn named teammate TUIs in tmux panes. They talk on exis
 - Claim is compare-and-set under `withBoardLock`. A leftover `tasks/.lock` whose pid is dead is unlinked first.
 - Teammate `agent_settled` writes status `idle` and sends the lead `idle: <name> settled` through `sendComsPrompt`. An inbound `coms-inbound` message writes status `working`.
 - Shutdown sends a coms stop prompt, waits 400ms, then `killPane`. A missing pane is `absent`. A name that is not a teammate is `absent`.
-- Reviewer bar is `bash scripts/try-teams.sh` inside tmux.
+- Reviewer bar is `node scripts/try-teams.mjs` inside tmux.
 
 ## Non-goals
 
@@ -134,7 +134,7 @@ Lead-owned wipe is shutdown then spawn of that `--cname`. The new process reads 
 - `pnpm --filter @agentic-core/draconic-teams test` is green
 - `pnpm --filter @agentic-core/draconic-coms test` is green
 - `pnpm run typecheck` is clean
-- Inside tmux, `bash scripts/try-teams.sh` artifacts show pong, one claimed task, and no leftover pane
+- Inside tmux, `node scripts/try-teams.mjs` artifacts show pong, one claimed task, and no leftover pane
 - Default store is `<cwd>/.draconic/teams/<team>/`. `PI_TEAMS_DIR` still overrides. No migrate from `~/.pi/teams`
 - Shutdown members are not adopted
 - Lead-owned wipe is shutdown then spawn. No flush tool

@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "typecheck": "pnpm -r --filter \"./packages/**\" typecheck",
-    "test": "pnpm -r --filter \"./packages/**\" test && bash scripts/run-tests.sh"
+    "typecheck": "scripts/typecheck.mjs",
+    "test": "scripts/test.mjs"
   },
   "dependencies": {
     "@agentic-core/installer": "workspace:*"

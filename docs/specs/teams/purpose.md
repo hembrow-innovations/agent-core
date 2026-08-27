@@ -42,7 +42,7 @@ description:
 
 - `/team create|spawn|status|task|shutdown` in a trusted Pi session inside tmux
 - Tools `team_create`, `team_spawn`, `team_status`, `team_shutdown`, `task_create`, `task_list`, `task_get`, `task_claim`, `task_complete`
-- `bash scripts/try-teams.sh`
+- `node scripts/try-teams.mjs`
 
 ## Authority
 

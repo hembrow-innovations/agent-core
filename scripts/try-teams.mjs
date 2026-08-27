@@ -57,12 +57,35 @@ function paneAlive(paneId) {
   return r.status === 0 && r.stdout.trim() === paneId;
 }
 
+const BAR = `Teams living bar.
+
+Install, then run this script inside tmux:
+
+  pnpm exec agentic-core install . --profile agentic-core
+  node scripts/try-teams.mjs
+
+The script writes artifacts under a temp dir and prints that path.
+Those files must show pong, one claimed task, and a dead pane id.
+
+Human TUI proof after install, still inside tmux:
+
+  /team create try-teams
+  /team spawn researcher reply with the word pong
+  coms_list
+  coms_send researcher ping
+  coms_await
+
+The researcher pane must show [from ...] and answer. read_inbox is a fail.
+Shut the pane with /team shutdown researcher before you leave.
+`;
+
 async function runBar() {
+  process.stdout.write(BAR);
   if (!process.env.TMUX) {
-    throw new Error(
-      "TMUX is empty. Run bash scripts/try-teams.sh inside tmux.",
-    );
+    process.stdout.write("\nNot inside tmux. Printed the bar only.\n");
+    return;
   }
+  process.stdout.write("\n");
   const root = mkdtempSync(join(tmpdir(), "try-teams-"));
   const teamsDir = join(root, "teams");
   const comsDir = join(root, "coms");

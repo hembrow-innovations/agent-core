@@ -11,9 +11,9 @@ import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadProfile, listProfiles } from "./profile.mjs";
+import { loadProfile, listProfiles } from "../lib/profile.mjs";
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const errors = [];
 
 if (existsSync(join(root, "pstack"))) {

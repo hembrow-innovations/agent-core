@@ -25,4 +25,4 @@ export {
   resolveNamedIds,
   resolvePlaybookIds,
   rewriteSkillPlaybooks,
-} from "../packages/installer/src/index.ts";
+} from "../../packages/installer/src/index.ts";

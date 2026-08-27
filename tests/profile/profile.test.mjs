@@ -6,6 +6,7 @@ import {
 	mkdtempSync,
 	readdirSync,
 	readFileSync,
+	statSync,
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -29,7 +30,7 @@ import {
 	renderPlaybookCatalog,
 	resolvePlaybookIds,
 	rewriteSkillPlaybooks,
-} from "../../scripts/profile.mjs";
+} from "../../scripts/lib/profile.mjs";
 
 const REPO = fileURLToPath(new URL("../..", import.meta.url));
 const INSTALLER = join(REPO, "packages", "installer", "src", "cli.ts");
@@ -1055,7 +1056,7 @@ test("install uses profiles yaml only and does not write preference stubs", () =
 test("pstack source tree is gone and draconic install resolves", () => {
 	const r = spawnSync(
 		process.execPath,
-		[join(REPO, "scripts", "check-no-pstack.mjs")],
+		[join(REPO, "scripts", "checks", "check-no-pstack.mjs")],
 		{
 			encoding: "utf8",
 		},
@@ -1066,13 +1067,75 @@ test("pstack source tree is gone and draconic install resolves", () => {
 test("ported life-engine skills keep the management/docs split", () => {
 	const r = spawnSync(
 		process.execPath,
-		[join(REPO, "scripts", "check-ported-skills.mjs")],
+		[join(REPO, "scripts", "checks", "check-ported-skills.mjs")],
 		{
 			encoding: "utf8",
 		},
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 });
+
+test("root npm scripts call one scripts mjs file each", () => {
+	const pkg = JSON.parse(readFileSync(join(REPO, "package.json"), "utf8"));
+	for (const [name, value] of Object.entries(pkg.scripts)) {
+		assert.match(value, /^scripts\/[a-z0-9-]+\.mjs$/, `${name}: ${value}`);
+		assert.equal(existsSync(join(REPO, value)), true, value);
+	}
+});
+
+test("try-teams outside tmux prints the bar and exits 0", () => {
+	const env = { ...process.env };
+	delete env.TMUX;
+	const r = spawnSync(
+		process.execPath,
+		[join(REPO, "scripts", "try-teams.mjs")],
+		{ encoding: "utf8", env },
+	);
+	assert.equal(r.status, 0, r.stderr);
+	assert.match(r.stdout, /Teams living bar/);
+	assert.match(r.stdout, /node scripts\/try-teams\.mjs/);
+	assert.match(r.stdout, /Not inside tmux/);
+	assert.doesNotMatch(r.stdout, /bash scripts\/try-teams\.sh/);
+});
+
+test("scripts root holds entrypoints and living bars only", () => {
+	const allowed = new Set([
+		"test.mjs",
+		"typecheck.mjs",
+		"try-teams.mjs",
+		"try-coms.mjs",
+		"run-pi-coms-larder.mjs",
+	]);
+	const scripts = join(REPO, "scripts");
+	const rootFiles = readdirSync(scripts).filter((name) => {
+		const full = join(scripts, name);
+		return !statSync(full).isDirectory();
+	});
+	for (const name of rootFiles) {
+		assert.equal(allowed.has(name), true, name);
+	}
+	assert.equal(existsSync(join(scripts, "try-coms.mjs")), true);
+	assert.equal(existsSync(join(scripts, "checks", "check-no-pstack.mjs")), true);
+	assert.equal(
+		existsSync(join(scripts, "checks", "check-ported-skills.mjs")),
+		true,
+	);
+	assert.equal(existsSync(join(scripts, "lib", "profile.mjs")), true);
+	const shellFiles = [];
+	walkFiles(scripts, (file) => {
+		if (file.endsWith(".sh")) shellFiles.push(file.replace(REPO + "/", ""));
+	});
+	assert.deepEqual(shellFiles, []);
+});
+
+function walkFiles(dir, visit) {
+	for (const ent of readdirSync(dir, { withFileTypes: true })) {
+		if (ent.name.startsWith(".")) continue;
+		const full = join(dir, ent.name);
+		if (ent.isDirectory()) walkFiles(full, visit);
+		else visit(full);
+	}
+}
 
 function skillHasMarkdown(root, name) {
 	return walkSkillMarkdown(join(root, "ai", "skills"), name);

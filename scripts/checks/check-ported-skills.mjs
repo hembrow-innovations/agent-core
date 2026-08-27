@@ -3,7 +3,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = fileURLToPath(new URL("..", import.meta.url));
+const ROOT = fileURLToPath(new URL("../..", import.meta.url));
 
 const EXPECTED = [
 	"ai/skills/workflow/to-issues",
