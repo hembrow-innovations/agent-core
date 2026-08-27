@@ -94,6 +94,7 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
     "management",
     "planning",
     "planning-with-docs",
+    "planning-arena",
     "to-issues",
     "triage",
     "wayfinder",

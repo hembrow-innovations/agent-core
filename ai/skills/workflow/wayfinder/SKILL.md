@@ -99,7 +99,7 @@ Every ticket is HITL (worked with the human) or AFK (agent alone). A HITL ticket
 
 - **research** (AFK). Load **research**. Write findings on the issue under `## Resolution`. Do not put raw research in `docs/`.
 - **prototype** (HITL). Load **prototype**. Link the artifact from the issue. Keep throwaway code out of `docs/` and out of `.draconic/`.
-- **planning** (HITL). Load **planning**, or **planning-with-docs** if the human will answer in the file. Default type.
+- **planning** (HITL). Load **planning**, or **planning-with-docs** if the human will answer in the file. Load **planning-arena** when a three-persona panel should answer each question. Default type.
 - **task** (HITL or AFK). Manual work that unblocks a decision. Signing up for a service, granting access, moving data so its shape can be seen. This is still an issue, not a management task. It earns its place by unblocking a decision, not by delivering the destination. Load **wizard** when only the human can click the third-party UI.
 
 ## Fog of war

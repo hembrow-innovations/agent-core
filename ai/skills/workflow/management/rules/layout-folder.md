@@ -15,7 +15,11 @@ tags: [layout]
 ├─ closed/
 ├─ planning/
 │  ├─ plans/
-│  └─ tasks/
+│  ├─ tasks/
+│  └─ arena/
+│     └─ <arena-name>/
+│        └─ rounds/
+│           └─ round-<N>/
 └─ logs/
    ├─ journal/
    │  └─ {YYYY}/
@@ -43,7 +47,9 @@ Reserved at the root, owned by other skills. Do not relocate them.
 
 **planning/tasks/**. One unit of work. May belong to a plan. Filename is `task-<N>-<slug>.md`.
 
-**closed/**. Terminal notes. Flat. Keep the original filename.
+**planning/arena/**. Owned by planning-arena. One session directory per idea. Round files live under `rounds/round-<N>/`. Not a plan note.
+
+**closed/**. Terminal notes. Flat. Keep the original filename. A closed arena session keeps its directory name.
 
 **logs/journal/{YYYY}/{MM}/**. One file per calendar day. Filename is `YYYY-MM-DD.md`. Skip empty days.
 

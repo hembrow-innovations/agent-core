@@ -33,7 +33,7 @@ The frontier is every decision whose prerequisites are already settled. Ask the 
 
 A question that depends on another question still open in this round belongs to a later round.
 
-Finding facts is your job. Dispatch a sub-agent for anything you can look up. A running lookup is an unsettled prerequisite. Ask the rest of the frontier now. Decisions are the user's. Put each to them and wait.
+Finding facts is your job. Dispatch a sub-agent for anything you can look up. A running lookup is an unsettled prerequisite. Ask the rest of the frontier now. Decisions are the user's. Put each to them and wait. A three-persona panel round is **planning-arena**.
 
 ## After the frontier is empty
 

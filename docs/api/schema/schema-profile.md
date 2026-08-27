@@ -94,6 +94,6 @@ skills:
   - tdd
 ```
 
-Shipped files are `profiles/agentic-core.yaml` and `profiles/life-engine.yaml`. Both use `agents: all` and `prompts: all`. `agentic-core` is the skill list for developing this pack and ships example `settings:`. `life-engine` has no `settings:` key.
+Shipped files are `profiles/agentic-core.yaml`, `profiles/life-engine.yaml`, and `profiles/planning-hub.yaml`. `agentic-core` and `life-engine` use `agents: all` and `prompts: all`. `agentic-core` is the skill list for developing this pack and ships example `settings:`. `life-engine` has no `settings:` key. `planning-hub` is skills-only (`planning`, `wayfinder`).
 
 Install flags and dest writes live in [[spec-installer]]. Run install from [[guides-install-from-this-repo]].

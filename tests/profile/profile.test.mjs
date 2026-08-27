@@ -480,6 +480,17 @@ test("repo agentic-core profile loads", () => {
 	assert.deepEqual(missing, []);
 });
 
+test("repo planning-hub profile loads", () => {
+	const p = loadProfile(REPO, "planning-hub");
+	assert.deepEqual(p.skills, ["planning", "wayfinder"]);
+	assert.deepEqual(p.agents, { kind: "omit" });
+	assert.deepEqual(p.prompts, { kind: "omit" });
+	assert.deepEqual(p.packages, []);
+	assert.equal(p.settings, null);
+	const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
+	assert.deepEqual(missing, []);
+});
+
 test("repo profiles list npm and local packages", () => {
 	const expected = [
 		{ kind: "npm", source: "npm:pi-lens" },
