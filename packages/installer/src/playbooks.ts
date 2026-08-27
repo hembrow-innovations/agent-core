@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { openDestination, PLAYBOOK_DEST, type Destination } from "./dest.ts";
 import { packRoot } from "./pack.ts";
-import { resolveNamedIds, unquote, type Profile } from "./profile.ts";
+import { resolveNamedIds, unquote, type NamedSelection } from "./profile.ts";
 
 export type PlaybookMeta = {
   id: string;
@@ -29,12 +29,12 @@ export function listPlaybookIds(srcRoot: string): string[] {
 }
 
 export function resolvePlaybookIds(
-  profile: Profile,
+  selection: NamedSelection,
   opts: PlaybookResolveOpts,
   available: string[],
 ): string[] {
   return resolveNamedIds(
-    profile.playbooks,
+    selection,
     {
       replace: opts.playbooks,
       add: opts.withPlaybooks,

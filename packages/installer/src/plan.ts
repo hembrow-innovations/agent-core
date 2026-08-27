@@ -3,7 +3,6 @@ import {
   type FirstPartyExtension,
   type ProfilePackage,
 } from "./extensions.ts";
-import { resolvePlaybookIds } from "./playbooks.ts";
 import {
   resolveNamedIds,
   type Profile,
@@ -16,27 +15,22 @@ export type InstallRequest = {
   profile: string | null;
   with: string[];
   without: string[];
-  playbooks: string[] | null;
-  withPlaybooks: string[];
-  withoutPlaybooks: string[];
   extensions: FirstPartyExtension[];
 };
 
 export type AvailableIds = {
-  playbooks: string[];
   agents: string[];
   prompts: string[];
 };
 
 export type InstallPlan = {
   skills: string[];
-  playbookIds: string[];
-  overlayPlaybooks: boolean;
   agentIds: string[];
   overlayAgents: boolean;
   promptIds: string[];
   overlayPrompts: boolean;
   packages: ProfilePackage[];
+  settings: Record<string, unknown> | null;
 };
 
 const NO_SELECTION_OPTS: SelectionResolveOpts = {
@@ -74,11 +68,6 @@ export function planFromProfile(
   for (const s of opts.without) set.delete(s);
   return {
     skills: [...set].sort(),
-    playbookIds: resolvePlaybookIds(profile, opts, available.playbooks),
-    overlayPlaybooks:
-      profile.playbooks.kind !== "omit" ||
-      opts.playbooks != null ||
-      opts.withPlaybooks.length > 0,
     agentIds: resolveNamedIds(
       profile.agents,
       NO_SELECTION_OPTS,
@@ -94,5 +83,6 @@ export function planFromProfile(
     ),
     overlayPrompts: profile.prompts.kind !== "omit",
     packages: resolvePackages(profile.packages, opts.extensions),
+    settings: profile.settings,
   };
 }

@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [spec]
 created_at: "2026-08-23"
-updated_at: "2026-08-27"
+updated_at: "2026-08-26"
 ---
 
 # Installer spec
@@ -27,9 +27,6 @@ The command is `pnpm exec agentic-core install <target>`.
 - **`--extension`**: first-party package. Repeatable.
 - **`--with`**: comma-separated skill folder names to add
 - **`--without`**: comma-separated skill folder names to drop
-- **`--playbooks`**: replace the profile playbook selection
-- **`--with-playbooks`**: add playbook ids
-- **`--without-playbooks`**: drop playbook ids
 - **`-h`, `--help`**: print usage
 
 `--extension` may repeat. A name outside `FIRST_PARTY_EXTENSIONS` dies with `Unknown extension`.
@@ -42,8 +39,9 @@ Settings do not list `npm:@agentic-core/<name>`.
 Re-running install overwrites the copy.
 The dest has no sibling lib package.
 
-Agents, skills, playbooks, prompts, and third-party `npm:` sources still merge the way they do today.
+Agents, skills, prompts, and third-party `npm:` sources still merge the way they do today.
 Dest extras stay. Overlay writers update listed files and do not prune other dest markdown.
+The installer does not select or copy playbooks. An existing dest `.pi/playbooks/` survives reinstall.
 First-party extensions never copy from `pi/extensions/`. The copy reads `packages/<name>`.
 
 This checkout is the only install source.
@@ -69,20 +67,15 @@ A dest never depends on this checkout at runtime.
 else if (a === "--profile") out.profile = need(args, a);
 else if (a === "--with") out.with.push(...csv(need(args, a)));
 else if (a === "--without") out.without.push(...csv(need(args, a)));
-else if (a === "--playbooks") out.playbooks = csv(need(args, a));
-else if (a === "--with-playbooks")
-  out.withPlaybooks.push(...csv(need(args, a)));
-else if (a === "--without-playbooks")
-  out.withoutPlaybooks.push(...csv(need(args, a)));
 ```
 
-`--harness`, `--local`, and `--ref` are unknown flags. `cli.test.ts` asserts they die.
+`--harness`, `--local`, `--ref`, `--playbooks`, `--with-playbooks`, and `--without-playbooks` are unknown flags. `cli.test.ts` asserts they die.
 
 ### Two install paths
 
 `run` splits after `openDestination`.
 
-- **Extensions-only**: `--profile` omitted and at least one `--extension`. No default profile. `run` still calls `dest.ensureGitignore`. `writeExtensions` copies those packages into dest npm and merges their settings sources. Skills, playbooks, agents, prompts, and `writeRuntime` do not run.
+- **Extensions-only**: `--profile` omitted and at least one `--extension`. No default profile. `run` still calls `dest.ensureGitignore`. `writeExtensions` copies those packages into dest npm and merges their settings sources. Skills, agents, prompts, and `writeRuntime` do not run.
 - **Profile install**: `--profile <name>`, or no `--profile` and no `--extension`. The name is `opts.profile ?? DEFAULT_PROFILE`. `DEFAULT_PROFILE` is `agentic-core`. `loadProfile` then `planFromProfile` then dest writes.
 
 `--profile` and `--extension` may be used together. That is a profile install. `resolvePackages` appends the CLI local names after `profile.packages`. First source wins. Duplicates drop.
@@ -92,16 +85,16 @@ else if (a === "--without-playbooks")
 `planFromProfile` builds the dest writes.
 
 - **skills**: start from `profile.skills`, add `--with`, drop `--without`, then sort. `installSkills` always runs. An empty list copies nothing.
-- **playbooks**: `resolvePlaybookIds` uses `--playbooks` as replace, then `--with-playbooks`, then `--without-playbooks`. Overlay writes dest when the YAML key is not omit, or `--playbooks` is set, or `--with-playbooks` is non-empty. `--without-playbooks` alone does not write dest playbooks when the key is omit.
 - **agents**: YAML only. Overlay when the key is not omit. No CLI add or remove.
 - **prompts**: YAML only. Overlay when the key is not omit. No CLI add or remove.
 - **packages**: `profile.packages` then CLI `--extension` names.
+- **settings**: optional untyped map from the profile. Missing or null is omit.
 
-Unknown playbook, agent, or prompt ids fail in `resolveNamedIds` when the plan is built. Invalid package sources fail in `loadProfile`. Field rules are [[schema-profile]].
+Unknown agent or prompt ids fail in `resolveNamedIds` when the plan is built. Invalid package sources fail in `loadProfile`. Field rules are [[schema-profile]].
 
 ### Dest writes
 
-Selected skills copy from `ai/skills/` to `.pi/skills/<name>/`. `findSkillDir` walks with `walkSkillDirs`. A missing name fails with `Skill not found in source`. Overlay playbooks write `.pi/playbooks/`. Overlay agents write `.pi/agents/<id>.md`. Overlay prompts write `.pi/prompts/<id>.md`. Each overlay updates listed ids. Extra dest markdown of that kind stays. Extra dest skill dirs and extra settings packages stay.
+Selected skills copy from `ai/skills/` to `.pi/skills/<name>/`. `findSkillDir` walks with `walkSkillDirs`. A missing name fails with `Skill not found in source`. Overlay agents write `.pi/agents/<id>.md`. Overlay prompts write `.pi/prompts/<id>.md`. Each overlay updates listed ids. Extra dest markdown of that kind stays. Extra dest skill dirs, extra dest playbooks, and extra settings keys stay. Install does not write `.pi/playbooks/`.
 
 Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md` and `ai/pi/draconic-models.md`. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, `.pi/roles`, and installer-owned `.pi/vendor/@agentic-core`. Other dest extras stay. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. It writes `.pi/draconic-models.md` only when missing. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing.
 
@@ -129,20 +122,24 @@ The package `@agentic-core/draconic-todo` lands at `.pi/npm/node_modules/@agenti
 
 Third-party sources such as `npm:pi-lens` come from `profile.packages` and merge into dest settings in list order.
 
+Install then deep-merges `profile.settings` into dest `.pi/settings.json` when the key is not omit. Dest keys the profile does not name stay. Objects merge recursively. Profile wins scalar leaf conflicts and type mismatches. Arrays merge as sets. Dest order stays. Profile items append when not already present. Duplicates drop.
+
 This checkout's Pi is not wired to `packages/`. Nothing vendors until the installer is pointed at a target.
 
 ## Acceptance
 
-- The command accepts `<target>`, `--profile`, `--extension`, `--with`, `--without`, `--playbooks`, `--with-playbooks`, and `--without-playbooks`
+- The command accepts `<target>`, `--profile`, `--extension`, `--with`, and `--without`
 - `--extension` can be passed more than once
 - A profile install installs `profile.packages` into dest settings and copies first-party sources into dest npm
 - A profile can select `agents` and `prompts` from the source libraries
+- A profile `settings:` map deep-merges into dest `.pi/settings.json` after the packages union
 - An extensions-only run copies packages into dest npm and does not copy skills
 - First-party path is `.pi/npm/node_modules/@agentic-core/<name>`
 - Settings contain dest-relative `npm/node_modules/@agentic-core/<name>` paths
 - Settings do not list `npm:@agentic-core/<name>`
 - Re-run overwrites the dest npm copy
-- Extra dest skills, agents, playbooks, prompts, and settings packages survive a reinstall
+- Extra dest skills, agents, playbooks, prompts, and settings keys survive a reinstall
+- Install does not write `.pi/playbooks/`
 - Dest rewrite removes installer-owned `.pi/vendor/@agentic-core` and keeps other dest extras
 - `vendor:` and `vendor/` sources fail at profile load
 - Third-party `npm:` sources still merge

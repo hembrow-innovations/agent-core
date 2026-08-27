@@ -36,6 +36,7 @@ export type Destination = {
   remove(rel: string): void;
   list(rel: string): DestEntry[];
   mergePackages(sources: string[]): void;
+  mergeSettings(patch: Record<string, unknown>): void;
   ensureGitignore(): void;
   removeLeftovers(): void;
 };
@@ -94,6 +95,10 @@ export function openDestination(target: string): Destination {
     mergePiSettingsPackages(path(SETTINGS_PATH), sources);
   };
 
+  const mergeSettings = (patch: Record<string, unknown>) => {
+    mergePiSettings(path(SETTINGS_PATH), patch);
+  };
+
   const ensureGitignore = () => {
     writeText(GITIGNORE_PATH, GITIGNORE_BODY, { ifMissing: true });
   };
@@ -118,6 +123,7 @@ export function openDestination(target: string): Destination {
     remove,
     list,
     mergePackages,
+    mergeSettings,
     ensureGitignore,
     removeLeftovers,
   };
@@ -183,6 +189,107 @@ export function mergePiSettingsPackages(
   settings.packages = next;
   mkdirSync(dirname(settingsPath), { recursive: true });
   writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`, "utf8");
+}
+
+type SettingsObject = { [key: string]: SettingsJson };
+type SettingsJson =
+  | string
+  | number
+  | boolean
+  | null
+  | SettingsJson[]
+  | SettingsObject;
+
+export function mergePiSettings(
+  settingsPath: string,
+  patch: Record<string, unknown>,
+): void {
+  const settings = readSettingsObject(settingsPath);
+  const merged = deepMergeSettings(settings, asSettingsObject(patch));
+  if (JSON.stringify(settings) === JSON.stringify(merged)) return;
+  mkdirSync(dirname(settingsPath), { recursive: true });
+  writeFileSync(settingsPath, `${JSON.stringify(merged, null, 2)}\n`, "utf8");
+}
+
+function readSettingsObject(settingsPath: string): SettingsObject {
+  if (!existsSync(settingsPath)) return {};
+  let raw: unknown;
+  try {
+    raw = JSON.parse(readFileSync(settingsPath, "utf8"));
+  } catch {
+    throw new Error(".pi/settings.json must be valid JSON");
+  }
+  if (!isRecord(raw)) {
+    throw new Error(".pi/settings.json must be a JSON object");
+  }
+  return asSettingsObject(raw);
+}
+
+function asSettingsObject(value: Record<string, unknown>): SettingsObject {
+  const out: SettingsObject = {};
+  for (const [key, item] of Object.entries(value)) {
+    out[key] = asSettingsJson(item);
+  }
+  return out;
+}
+
+function asSettingsJson(value: unknown): SettingsJson {
+  if (value === null) return null;
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return value;
+  }
+  if (Array.isArray(value)) return value.map(asSettingsJson);
+  if (isRecord(value)) return asSettingsObject(value);
+  throw new Error(".pi/settings.json must be JSON");
+}
+
+function deepMergeSettings(
+  dest: SettingsJson,
+  src: SettingsJson,
+): SettingsJson {
+  if (Array.isArray(src)) {
+    if (!Array.isArray(dest)) return src;
+    return mergeSettingsArrays(dest, src);
+  }
+  if (isRecord(src)) {
+    if (!isRecord(dest)) return src;
+    const out: SettingsObject = { ...dest };
+    for (const [key, value] of Object.entries(src)) {
+      if (Object.hasOwn(dest, key)) {
+        out[key] = deepMergeSettings(dest[key], value);
+      } else {
+        out[key] = value;
+      }
+    }
+    return out;
+  }
+  return src;
+}
+
+function mergeSettingsArrays(
+  dest: SettingsJson[],
+  src: SettingsJson[],
+): SettingsJson[] {
+  const next = [...dest];
+  const have = new Set(dest.map(settingsArrayKey));
+  for (const item of src) {
+    const key = settingsArrayKey(item);
+    if (have.has(key)) continue;
+    have.add(key);
+    next.push(item);
+  }
+  return next;
+}
+
+function settingsArrayKey(item: SettingsJson): string {
+  if (item !== null && typeof item === "object") {
+    return `o:${JSON.stringify(item)}`;
+  }
+  return `s:${typeof item}:${String(item)}`;
 }
 
 function canonicalizePackageSource(source: string): string {

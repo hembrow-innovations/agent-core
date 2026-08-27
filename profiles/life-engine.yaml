@@ -1,4 +1,3 @@
-playbooks: all
 agents: all
 prompts: all
 packages:

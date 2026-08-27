@@ -48,7 +48,7 @@ The folders are:
 
 Leftover empty stub dirs under `ai/` are not libraries.
 
-Skills, playbooks, prompts, and third-party `npm:pi-lens` sources still copy into dest `.pi/`.
+Skills, prompts, and third-party `npm:pi-lens` sources still copy into dest `.pi/`. Playbooks stay in the source library. Install does not copy them.
 
 ### Workspace packages
 
@@ -73,7 +73,7 @@ There is no npm publish. There is no git package source.
 
 ### Dest tree
 
-The dest tree is what a target project commits after install. It holds the copied agents, skills, playbooks, and prompts under `.pi/`. Identity dest is only `.pi/agents/`. There is no dest roles tree. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
+The dest tree is what a target project commits after install. It holds the copied agents, skills, and prompts under `.pi/`. Identity dest is only `.pi/agents/`. There is no dest roles tree. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
 
 A dest project never depends on this checkout at runtime.
 
@@ -99,7 +99,7 @@ The command is `pnpm exec agentic-core install`. The package lives in `packages/
 - **profile.ts**: reads `profiles/*.yaml` into a `Profile`
 - **dest.ts**: dest `.pi/` reads and writes
 - **pack-walk.ts**: `walkSkillDirs` finds `SKILL.md` folders under `ai/skills/`
-- **skills.ts**, **playbooks.ts**, **agents.ts**, **prompts.ts**, **extensions.ts**, **runtime.ts**: one module per install section
+- **skills.ts**, **playbooks.ts**, **agents.ts**, **prompts.ts**, **extensions.ts**, **runtime.ts**: one module per library or dest write. Playbook catalog rewrite stays in `playbooks.ts`. Install does not call the dest playbook writer.
 - **plan.ts**: merges the profile with CLI flags
 
 `installSkills` calls `findSkillDir`, which walks with `walkSkillDirs`. Duplicate basenames prefer `ai/skills/workflow/`, then `ai/skills/setup/`, then the first hit.
@@ -122,7 +122,7 @@ pnpm exec agentic-core install <target> --extension draconic-todo
 
 A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the third-party `npm:` sources plus `local:@agentic-core/` packages for todo, coms, boot, teams, and footer.
 
-Playbooks land at `.pi/playbooks/`. A leftover `mode:` key is an error.
+A leftover `playbooks:` or `mode:` key is an error. Install does not write `.pi/playbooks/`.
 
 An extension install names a first-party package for the dest npm tree.
 
@@ -148,7 +148,7 @@ Install is the only path from workspace packages to a dest. A dest never keeps a
 
 Todo tests and imports stay in the workspace. Dest never sees a sibling lib package.
 
-The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. It also does not keep prompts, skills, agents, or roles under `ai/pi/`. Profiles list skills, playbooks, agents, prompts, and packages. They do not name a dest. See [[0005-pi-only-dest]] and [[0006-source-libraries-beside-pi-runtime]].
+The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. It also does not keep prompts, skills, agents, or roles under `ai/pi/`. Profiles list skills, agents, prompts, packages, and optional settings. They do not name a dest. See [[0005-pi-only-dest]] and [[0006-source-libraries-beside-pi-runtime]].
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.
 

@@ -143,11 +143,12 @@ try {
     process.exit(1);
   }
   const setupSkill = join(dest, ".pi", "skills", "setup-draconic", "SKILL.md");
-  const playbook = join(dest, ".pi", "playbooks", "feature.md");
-  if (!existsSync(setupSkill) || !existsSync(playbook)) {
-    console.error(
-      "agentic-core install did not copy setup-draconic and .pi/playbooks",
-    );
+  if (!existsSync(setupSkill)) {
+    console.error("agentic-core install did not copy setup-draconic");
+    process.exit(1);
+  }
+  if (existsSync(join(dest, ".pi", "playbooks"))) {
+    console.error("agentic-core install still copied .pi/playbooks");
     process.exit(1);
   }
   if (existsSync(join(dest, ".pi", "skills", "draconic-mode"))) {

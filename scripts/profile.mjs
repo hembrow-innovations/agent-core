@@ -12,6 +12,7 @@ export {
   listProfiles,
   listPromptIds,
   loadProfile,
+  mergePiSettings,
   mergePiSettingsPackages,
   packRoot,
   packageRefSource,

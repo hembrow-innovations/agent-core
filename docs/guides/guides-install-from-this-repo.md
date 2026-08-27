@@ -7,7 +7,7 @@ domain: pack
 area: guides
 tags: [guide]
 created_at: "2026-08-23"
-updated_at: "2026-08-27"
+updated_at: "2026-08-26"
 ---
 
 # Install from this repo
@@ -54,7 +54,7 @@ if (
    `pnpm exec agentic-core install <target> --extension draconic-todo`
 5. Dest settings name `npm/node_modules/@agentic-core/<name>` for those packages.
 
-Playbook selection flags are `--playbooks`, `--with-playbooks`, and `--without-playbooks`. Full flag rules are in [[spec-installer]].
+The installer does not copy playbooks. Full flag rules are in [[spec-installer]].
 
 ## Examples
 
@@ -74,6 +74,7 @@ You will see:
 - dest-relative `npm/node_modules/@agentic-core/<name>` paths in `.pi/settings.json`
 - selected skills under `.pi/skills/`
 - agents and prompts from the YAML `all` keys
+- `toolDescriptionMode` and `defaultTools` from profile `settings:` in `.pi/settings.json`
 
 One-off extension into another dest.
 

@@ -1,5 +1,4 @@
 # Develop this repo in Pi. Not an export profile.
-playbooks: all
 agents: all
 prompts: all
 packages:
@@ -12,6 +11,14 @@ packages:
   - local:@agentic-core/draconic-boot
   - local:@agentic-core/draconic-teams
   - local:@agentic-core/draconic-footer
+settings:
+  toolDescriptionMode: compact
+  defaultTools:
+    - read
+    - bash
+    - edit
+    - write
+    - ls
 skills:
   - agent-teams
   - architect

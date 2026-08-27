@@ -2,12 +2,7 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  AGENT_DEST,
-  openDestination,
-  PLAYBOOK_DEST,
-  PROMPT_DEST,
-} from "./dest.ts";
+import { AGENT_DEST, openDestination, PROMPT_DEST } from "./dest.ts";
 import {
   FIRST_PARTY_EXTENSIONS,
   isFirstPartyExtension,
@@ -17,7 +12,6 @@ import {
   type FirstPartyExtension,
 } from "./extensions.ts";
 import { planFromProfile, type InstallRequest } from "./plan.ts";
-import { listPlaybookIds, writePlaybooks } from "./playbooks.ts";
 import { listAgentIds, writeAgents } from "./agents.ts";
 import { listProfiles, loadProfile } from "./profile.ts";
 import { listPromptIds, writePrompts } from "./prompts.ts";
@@ -42,15 +36,12 @@ Options:
   --extension <name>       first-party package (repeatable)
   --with <skills>          comma-separated skills to add
   --without <skills>       comma-separated skills to remove
-  --playbooks <ids>        replace profile playbook selection
-  --with-playbooks <ids>   add playbook ids
-  --without-playbooks <ids> remove playbook ids
   -h, --help               Show help
 
 Profiles (profiles/*.yaml):
   ${listed}
 
-Dest is always .pi/. Playbooks, agents, prompts, and packages are selected in the YAML.
+Dest is always .pi/. Agents, prompts, packages, and settings are selected in the YAML.
 
 Examples:
   pnpm exec agentic-core install . --profile agentic-core
@@ -72,9 +63,6 @@ function parseArgs(argv: string[]): CliRequest {
     profile: null,
     with: [],
     without: [],
-    playbooks: null,
-    withPlaybooks: [],
-    withoutPlaybooks: [],
     extensions: [],
   };
 
@@ -85,11 +73,6 @@ function parseArgs(argv: string[]): CliRequest {
     else if (a === "--profile") out.profile = need(args, a);
     else if (a === "--with") out.with.push(...csv(need(args, a)));
     else if (a === "--without") out.without.push(...csv(need(args, a)));
-    else if (a === "--playbooks") out.playbooks = csv(need(args, a));
-    else if (a === "--with-playbooks")
-      out.withPlaybooks.push(...csv(need(args, a)));
-    else if (a === "--without-playbooks")
-      out.withoutPlaybooks.push(...csv(need(args, a)));
     else if (a === "--extension") {
       const name = need(args, a);
       if (!isFirstPartyExtension(name)) {
@@ -180,7 +163,6 @@ function run(argv: string[]): void {
   let plan;
   try {
     plan = planFromProfile(profile, opts, {
-      playbooks: listPlaybookIds(srcRoot),
       agents: listAgentIds(srcRoot),
       prompts: listPromptIds(srcRoot),
     });
@@ -194,12 +176,6 @@ function run(argv: string[]): void {
 
   try {
     installSkills({ srcRoot, dest, names: plan.skills });
-    if (plan.overlayPlaybooks) {
-      writePlaybooks(srcRoot, dest, plan.playbookIds);
-      console.log(
-        `  playbooks (${plan.playbookIds.length}) → ${PLAYBOOK_DEST}`,
-      );
-    }
     if (plan.overlayAgents) {
       writeAgents(srcRoot, dest, plan.agentIds);
       console.log(`  agents (${plan.agentIds.length}) → ${AGENT_DEST}`);
@@ -221,6 +197,9 @@ function run(argv: string[]): void {
     }
     if (plan.packages.length > 0) {
       dest.mergePackages(plan.packages.map(packageRefSource));
+    }
+    if (plan.settings) {
+      dest.mergeSettings(plan.settings);
     }
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));

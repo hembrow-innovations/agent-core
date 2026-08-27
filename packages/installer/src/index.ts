@@ -7,6 +7,7 @@ export {
   PROMPT_DEST,
   SETTINGS_PATH,
   SKILL_DEST,
+  mergePiSettings,
   mergePiSettingsPackages,
   openDestination,
   packageSource,

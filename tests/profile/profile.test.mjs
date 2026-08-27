@@ -20,6 +20,7 @@ import {
 	installPrompts,
 	listProfiles,
 	loadProfile,
+	mergePiSettings,
 	mergePiSettingsPackages,
 	packageSource,
 	parseProfileYaml,
@@ -67,15 +68,59 @@ test("parseProfileYaml: inline list skips empty items", () => {
 	assert.deepEqual(got.skills, ["feature", "bug-fix"]);
 });
 
-test("parseProfileYaml: throws on nested maps", () => {
-	assert.throws(
-		() =>
-			parseProfileYaml(`
-playbooks:
-  kind: all
-`),
-		/Nested maps/,
-	);
+test("parseProfileYaml: nested maps, lists of maps, and numbers", () => {
+	const got = parseProfileYaml(`
+settings:
+  toolDescriptionMode: compact
+  retry: 2
+  timeout: 1.5
+  nested:
+    enabled: true
+  items:
+    - name: a
+      n: 1
+    - name: b
+      n: 2
+  defaultTools:
+    - read
+    - bash
+`);
+	assert.deepEqual(got, {
+		settings: {
+			toolDescriptionMode: "compact",
+			retry: 2,
+			timeout: 1.5,
+			nested: { enabled: true },
+			items: [
+				{ name: "a", n: 1 },
+				{ name: "b", n: 2 },
+			],
+			defaultTools: ["read", "bash"],
+		},
+	});
+	assert.equal(typeof got.settings.retry, "number");
+	assert.equal(typeof got.settings.timeout, "number");
+});
+
+test("parseProfileYaml: quoted numbers stay strings; leading zeros stay strings", () => {
+	const got = parseProfileYaml(`a: "42"\nb: 01\nc: 0\n`);
+	assert.equal(got.a, "42");
+	assert.equal(got.b, "01");
+	assert.equal(got.c, 0);
+});
+
+test("parseProfileYaml: colon without space stays a scalar list item", () => {
+	const got = parseProfileYaml(`packages:
+  - npm:pi-lens
+  - local:@agentic-core/draconic-todo
+`);
+	assert.deepEqual(got.packages, [
+		"npm:pi-lens",
+		"local:@agentic-core/draconic-todo",
+	]);
+});
+
+test("parseProfileYaml: flow maps still fail", () => {
 	assert.throws(() => parseProfileYaml(`x: {a: 1}`), /Nested maps/);
 });
 
@@ -98,39 +143,28 @@ test("loadProfile: missing dies with available names", () => {
 	assert.throws(() => loadProfile(root, "nope"), /Unknown profile "nope".*core/);
 });
 
-test("loadProfile: defaults and playbooks shapes", () => {
+test("loadProfile: defaults omit settings", () => {
 	const root = tempRoot();
 	writeYaml(root, "bare", "skills: []\n");
-	writeYaml(root, "all", "playbooks: all\n");
-	writeYaml(
-		root,
-		"listed",
-		`playbooks:
-  - investigation
-  - feature
-`,
-	);
-	writeYaml(root, "empty", "playbooks: []\n");
 
 	const bare = loadProfile(root, "bare");
 	assert.deepEqual(bare, {
 		name: "bare",
 		skills: [],
-		playbooks: { kind: "omit" },
 		agents: { kind: "omit" },
 		prompts: { kind: "omit" },
 		packages: [],
+		settings: null,
 	});
+});
 
-	assert.deepEqual(loadProfile(root, "all").playbooks, { kind: "all" });
-	assert.deepEqual(loadProfile(root, "listed").playbooks, {
-		kind: "list",
-		ids: ["investigation", "feature"],
-	});
-	assert.deepEqual(loadProfile(root, "empty").playbooks, {
-		kind: "list",
-		ids: [],
-	});
+test("loadProfile: leftover playbooks key dies", () => {
+	const root = tempRoot();
+	writeYaml(root, "pb", "playbooks: all\nskills: []\n");
+	assert.throws(
+		() => loadProfile(root, "pb"),
+		/leftover "playbooks:". the installer does not copy playbooks/,
+	);
 });
 
 test("loadProfile: leftover dest keys die", () => {
@@ -165,6 +199,8 @@ test("loadProfile: leftover dest keys die", () => {
 		() => loadProfile(root, "templates"),
 		/leftover "templates:". dest is always \.pi/,
 	);
+	writeYaml(root, "playbooks", "playbooks: all\nskills: []\n");
+	assert.throws(() => loadProfile(root, "playbooks"), /leftover "playbooks:"/);
 });
 
 test("loadProfile: unknown key dies", () => {
@@ -212,6 +248,35 @@ prompts:
 		() => loadProfile(root, "bare-pkg"),
 		/Invalid package source: draconic-todo/,
 	);
+	assert.equal(loadProfile(root, "bare").settings, null);
+});
+
+test("loadProfile: settings is an untyped map", () => {
+	const root = tempRoot();
+	writeYaml(
+		root,
+		"ok",
+		`settings:
+  toolDescriptionMode: compact
+  retry: 2
+  packages:
+    - npm:extra
+  unknownKey: true
+`,
+	);
+	writeYaml(root, "nullish", "settings: null\n");
+	writeYaml(root, "bad", "settings: all\n");
+	writeYaml(root, "list", "settings:\n  - nope\n");
+	const ok = loadProfile(root, "ok");
+	assert.deepEqual(ok.settings, {
+		toolDescriptionMode: "compact",
+		retry: 2,
+		packages: ["npm:extra"],
+		unknownKey: true,
+	});
+	assert.equal(loadProfile(root, "nullish").settings, null);
+	assert.throws(() => loadProfile(root, "bad"), /"settings" must be a map/);
+	assert.throws(() => loadProfile(root, "list"), /"settings" must be a map/);
 });
 
 test("listProfiles skips README", () => {
@@ -224,11 +289,9 @@ test("listProfiles skips README", () => {
 
 test("resolvePlaybookIds: all / list / omit / cli / unknown", () => {
 	const available = ["investigation", "feature", "bug-fix", "opening-a-pr"];
-	const omit = { playbooks: { kind: "omit" } };
-	const all = { playbooks: { kind: "all" } };
-	const list = {
-		playbooks: { kind: "list", ids: ["investigation", "feature"] },
-	};
+	const omit = { kind: "omit" };
+	const all = { kind: "all" };
+	const list = { kind: "list", ids: ["investigation", "feature"] };
 	const none = { playbooks: null, withPlaybooks: [], withoutPlaybooks: [] };
 
 	assert.deepEqual(resolvePlaybookIds(omit, none, available), []);
@@ -268,12 +331,7 @@ test("resolvePlaybookIds: all / list / omit / cli / unknown", () => {
 		/Unknown playbook "nope"/,
 	);
 	assert.throws(
-		() =>
-			resolvePlaybookIds(
-				{ playbooks: { kind: "list", ids: ["missing"] } },
-				none,
-				available,
-			),
+		() => resolvePlaybookIds({ kind: "list", ids: ["missing"] }, none, available),
 		/Unknown playbook "missing"/,
 	);
 });
@@ -375,7 +433,7 @@ test("readPlaybookMeta: frontmatter and heading fallback", () => {
 
 test("repo life-engine profile loads", () => {
 	const p = loadProfile(REPO, "life-engine");
-	assert.deepEqual(p.playbooks, { kind: "all" });
+	assert.equal(p.settings, null);
 	const ported = [
 		"behaviour-contracts",
 		"diagnose",
@@ -396,7 +454,10 @@ test("repo life-engine profile loads", () => {
 
 test("repo agentic-core profile loads", () => {
 	const p = loadProfile(REPO, "agentic-core");
-	assert.deepEqual(p.playbooks, { kind: "all" });
+	assert.deepEqual(p.settings, {
+		toolDescriptionMode: "compact",
+		defaultTools: ["read", "bash", "edit", "write", "ls"],
+	});
 	const needed = [
 		"create-skill",
 		"diagnose",
@@ -436,6 +497,7 @@ test("repo profiles list npm and local packages", () => {
 		assert.deepEqual(p.agents, { kind: "all" });
 		assert.deepEqual(p.prompts, { kind: "all" });
 	}
+	assert.equal(loadProfile(REPO, "life-engine").settings, null);
 });
 
 test("always-on text does not dump dest draconic-mode", () => {
@@ -552,6 +614,60 @@ test("mergePiSettingsPackages is idempotent and keeps object-form sources", () =
 		packages: ["npm:pi-lens"],
 	});
 	assert.equal(packageSource({ source: "npm:pi-lens" }), "npm:pi-lens");
+});
+
+test("mergePiSettings deep-merges objects, set-unions arrays, keeps dest extras", () => {
+	const dest = join(
+		mkdtempSync(join(tmpdir(), "pi-settings-")),
+		"settings.json",
+	);
+	writeFileSync(
+		dest,
+		`${JSON.stringify(
+			{
+				keep: "dest",
+				nested: { a: 1, b: 2 },
+				defaultTools: ["custom", "read"],
+				retry: 1,
+			},
+			null,
+			2,
+		)}\n`,
+	);
+	mergePiSettings(dest, {
+		nested: { b: 9, c: 3 },
+		defaultTools: ["read", "bash"],
+		retry: 2,
+		toolDescriptionMode: "compact",
+	});
+	assert.deepEqual(JSON.parse(readFileSync(dest, "utf8")), {
+		keep: "dest",
+		nested: { a: 1, b: 9, c: 3 },
+		defaultTools: ["custom", "read", "bash"],
+		retry: 2,
+		toolDescriptionMode: "compact",
+	});
+	mergePiSettings(dest, {
+		defaultTools: ["read", "bash"],
+		retry: 2,
+	});
+	assert.deepEqual(JSON.parse(readFileSync(dest, "utf8")).defaultTools, [
+		"custom",
+		"read",
+		"bash",
+	]);
+});
+
+test("mergePiSettings creates dest settings and preserves number types", () => {
+	const dest = join(
+		mkdtempSync(join(tmpdir(), "pi-settings-new-")),
+		"settings.json",
+	);
+	mergePiSettings(dest, { retry: 2, nested: { timeout: 1.5 } });
+	const got = JSON.parse(readFileSync(dest, "utf8"));
+	assert.deepEqual(got, { retry: 2, nested: { timeout: 1.5 } });
+	assert.equal(typeof got.retry, "number");
+	assert.equal(typeof got.nested.timeout, "number");
 });
 
 test("installPiRuntime rewrites a dest APPEND_SYSTEM that still matches the old persona", () => {
@@ -703,7 +819,7 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 		existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")),
 		false,
 	);
-	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), true);
+	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
 	assert.equal(existsSync(join(dest, ".pi", "roles")), false);
 	assert.equal(existsSync(join(dest, ".pi", "agents", "draconic.md")), true);
 	assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
@@ -758,6 +874,8 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 				"npm/node_modules/@agentic-core/draconic-teams",
 				"npm/node_modules/@agentic-core/draconic-footer",
 			],
+			toolDescriptionMode: "compact",
+			defaultTools: ["read", "bash", "edit", "write", "ls"],
 		},
 	);
 	assert.match(
@@ -785,7 +903,7 @@ test("install --profile agentic-core writes .pi only", () => {
 		existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")),
 		false,
 	);
-	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), true);
+	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
 	assert.equal(
 		existsSync(join(dest, ".pi", "skills", "create-skill", "SKILL.md")),
 		true,
@@ -829,7 +947,7 @@ test("install --profile life-engine writes .pi only", () => {
 		existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")),
 		false,
 	);
-	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), true);
+	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
 	assert.equal(
 		existsSync(join(dest, ".pi", "skills", "vault-pack", "SKILL.md")),
 		true,

@@ -12,22 +12,23 @@ export type PlaybookSelection = NamedSelection;
 export type Profile = {
   name: string;
   skills: string[];
-  playbooks: NamedSelection;
   agents: NamedSelection;
   prompts: NamedSelection;
   packages: ProfilePackage[];
+  settings: Record<string, unknown> | null;
 };
 
 const PROFILE_KEYS = new Set([
   "skills",
-  "playbooks",
   "agents",
   "prompts",
   "packages",
+  "settings",
 ]);
 
 const LEFTOVER_KEYS = new Map([
   ["mode", 'leftover "mode:". dest playbooks live at .pi/playbooks'],
+  ["playbooks", 'leftover "playbooks:". the installer does not copy playbooks'],
   ["harness", 'leftover "harness:". dest is always .pi'],
   ["pi", 'leftover "pi:". dest is always .pi'],
   ["extensions", 'leftover "extensions:". use packages:'],
@@ -35,54 +36,31 @@ const LEFTOVER_KEYS = new Map([
   ["commands", 'leftover "commands:". dest is always .pi'],
 ]);
 
-export type YamlScalar = string | boolean | null;
-export type YamlValue = YamlScalar | YamlValue[];
+const JSON_NUMBER = /^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?$/;
+
+export type YamlScalar = string | number | boolean | null;
+type YamlMap = { [key: string]: YamlValue };
+export type YamlValue = YamlScalar | YamlValue[] | YamlMap;
+
+type YamlTok = {
+  indent: number;
+  raw: string;
+  isList: boolean;
+  key: string | null;
+  inline: string;
+};
 
 export function parseProfileYaml(text: string): Record<string, YamlValue> {
-  const out: Record<string, YamlValue> = {};
-  let pendingKey: string | null = null;
-
-  for (const raw of text.split(/\r?\n/)) {
-    const line = stripComment(raw);
-    if (!line.trim()) continue;
-    rejectUnknown(line, raw);
-
-    const indent = line.match(/^(\s*)/)?.[1] ?? "";
-    const body = line.slice(indent.length);
-
-    const list = body.match(/^-(\s+(.*))?$/);
-    if (list) {
-      if (indent.length === 0 || pendingKey == null) {
-        throw new Error(`List item without a key: ${raw}`);
-      }
-      if (!Object.hasOwn(out, pendingKey)) out[pendingKey] = [];
-      const current = out[pendingKey];
-      if (!Array.isArray(current)) {
-        throw new Error(`Mixed value and list for "${pendingKey}"`);
-      }
-      const item = parseScalar((list[2] ?? "").trim(), raw);
-      if (item === "" || item == null) continue;
-      current.push(item);
-      continue;
-    }
-
-    const kv = body.match(/^([^:]+?)\s*:\s*(.*)$/);
-    if (!kv) throw new Error(`Cannot parse YAML: ${raw}`);
-    if (indent.length > 0) {
-      throw new Error(`Nested maps are not supported: ${raw}`);
-    }
-
-    const key = kv[1].trim();
-    const rawVal = kv[2];
-    pendingKey = null;
-    if (rawVal === "") {
-      pendingKey = key;
-      continue;
-    }
-    out[key] = parseScalar(rawVal, raw);
+  const toks = tokenizeYaml(text);
+  if (toks.length === 0) return {};
+  if (toks[0].indent !== 0) {
+    throw new Error(`Unexpected indent: ${toks[0].raw}`);
   }
-
-  return out;
+  const parsed = parseMap(toks, 0, 0);
+  if (parsed.next !== toks.length) {
+    throw new Error(`Cannot parse YAML: ${toks[parsed.next].raw}`);
+  }
+  return parsed.value;
 }
 
 export function loadProfile(srcRoot: string, name: string): Profile {
@@ -103,10 +81,10 @@ export function loadProfile(srcRoot: string, name: string): Profile {
   return {
     name,
     skills: asStringList(raw.skills, "skills"),
-    playbooks: toSelection(raw.playbooks, "playbooks"),
     agents: toSelection(raw.agents, "agents"),
     prompts: toSelection(raw.prompts, "prompts"),
     packages: asStringList(raw.packages, "packages").map(parseProfilePackage),
+    settings: asSettings(raw.settings),
   };
 }
 
@@ -166,6 +144,166 @@ function asStringList(value: unknown, key: string): string[] {
   return value.map(String);
 }
 
+function asSettings(value: unknown): Record<string, unknown> | null {
+  if (value === undefined || value === null) return null;
+  if (!isYamlMap(value)) throw new Error(`"settings" must be a map`);
+  return value;
+}
+
+function isYamlMap(value: unknown): value is YamlMap {
+  return value != null && typeof value === "object" && !Array.isArray(value);
+}
+
+function tokenizeYaml(text: string): YamlTok[] {
+  const toks: YamlTok[] = [];
+  for (const raw of text.split(/\r?\n/)) {
+    const line = stripComment(raw);
+    if (!line.trim()) continue;
+    rejectUnknown(line, raw);
+
+    const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
+    const body = line.slice(indent);
+
+    const list = body.match(/^-(\s+(.*))?$/);
+    if (list) {
+      const rest = (list[2] ?? "").trim();
+      const kv =
+        rest.match(/^([^:]+?):\s+(.*)$/) ?? rest.match(/^([^:]+?):\s*$/);
+      if (kv) {
+        toks.push({
+          indent,
+          raw,
+          isList: true,
+          key: kv[1].trim(),
+          inline: kv[2],
+        });
+      } else {
+        toks.push({
+          indent,
+          raw,
+          isList: true,
+          key: null,
+          inline: rest,
+        });
+      }
+      continue;
+    }
+
+    const kv = body.match(/^([^:]+?)\s*:\s*(.*)$/);
+    if (!kv) throw new Error(`Cannot parse YAML: ${raw}`);
+    toks.push({
+      indent,
+      raw,
+      isList: false,
+      key: kv[1].trim(),
+      inline: kv[2],
+    });
+  }
+  return toks;
+}
+
+function parseMap(
+  toks: YamlTok[],
+  start: number,
+  indent: number,
+): { value: YamlMap; next: number } {
+  const value: YamlMap = {};
+  let i = start;
+  while (i < toks.length) {
+    const t = toks[i];
+    if (t.indent < indent) break;
+    if (t.indent > indent) {
+      throw new Error(`Unexpected indent: ${t.raw}`);
+    }
+    if (t.isList) throw new Error(`List item without a key: ${t.raw}`);
+    if (t.key == null) throw new Error(`Cannot parse YAML: ${t.raw}`);
+
+    if (t.inline !== "") {
+      const peek = toks[i + 1];
+      if (peek && peek.indent > t.indent) {
+        throw new Error(`Mixed value and nested for "${t.key}": ${t.raw}`);
+      }
+      value[t.key] = parseScalar(t.inline, t.raw);
+      i += 1;
+      continue;
+    }
+
+    const child = parseChildren(toks, i, t.indent);
+    i = child.next;
+    if (!child.omit) value[t.key] = child.value;
+  }
+  return { value, next: i };
+}
+
+function parseList(
+  toks: YamlTok[],
+  start: number,
+  indent: number,
+): { value: YamlValue[]; next: number } {
+  const value: YamlValue[] = [];
+  let i = start;
+  while (i < toks.length) {
+    const t = toks[i];
+    if (t.indent < indent) break;
+    if (t.indent > indent) {
+      throw new Error(`Unexpected indent: ${t.raw}`);
+    }
+    if (!t.isList) break;
+
+    if (t.key != null) {
+      const item: YamlMap = {};
+      if (t.inline === "") {
+        const child = parseChildren(toks, i, t.indent);
+        i = child.next;
+        if (!child.omit) item[t.key] = child.value;
+      } else {
+        item[t.key] = parseScalar(t.inline, t.raw);
+        i += 1;
+      }
+      if (i < toks.length && toks[i].indent > indent && !toks[i].isList) {
+        const rest = parseMap(toks, i, toks[i].indent);
+        for (const [k, v] of Object.entries(rest.value)) item[k] = v;
+        i = rest.next;
+      }
+      value.push(item);
+      continue;
+    }
+
+    if (t.inline !== "") {
+      const peek = toks[i + 1];
+      if (peek && peek.indent > t.indent) {
+        throw new Error(`Mixed value and nested: ${t.raw}`);
+      }
+      const item = parseScalar(t.inline, t.raw);
+      if (item !== "" && item != null) value.push(item);
+      i += 1;
+      continue;
+    }
+
+    const child = parseChildren(toks, i, t.indent);
+    i = child.next;
+    if (!child.omit) value.push(child.value);
+  }
+  return { value, next: i };
+}
+
+function parseChildren(
+  toks: YamlTok[],
+  parentIndex: number,
+  parentIndent: number,
+): { value: YamlValue; next: number; omit: boolean } {
+  const nextTok = toks[parentIndex + 1];
+  if (!nextTok || nextTok.indent <= parentIndent) {
+    return { value: null, next: parentIndex + 1, omit: true };
+  }
+  if (nextTok.isList) {
+    const list = parseList(toks, parentIndex + 1, nextTok.indent);
+    return { value: list.value, next: list.next, omit: false };
+  }
+  const map = parseMap(toks, parentIndex + 1, nextTok.indent);
+  return { value: map.value, next: map.next, omit: false };
+}
+
 function stripComment(line: string): string {
   let inSingle = false;
   let inDouble = false;
@@ -223,6 +361,7 @@ function parseScalar(s: string, raw: string): YamlValue {
   if (s.startsWith("|") || s.startsWith(">")) {
     throw new Error(`Block scalars are not supported: ${raw}`);
   }
+  if (JSON_NUMBER.test(s)) return Number(s);
   return unquote(s);
 }
 

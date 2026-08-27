@@ -45,6 +45,9 @@ test("usage names pnpm exec agentic-core install and drops curl", () => {
   assert.doesNotMatch(r.stdout, /--local/);
   assert.doesNotMatch(r.stdout, /--ref/);
   assert.doesNotMatch(r.stdout, /--harness/);
+  assert.doesNotMatch(r.stdout, /--playbooks/);
+  assert.doesNotMatch(r.stdout, /--with-playbooks/);
+  assert.doesNotMatch(r.stdout, /--without-playbooks/);
   assert.match(r.stdout, /Dest is always \.pi\//);
 });
 
@@ -61,6 +64,10 @@ test("unknown command, remote flags, and unknown --extension die", () => {
   const ref = runCli(["install", dest, "--ref", "main"]);
   assert.notEqual(ref.status, 0);
   assert.match(ref.stderr, /Unknown flag: --ref/);
+
+  const playbooks = runCli(["install", dest, "--playbooks", "feature"]);
+  assert.notEqual(playbooks.status, 0);
+  assert.match(playbooks.stderr, /Unknown flag: --playbooks/);
 
   const extension = runCli(["install", dest, "--extension", "not-a-package"]);
   assert.notEqual(extension.status, 0);
@@ -97,6 +104,18 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
   }
   assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "prompts", "arena.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "playbooks")), false);
+  const settings = JSON.parse(
+    readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
+  );
+  assert.equal(settings.toolDescriptionMode, "compact");
+  assert.deepEqual(settings.defaultTools, [
+    "read",
+    "bash",
+    "edit",
+    "write",
+    "ls",
+  ]);
   assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "roles")), false);
   assert.deepEqual(
@@ -241,8 +260,12 @@ test("install --profile agentic-core keeps dest extras and updates listed files"
   const settingsPath = join(dest, ".pi", "settings.json");
   const settings = JSON.parse(readFileSync(settingsPath, "utf8")) as {
     packages: string[];
+    defaultTools?: string[];
+    keep?: string;
   };
   settings.packages.push("npm:extra-survives");
+  settings.keep = "dest-only";
+  settings.defaultTools = ["custom", ...(settings.defaultTools ?? [])];
   writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
 
   writeFileSync(join(dest, ".pi", "agents", "architect.md"), "STALE AGENT\n");
@@ -271,13 +294,26 @@ test("install --profile agentic-core keeps dest extras and updates listed files"
     readFileSync(join(dest, ".pi", "prompts", "extra-prompt.md"), "utf8"),
     "# extra prompt\n",
   );
-  const afterPackages = JSON.parse(readFileSync(settingsPath, "utf8")) as {
+  const afterSettings = JSON.parse(readFileSync(settingsPath, "utf8")) as {
     packages: string[];
+    defaultTools: string[];
+    keep: string;
+    toolDescriptionMode: string;
   };
   assert.ok(
-    afterPackages.packages.includes("npm:extra-survives"),
-    afterPackages.packages.join(", "),
+    afterSettings.packages.includes("npm:extra-survives"),
+    afterSettings.packages.join(", "),
   );
+  assert.equal(afterSettings.keep, "dest-only");
+  assert.equal(afterSettings.toolDescriptionMode, "compact");
+  assert.deepEqual(afterSettings.defaultTools, [
+    "custom",
+    "read",
+    "bash",
+    "edit",
+    "write",
+    "ls",
+  ]);
 
   assert.equal(
     readFileSync(join(dest, ".pi", "agents", "architect.md"), "utf8"),
