@@ -3,7 +3,12 @@ import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { createTeam, parseMemberName, upsertMember } from "./store.ts";
+import {
+	createTeam,
+	parseMemberName,
+	readTeam,
+	upsertMember,
+} from "./store.ts";
 import { applySpawn, buildPiArgv, buildTmuxSpawnArgs } from "./tmux.ts";
 
 const request = {
@@ -455,4 +460,47 @@ test("applySpawn persists agent on identity and reuses it when omitted", async (
 		?.at(-1);
 	assert.match(String(command), /--agent builder(?:\s|$)/);
 	assert.match(String(command), /--cname builder-1/);
+});
+
+test("applySpawn can start two instances of one agent definition", async () => {
+	const teamsDir = seedTeamDir();
+	const tmux = fakeTmux();
+	const env = { TMUX: "/tmp/tmux-1000/default,1,0" };
+	const first = await applySpawn({
+		teamsDir,
+		request: { ...request, name: "builder-1", agent: "builder" },
+		env,
+		runner: tmux.runner,
+	});
+	const second = await applySpawn({
+		teamsDir,
+		request: { ...request, name: "builder-2", agent: "builder" },
+		env,
+		runner: tmux.runner,
+	});
+	assert.equal(first.action, "start");
+	assert.equal(second.action, "start");
+	if (first.member.kind !== "teammate") throw new Error("expected teammate");
+	if (second.member.kind !== "teammate") throw new Error("expected teammate");
+	assert.equal(first.member.paneId, "%1");
+	assert.equal(second.member.paneId, "%2");
+	const teammates = readTeam({ teamsDir, name: "demo" }).members.filter(
+		(member) => member.kind === "teammate",
+	);
+	assert.equal(teammates.length, 2);
+	assert.deepEqual(
+		teammates.map((member) => [String(member.name), member.paneId]),
+		[
+			["builder-1", "%1"],
+			["builder-2", "%2"],
+		],
+	);
+	const commands = tmux.calls
+		.filter((argv) => argv[1] === "split-window")
+		.map((argv) => String(argv.at(-1)));
+	assert.equal(commands.length, 2);
+	assert.match(commands[0] ?? "", /--agent builder(?:\s|$)/);
+	assert.match(commands[0] ?? "", /--cname builder-1/);
+	assert.match(commands[1] ?? "", /--agent builder(?:\s|$)/);
+	assert.match(commands[1] ?? "", /--cname builder-2/);
 });

@@ -25,3 +25,4 @@ Leave these root files where they are:
 - `decisions.tsv`
 - `worktrees/`
 - `sessions/`
+- `teams/`
