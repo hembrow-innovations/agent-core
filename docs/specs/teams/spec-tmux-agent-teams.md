@@ -19,13 +19,13 @@ A lead Pi session can spawn named teammate TUIs in tmux panes. They talk on exis
 
 ## Requirements
 
-- Source lives in `packages/draconic-teams`. Dest receives a local npm copy.
+- Source lives in `packages/heio-teams`. Dest receives a local npm copy.
 - `/team` plus tools `team_create`, `team_spawn`, `team_status`, `team_shutdown`, `task_create`, `task_list`, `task_get`, `task_claim`, and `task_complete`.
 - Default spawn is `tmux split-window`. After start and replace, run `select-layout tiled`. Adopt does not rebalance. `team_spawn` may pass `useWindows` and then opens `tmux new-window`; that pane stays a dedicated window.
 - Spawned `pi` gets `--cname` (instance), `--purpose`, `--project <team>`, and `--name` (same instance). Optional spawn `agent` is the dest `.pi/agents/` file and becomes `--agent`, distinct from `--cname`. Optional `--model` follows when `team_spawn` is given a model.
 - Team name is the coms `--project`. Member name is `--cname`.
-- `--project` and `--cname` are not registered by teams. `flagString` reads `pi.getFlag`, then walks `process.argv`. Mailbox: [[architecture-draconic-coms]].
-- Default store is `<cwd>/.draconic/teams/<team>/`. `PI_TEAMS_DIR` still overrides. Old `~/.pi/teams` files are not migrated. Roster is `config.json`. Board tasks are `tasks/<id>.json`. The board lock is `tasks/.lock`. Member records live under `roster/<cname>/`. Decision: [[0009-project-local-team-store]].
+- `--project` and `--cname` are not registered by teams. `flagString` reads `pi.getFlag`, then walks `process.argv`. Mailbox: [[architecture-heio-coms]].
+- Default store is `<cwd>/.heio/teams/<team>/`. `PI_TEAMS_DIR` still overrides. Old `~/.pi/teams` files are not migrated. Roster is `config.json`. Board tasks are `tasks/<id>.json`. The board lock is `tasks/.lock`. Member records live under `roster/<cname>/`. Decision: [[0009-project-local-team-store]].
 - Spawn is a reconcile. A second spawn of the same `--cname` adopts a live pane or replaces a dead one. Live check is pane id plus `@pi-member=<team>/<cname>`. Never adopt `shutdown`. Spawning the lead name as a teammate fails.
 - Hydrate on spawn: the new process reads standing `identity.md` plus the last `handoff.md`.
 - `task_complete` writes `completed`, appends the work log, and overwrites `handoff.md`.
@@ -55,7 +55,7 @@ A lead Pi session can spawn named teammate TUIs in tmux panes. They talk on exis
 Teams never calls `registerFlag`. `flagString` is the only reader.
 
 ```ts
-// packages/draconic-teams/src/index.ts — flagString
+// packages/heio-teams/src/index.ts — flagString
 function flagString(pi: ExtensionAPI, name: string): string | undefined {
  const fromFlag = pi.getFlag(name);
  if (typeof fromFlag === "string" && fromFlag.length > 0) return fromFlag;
@@ -69,7 +69,7 @@ Missing `--cname` becomes `team-lead` through `ownerName`. `parseMemberName` wit
 
 ### Store
 
-Default runtime is `<cwd>/.draconic/teams/<team>/`. `PI_TEAMS_DIR` still overrides. Old `~/.pi/teams` files are not migrated.
+Default runtime is `<cwd>/.heio/teams/<team>/`. `PI_TEAMS_DIR` still overrides. Old `~/.pi/teams` files are not migrated.
 
 Roster is `config.json`. Live `paneId` and status stay there. Board files are `tasks/<id>.json` with lock `tasks/.lock`. Those board tasks are not management `planning/tasks`.
 
@@ -106,7 +106,7 @@ Ids start at `1` and match `^[1-9][0-9]*$`. Status is `pending | in_progress | c
 `withBoardLock` exclusive-creates `tasks/.lock`, writes this pid, then runs the mutation.
 
 ```ts
-// packages/draconic-teams/src/store.ts — claimTask
+// packages/heio-teams/src/store.ts — claimTask
 if (task.status !== "pending") {
  throw new Error(`task ${id} is not pending`);
 }
@@ -130,12 +130,12 @@ Lead-owned wipe is shutdown then spawn of that `--cname`. The new process reads 
 
 ## Acceptance
 
-- Dest `.pi/npm/node_modules/@agentic-core/draconic-teams` exists after `pnpm exec agentic-core install . --profile agentic-core`
-- `pnpm --filter @agentic-core/draconic-teams test` is green
-- `pnpm --filter @agentic-core/draconic-coms test` is green
+- Dest `.pi/npm/node_modules/@agentic-core/heio-teams` exists after `pnpm exec agentic-core install . --profile agentic-core`
+- `pnpm --filter @agentic-core/heio-teams test` is green
+- `pnpm --filter @agentic-core/heio-coms test` is green
 - `pnpm run typecheck` is clean
 - Inside tmux, `node scripts/try-teams.mjs` artifacts show pong, one claimed task, and no leftover pane
-- Default store is `<cwd>/.draconic/teams/<team>/`. `PI_TEAMS_DIR` still overrides. No migrate from `~/.pi/teams`
+- Default store is `<cwd>/.heio/teams/<team>/`. `PI_TEAMS_DIR` still overrides. No migrate from `~/.pi/teams`
 - Shutdown members are not adopted
 - Lead-owned wipe is shutdown then spawn. No flush tool
 - No `--mode rpc`. No `tmux send-keys`. No second mailbox

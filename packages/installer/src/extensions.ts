@@ -3,11 +3,11 @@ import { join } from "node:path";
 import { type Destination, openDestination } from "./dest.ts";
 
 export const FIRST_PARTY_EXTENSIONS = [
-  "draconic-todo",
-  "draconic-coms",
-  "draconic-boot",
-  "draconic-teams",
-  "draconic-footer",
+  "heio-todo",
+  "heio-coms",
+  "heio-boot",
+  "heio-teams",
+  "heio-footer",
 ] as const;
 
 export type FirstPartyExtension = (typeof FIRST_PARTY_EXTENSIONS)[number];

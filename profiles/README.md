@@ -14,7 +14,7 @@ prompts:
   - arena
 packages:
   - npm:pi-lens
-  - local:@agentic-core/draconic-todo
+  - local:@agentic-core/heio-todo
 settings:
   toolDescriptionMode: compact
   defaultTools:
@@ -26,12 +26,12 @@ Install writes `.pi/skills` and the Pi pack into `.pi/`:
 
 - first-party local packages from `profile.packages` into `.pi/npm/node_modules/@agentic-core/`
 - every selected `ai/prompts/*.md` except README, into `.pi/prompts/`
-- `ai/pi/APPEND_SYSTEM.md` and `ai/pi/draconic-models.md` if those dest files are missing
+- `ai/pi/APPEND_SYSTEM.md` and `ai/pi/heio-models.md` if those dest files are missing
 - `.pi/.gitignore` if that file is missing
 - package sources from `profile.packages` into `.pi/settings.json`
 - `profile.settings` deep-merged into `.pi/settings.json`
 
-A missing `ai/pi/APPEND_SYSTEM.md` or `ai/pi/draconic-models.md` is an error. `ai/prompts/` is optional. Identity dest is `.pi/agents/`. Install deletes leftover dest `.pi/roles/`.
+A missing `ai/pi/APPEND_SYSTEM.md` or `ai/pi/heio-models.md` is an error. `ai/prompts/` is optional. Identity dest is `.pi/agents/`. Install deletes leftover dest `.pi/roles/`.
 
 The installer does not copy playbooks. Dest `.pi/playbooks/` is not pruned. `playbooks:` on a profile is a leftover-key error.
 

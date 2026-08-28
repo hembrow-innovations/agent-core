@@ -11,7 +11,7 @@ A context pack is the small set of notes to read before changing product behavio
 
 1. Search for a project packer. Look in package scripts, justfile, Makefile, and `scripts/` for names like `vault:pack`, `vault-pack`, or `docs:pack`.
 2. If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, `docs/planning/`, GitHub Issues), that file wins. Do not start a second tree.
-3. Otherwise resolve the unit through **management**. The unit is an issue (`.draconic/inbox/issues/`) or a task (`.draconic/planning/tasks/`).
+3. Otherwise resolve the unit through **management**. The unit is an issue (`.heio/inbox/issues/`) or a task (`.heio/planning/tasks/`).
 4. Durable notes live under `docs/`. Load **docs** for purpose, contracts, ADRs, architecture, and guides.
 
 One project's packer is `pnpm vault:pack`. Another is `node scripts/vault-pack.mjs`. Use what you find. Do not invent a new packer script.

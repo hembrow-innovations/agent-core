@@ -1,0 +1,662 @@
+import assert from "node:assert/strict";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { test } from "node:test";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import comsExtension from "../../heio-coms/src/index.ts";
+import teamsExtension from "./index.ts";
+import {
+	createTeam,
+	getTask,
+	listTasks,
+	parseMemberName,
+	readTeam,
+	writeMemberRecord,
+	writeTeam,
+} from "./store.ts";
+
+type Tool = {
+	name: string;
+	description: string;
+	promptGuidelines?: string[];
+	execute: (
+		toolCallId: string,
+		params: Record<string, unknown>,
+		signal?: unknown,
+		onUpdate?: unknown,
+		ctx?: { cwd: string },
+	) => Promise<{
+		content: Array<{ type: string; text: string }>;
+		details: unknown;
+	}>;
+};
+
+type Command = {
+	name: string;
+	handler: (
+		args: string,
+		ctx: { cwd: string; ui: { notify: (m: string) => void } },
+	) => Promise<void>;
+};
+
+function collectFlags(factory: (pi: ExtensionAPI) => void): string[] {
+	const names: string[] = [];
+	factory({
+		registerFlag(name: string) {
+			names.push(name);
+		},
+		registerTool() {},
+		registerCommand() {},
+		on() {},
+		getFlag() {
+			return undefined;
+		},
+		sendMessage() {},
+	} as unknown as ExtensionAPI);
+	return names;
+}
+
+function loadExtension(opts?: { flags?: Record<string, string> }) {
+	const tools: Tool[] = [];
+	const commands: Command[] = [];
+	const events: string[] = [];
+	const handlers = new Map<string, (...args: never[]) => unknown>();
+	const flags = opts?.flags ?? {};
+	const statuses: Array<[string, string | undefined]> = [];
+	teamsExtension({
+		registerFlag() {},
+		registerTool(tool: Tool) {
+			tools.push(tool);
+		},
+		registerCommand(name: string, spec: { handler: Command["handler"] }) {
+			commands.push({ name, handler: spec.handler });
+		},
+		on(event: string, handler: (...args: never[]) => unknown) {
+			events.push(event);
+			handlers.set(event, handler);
+		},
+		getFlag(name: string) {
+			return flags[name];
+		},
+	} as unknown as ExtensionAPI);
+	return { tools, commands, events, statuses, handlers };
+}
+
+function sessionCtx(cwd = "/work") {
+	return {
+		cwd,
+		hasUI: false,
+		ui: {
+			setStatus() {},
+			notify() {},
+		},
+	};
+}
+
+function seedSpawnedTeammate(teamsDir: string) {
+	const created = createTeam({
+		teamsDir,
+		name: "demo",
+		leadName: "team-lead",
+		cwd: "/work",
+	});
+	writeTeam({
+		teamsDir,
+		team: {
+			...created,
+			members: [
+				...created.members,
+				{
+					kind: "teammate",
+					name: parseMemberName("researcher", { role: "teammate" }),
+					purpose: "look at AGENTS.md",
+					paneId: "%12",
+					status: "spawned",
+				},
+			],
+		},
+	});
+}
+
+function tool(tools: Tool[], name: string): Tool {
+	const found = tools.find((item) => item.name === name);
+	if (!found) throw new Error(`missing tool ${name}`);
+	return found;
+}
+
+test("factory registers /team and the team plus task tools", () => {
+	const { tools, commands, events } = loadExtension();
+	assert.deepEqual(tools.map((item) => item.name).sort(), [
+		"task_claim",
+		"task_complete",
+		"task_create",
+		"task_get",
+		"task_list",
+		"team_create",
+		"team_shutdown",
+		"team_spawn",
+		"team_status",
+	]);
+	assert.equal(commands[0]?.name, "team");
+	assert.ok(events.includes("session_start"));
+	assert.ok(events.includes("before_agent_start"));
+	assert.ok(events.includes("agent_settled"));
+	assert.ok(events.includes("session_shutdown"));
+	assert.match(
+		tool(tools, "task_claim").promptGuidelines?.join(" ") ?? "",
+		/task_claim/,
+	);
+});
+
+test("teams does not re-register coms identity flags", () => {
+	const coms = collectFlags(comsExtension);
+	const teams = collectFlags(teamsExtension);
+	assert.deepEqual(
+		teams.filter((name) => coms.includes(name)),
+		[],
+	);
+});
+
+test("team_status reads --project and --cname from argv", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-argv-"));
+	const prevDir = process.env.PI_TEAMS_DIR;
+	const prevArgv = process.argv;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	process.argv = [...prevArgv, "--project", "demo", "--cname", "alice"];
+	try {
+		const { tools } = loadExtension();
+		const status = await tool(tools, "team_status").execute(
+			"1",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal(
+			status.content[0]?.text,
+			"project demo, cname alice. no team file yet.",
+		);
+	} finally {
+		process.argv = prevArgv;
+		if (prevDir === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prevDir;
+	}
+});
+
+test("team_create then team_status persist a roster under PI_TEAMS_DIR", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const { tools } = loadExtension({ flags: { cname: "alice" } });
+		const created = await tool(tools, "team_create").execute(
+			"1",
+			{ name: "demo" },
+			undefined,
+			undefined,
+			{ cwd: "/work/demo" },
+		);
+		assert.match(created.content[0]?.text ?? "", /demo/);
+		const status = await tool(tools, "team_status").execute(
+			"2",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work/demo" },
+		);
+		const details = status.details as {
+			team: { name: string; leadName: string };
+		};
+		assert.equal(details.team.name, "demo");
+		assert.equal(details.team.leadName, "alice");
+		assert.equal(readTeam({ teamsDir, name: "demo" }).leadName, "alice");
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("team_spawn without TMUX returns a readable error and does not start a pane", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prevTeams = process.env.PI_TEAMS_DIR;
+	const prevTmux = process.env.TMUX;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	delete process.env.TMUX;
+	try {
+		const { tools } = loadExtension({
+			flags: { project: "demo", cname: "alice" },
+		});
+		await tool(tools, "team_create").execute(
+			"1",
+			{ name: "demo" },
+			undefined,
+			undefined,
+			{ cwd: "/work/demo" },
+		);
+		const spawned = await tool(tools, "team_spawn").execute(
+			"2",
+			{ name: "researcher", purpose: "look at AGENTS.md" },
+			undefined,
+			undefined,
+			{ cwd: "/work/demo" },
+		);
+		assert.match(spawned.content[0]?.text ?? "", /TMUX/);
+		assert.equal(readTeam({ teamsDir, name: "demo" }).members.length, 1);
+	} finally {
+		if (prevTeams === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prevTeams;
+		if (prevTmux === undefined) delete process.env.TMUX;
+		else process.env.TMUX = prevTmux;
+	}
+});
+
+test("task tools create, block, claim, complete, and refuse a second claim", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const { tools } = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		await tool(tools, "team_create").execute(
+			"1",
+			{ name: "demo" },
+			undefined,
+			undefined,
+			{ cwd: "/work/demo" },
+		);
+		await tool(tools, "task_create").execute(
+			"2",
+			{ subject: "read", description: "first" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		await tool(tools, "task_create").execute(
+			"3",
+			{ subject: "write", description: "second", blockedBy: ["1"] },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		const claimed = await tool(tools, "task_claim").execute(
+			"4",
+			{ id: "1" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal(
+			(claimed.details as { task: { owner: string } }).task.owner,
+			"researcher",
+		);
+		const second = await tool(tools, "task_claim").execute(
+			"5",
+			{ id: "1" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.match(second.content[0]?.text ?? "", /not pending/);
+		assert.equal(
+			(second.details as { error?: string }).error?.includes("not pending"),
+			true,
+		);
+		await tool(tools, "task_complete").execute(
+			"6",
+			{ id: "1" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		const next = await tool(tools, "task_claim").execute(
+			"7",
+			{ id: "2" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal((next.details as { task: { id: string } }).task.id, "2");
+		assert.equal(
+			getTask({ teamsDir, team: "demo", id: "1" }).status,
+			"completed",
+		);
+		assert.equal(listTasks({ teamsDir, team: "demo" }).length, 2);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("team_status binds --project without team_create in this process", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const lead = loadExtension({ flags: { cname: "team-lead" } });
+		await tool(lead.tools, "team_create").execute(
+			"1",
+			{ name: "demo" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		await tool(lead.tools, "task_create").execute(
+			"2",
+			{ subject: "read", description: "first" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		const teammate = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		const status = await tool(teammate.tools, "team_status").execute(
+			"3",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal(
+			(status.details as { team?: { name: string } }).team?.name,
+			"demo",
+		);
+		const claimed = await tool(teammate.tools, "task_claim").execute(
+			"4",
+			{ id: "1" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal((claimed.details as { error?: string }).error, undefined);
+		assert.equal(
+			(claimed.details as { task: { owner: string } }).task.owner,
+			"researcher",
+		);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("team_status with --project and no team file reports the flags", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const { tools } = loadExtension({
+			flags: { project: "demo", cname: "alice" },
+		});
+		const status = await tool(tools, "team_status").execute(
+			"1",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal(
+			status.content[0]?.text,
+			"project demo, cname alice. no team file yet.",
+		);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("team_status without flags stays leadless", async () => {
+	const { tools } = loadExtension();
+	const status = await tool(tools, "team_status").execute(
+		"1",
+		{},
+		undefined,
+		undefined,
+		{ cwd: "/work" },
+	);
+	assert.equal(status.content[0]?.text, "no team. /team create <name> first.");
+});
+
+test("coms default project without a team file reports the flags", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const { tools } = loadExtension({ flags: { project: "default" } });
+		const status = await tool(tools, "team_status").execute(
+			"1",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal(
+			status.content[0]?.text,
+			"project default, cname team-lead. no team file yet.",
+		);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("team_status follows live --project after factory load", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const lead = loadExtension({ flags: { cname: "team-lead" } });
+		await tool(lead.tools, "team_create").execute(
+			"1",
+			{ name: "default" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		await tool(lead.tools, "team_create").execute(
+			"2",
+			{ name: "demo" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		const flags: Record<string, string> = {
+			project: "default",
+			cname: "researcher",
+		};
+		const late = loadExtension({ flags });
+		flags.project = "demo";
+		const status = await tool(late.tools, "team_status").execute(
+			"3",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.equal(
+			(status.details as { team?: { name: string } }).team?.name,
+			"demo",
+		);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("agent_settled writes idle and team_status prints it", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		seedSpawnedTeammate(teamsDir);
+		const { tools, handlers } = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		await handlers.get("agent_settled")?.(
+			{ type: "agent_settled" } as never,
+			sessionCtx() as never,
+		);
+		const teammate = readTeam({ teamsDir, name: "demo" }).members.find(
+			(member) => member.kind === "teammate",
+		);
+		assert.equal(teammate?.status, "idle");
+		const status = await tool(tools, "team_status").execute(
+			"1",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.match(status.content[0]?.text ?? "", /researcher idle/);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("accepted inbound prompt writes working and team_status prints it", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		seedSpawnedTeammate(teamsDir);
+		const { tools, handlers } = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		await handlers.get("message_start")?.(
+			{
+				type: "message_start",
+				message: {
+					role: "custom",
+					customType: "coms-inbound",
+					content: "[from team-lead]\n\ndo the work",
+					display: true,
+				},
+			} as never,
+			sessionCtx() as never,
+		);
+		const teammate = readTeam({ teamsDir, name: "demo" }).members.find(
+			(member) => member.kind === "teammate",
+		);
+		assert.equal(teammate?.status, "working");
+		const status = await tool(tools, "team_status").execute(
+			"1",
+			{},
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		assert.match(status.content[0]?.text ?? "", /researcher working/);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("task_complete writes a log row and handoff for the completing instance", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		seedSpawnedTeammate(teamsDir);
+		const { tools } = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		await tool(tools, "task_create").execute(
+			"1",
+			{ subject: "read AGENTS.md", description: "summarize" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		await tool(tools, "task_complete").execute(
+			"2",
+			{ id: "1" },
+			undefined,
+			undefined,
+			{ cwd: "/work" },
+		);
+		const roster = join(teamsDir, "demo", "roster", "researcher");
+		assert.match(
+			readFileSync(join(roster, "log.tsv"), "utf8"),
+			/completed\t1\tread AGENTS.md/,
+		);
+		assert.match(
+			readFileSync(join(roster, "handoff.md"), "utf8"),
+			/read AGENTS.md/,
+		);
+		assert.equal(existsSync(join(roster, "notes")), false);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("session_start hydrates identity and handoff into before_agent_start without a live pane", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		seedSpawnedTeammate(teamsDir);
+		writeMemberRecord({
+			teamsDir,
+			team: "demo",
+			name: "researcher",
+			purpose: "look at AGENTS.md",
+			agent: "builder",
+		});
+		const roster = join(teamsDir, "demo", "roster", "researcher");
+		writeFileSync(
+			join(roster, "handoff.md"),
+			"# Handoff\n\nstill true from last task\n",
+		);
+		writeFileSync(
+			join(roster, "log.tsv"),
+			"ts\tkind\ttask\tsummary\n2026-08-26T00:00:00.000Z\tcompleted\t1\thidden log\n",
+		);
+		const { handlers } = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		await handlers.get("session_start")?.({} as never, sessionCtx() as never);
+		const result = await handlers.get("before_agent_start")?.({
+			systemPrompt: "base",
+		} as never);
+		const identity = readFileSync(join(roster, "identity.md"), "utf8").trim();
+		assert.deepEqual(result, {
+			systemPrompt: `base\n\n${identity}\n\n# Handoff\n\nstill true from last task`,
+		});
+		const prompt =
+			result &&
+			typeof result === "object" &&
+			"systemPrompt" in result &&
+			typeof result.systemPrompt === "string"
+				? result.systemPrompt
+				: "";
+		assert.match(prompt, /look at AGENTS.md/);
+		assert.match(prompt, /still true from last task/);
+		assert.doesNotMatch(prompt, /hidden log/);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});
+
+test("session_start hydrate is fine when identity is missing on first spawn", async () => {
+	const teamsDir = mkdtempSync(join(tmpdir(), "heio-teams-ext-"));
+	const prev = process.env.PI_TEAMS_DIR;
+	process.env.PI_TEAMS_DIR = teamsDir;
+	try {
+		const { handlers } = loadExtension({
+			flags: { project: "demo", cname: "researcher" },
+		});
+		await handlers.get("session_start")?.({} as never, sessionCtx() as never);
+		const result = await handlers.get("before_agent_start")?.({
+			systemPrompt: "base",
+		} as never);
+		assert.equal(result, undefined);
+	} finally {
+		if (prev === undefined) delete process.env.PI_TEAMS_DIR;
+		else process.env.PI_TEAMS_DIR = prev;
+	}
+});

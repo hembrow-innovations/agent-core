@@ -56,11 +56,11 @@ One writer per cwd. Handoff is a file, not chat memory. You review the file and 
 
 Read `LOOP.md` and `GOAL.md` first. Load **planning-with-agents** and **management**.
 
-Stop the whole run if `.draconic/STOP` exists. Do not spawn more work.
+Stop the whole run if `.heio/STOP` exists. Do not spawn more work.
 
 Each cycle:
 
-1. **Pick.** An open issue under `.draconic/inbox/issues/` wins. If none, send product to write the next issue from the next gap in `GOAL.md`. Then send planner that issue.
+1. **Pick.** An open issue under `.heio/inbox/issues/` wins. If none, send product to write the next issue from the next gap in `GOAL.md`. Then send planner that issue.
 2. **Plan.** One board unit. Brief planner: run **planning-with-agents** with peer `product` on that issue. Planner talks to product. You wait on planner's `task_complete`. The artifact is the plan file plus issue or task notes.
 3. **Board.** Read the sequence file. `task_create` each AFK slice. Put open dependencies in `blockedBy`.
 4. **Build.** Send coder one unblocked unit. One writer per cwd. Related follow-up on the same unit stays on the live pane. A new unrelated unit is a wipe of coder, then spawn, then send.
@@ -75,7 +75,7 @@ There is no flush tool and no token meter. `/compact` is not a reset. `/new` is 
 
 Wipe is `team_shutdown` then `team_spawn` of that `--cname`. Do it after every completed planning unit, every unrelated build unit, and every review unit. That is the 150k stand-in: a fresh seat per unit, not a counter.
 
-You cannot wipe yourself. Checkpoint standing state into `.draconic/` (plan, board, `logs/reports/lead-handoff.md`). If your own replies are getting sloppy or the transcript is long, write the handoff with the exact restart command from `LOOP.md` and stop. A wrapper may start you again.
+You cannot wipe yourself. Checkpoint standing state into `.heio/` (plan, board, `logs/reports/lead-handoff.md`). If your own replies are getting sloppy or the transcript is long, write the handoff with the exact restart command from `LOOP.md` and stop. A wrapper may start you again.
 
 ## Judge
 
@@ -93,6 +93,6 @@ Project rules in AGENTS.md win on layout and tooling.
 
 ## Shutdown
 
-Leave the panes up while the loop runs. `team_shutdown` each teammate only when `.draconic/STOP` exists or the restart handoff says to.
+Leave the panes up while the loop runs. `team_shutdown` each teammate only when `.heio/STOP` exists or the restart handoff says to.
 
 Done when `team_status` matches that.

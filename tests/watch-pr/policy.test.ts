@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { WatcherQueryError } from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/github.ts";
+import { WatcherQueryError } from "../../ai/skills/workflow/heio-mode/scripts/watch-pr/github.ts";
 import {
   applyQueueSnapshot,
   assessGitHubMerge,
@@ -11,7 +11,7 @@ import {
   readSnapshot,
   runQueued,
   selectTierMajorStackDecision,
-} from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/policy.ts";
+} from "../../ai/skills/workflow/heio-mode/scripts/watch-pr/policy.ts";
 import {
   fakeReader,
   failedCheck,
@@ -26,8 +26,8 @@ import type {
   ProgressVerdict,
   PullRequestFacts,
   RollupState,
-} from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
-import { parsePrNumber } from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
+} from "../../ai/skills/workflow/heio-mode/scripts/watch-pr/types.ts";
+import { parsePrNumber } from "../../ai/skills/workflow/heio-mode/scripts/watch-pr/types.ts";
 
 const context = (number: number): PrContext => ({
   owner: "owner",
@@ -63,7 +63,7 @@ describe("readiness truth table", () => {
     ];
     for (const [mergeStateStatus, headRollupState, expected] of cases) {
       expect(
-        assessGitHubMerge({ mergeStateStatus, headRollupState }).kind
+        assessGitHubMerge({ mergeStateStatus, headRollupState }).kind,
       ).toBe(expected);
     }
   });
@@ -145,13 +145,13 @@ describe("snapshot query planning", () => {
           pendingHistory: "include",
           allowDraft: false,
         })
-      ).kind
+      ).kind,
     ).toBe("merged");
     expect(reader.calls).toEqual(["pullRequest"]);
   });
 });
 
-it("scans stacks tier-major so an udraconic conflict outranks frontier CI", async () => {
+it("scans stacks tier-major so an upstack conflict outranks frontier CI", async () => {
   const frontier = await readSnapshot({
     reader: fakeReader({
       fastPath: { kind: "checks", checks: [failedCheck()] },
@@ -161,13 +161,13 @@ it("scans stacks tier-major so an udraconic conflict outranks frontier CI", asyn
     pendingHistory: "omit",
     allowDraft: false,
   });
-  const udraconic = await readSnapshot({
+  const upstack = await readSnapshot({
     reader: fakeReader({ facts: { mergeable: "CONFLICTING" } }),
     context: context(11),
     pendingHistory: "omit",
     allowDraft: false,
   });
-  const decision = selectTierMajorStackDecision([frontier, udraconic]);
+  const decision = selectTierMajorStackDecision([frontier, upstack]);
   expect(decision).toMatchObject({
     kind: "blocker",
     blocker: { kind: "merge-conflicts", pr: { number: 11 } },
@@ -181,19 +181,19 @@ it("attributes a stack wait to the PR whose checks are pending, not the bottom",
     pendingHistory: "omit",
     allowDraft: false,
   });
-  const pendingUdraconic = await readSnapshot({
+  const pendingUpstack = await readSnapshot({
     reader: fakeReader({
-      fastPath: { kind: "checks", checks: [pendingCheck("udraconic-build")] },
+      fastPath: { kind: "checks", checks: [pendingCheck("upstack-build")] },
     }),
     context: context(21),
     pendingHistory: "omit",
     allowDraft: false,
   });
-  const decision = selectTierMajorStackDecision([readyBottom, pendingUdraconic]);
+  const decision = selectTierMajorStackDecision([readyBottom, pendingUpstack]);
   expect(decision).toMatchObject({
     kind: "waiting",
     frontier: { number: 21 },
-    pending: [{ name: "udraconic-build" }],
+    pending: [{ name: "upstack-build" }],
   });
 });
 
@@ -318,7 +318,7 @@ describe("queued-stack cadence", () => {
       state,
       await openSnapshot(queue[0]),
       0,
-      options
+      options,
     );
     expect(first.completedSweepRows).toBeNull();
     state = first.state;
@@ -326,10 +326,10 @@ describe("queued-stack cadence", () => {
       state,
       await openSnapshot(queue[1]),
       5,
-      options
+      options,
     );
     expect(
-      second.completedSweepRows?.map((row) => Number(row.context.number))
+      second.completedSweepRows?.map((row) => Number(row.context.number)),
     ).toEqual([30, 31]);
     expect(second.state.nextSweepAt).toBe(305);
   });
@@ -399,7 +399,7 @@ describe("queued-stack cadence", () => {
       state,
       await openSnapshot(queue[0]),
       0,
-      options
+      options,
     ).state;
     const first = evaluateQueue(state, 0, options);
     expect(first.kind).toBe("waiting");

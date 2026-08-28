@@ -2,7 +2,7 @@
 id: "adr-8"
 title: "ADR-0008: checklist store lives in the todo package"
 kind: adr
-description: "Session checklist persistence belongs to @agentic-core/draconic-todo. There is no packages/lib."
+description: "Session checklist persistence belongs to @agentic-core/heio-todo. There is no packages/lib."
 status: accepted
 domain: packages
 area: decisions
@@ -15,11 +15,11 @@ updated_at: "2026-08-26"
 
 ## Context
 
-`packages/lib` existed so the installer could copy shared helpers into each dest vendor package. The only consumer was `@agentic-core/draconic-todo`. Dest still needed a self-contained vendor copy with no live path back to this checkout.
+`packages/lib` existed so the installer could copy shared helpers into each dest vendor package. The only consumer was `@agentic-core/heio-todo`. Dest still needed a self-contained vendor copy with no live path back to this checkout.
 
 ## Decision
 
-Session checklist persistence lives in `packages/draconic-todo`. The installer copies that package as it is. There is no `packages/lib`. Dest still has no sibling lib package.
+Session checklist persistence lives in `packages/heio-todo`. The installer copies that package as it is. There is no `packages/lib`. Dest still has no sibling lib package.
 
 ## Alternatives considered
 
@@ -37,5 +37,5 @@ Todo tests sit next to the store. Dest vendor `src/` matches the source package.
 - [[0002-standalone-vendor-install]]
 - [[glossary]]
 - [[architecture-pack-and-packages]]
-- [[architecture-draconic-todo]]
+- [[architecture-heio-todo]]
 - [[spec-installer]]

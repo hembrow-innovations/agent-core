@@ -7,7 +7,7 @@ description: How to find, read, and write committed project documentation under 
 
 `docs/` is an Obsidian vault and the committed store for project knowledge that should survive a clone. Architecture, decisions, specs, APIs, standards, and guides live here.
 
-Day-to-day work does not. Issues, plans, tasks, the journal, and working reports live under `.draconic/`. Load the **management** skill for that tree.
+Day-to-day work does not. Issues, plans, tasks, the journal, and working reports live under `.heio/`. Load the **management** skill for that tree.
 
 When you need lasting context, look here first. When you produce durable knowledge, write it here.
 
@@ -30,7 +30,7 @@ Full steps: `rules/write-before.md`.
 - Adding or updating an ADR, RFC, spec, architecture note, API, standard, style, or guide
 - Moving or renaming notes
 - Choosing vault path, frontmatter, or wikilink style
-- Deciding whether a note belongs in `docs/` or `.draconic/`
+- Deciding whether a note belongs in `docs/` or `.heio/`
 
 ## Prefer / careful / do not
 
@@ -89,7 +89,7 @@ Full steps: `rules/write-before.md`.
 
 ### 6. Management boundary (HIGH)
 
-- `mgmt-boundary` `docs/` is truth. `.draconic/` is day-to-day
+- `mgmt-boundary` `docs/` is truth. `.heio/` is day-to-day
 
 ## How to use
 

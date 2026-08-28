@@ -27,7 +27,7 @@ docs/
 
 Create a folder when the first file needs it.
 
-There is no `planning/`, no `log/`, and no `reference/` under `docs/`. Planning and logs belong to `.draconic/`.
+There is no `planning/`, no `log/`, and no `reference/` under `docs/`. Planning and logs belong to `.heio/`.
 
 ## Kind vs domain
 

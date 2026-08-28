@@ -6,10 +6,10 @@ tags: [layout]
 
 # Folder layout and naming
 
-`.draconic/` sits at the project root. Gitignore the whole directory. Add `.draconic/` to `.gitignore` if it is missing.
+`.heio/` sits at the project root. Gitignore the whole directory. Add `.heio/` to `.gitignore` if it is missing.
 
 ```text
-.draconic/
+.heio/
 ├─ inbox/
 │  └─ issues/
 ├─ closed/

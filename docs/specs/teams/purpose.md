@@ -18,7 +18,7 @@ updated_at: "2026-08-26"
 Let a human watch named Pi sessions work in tmux panes, talk to them, and share a claimable task list.
 
 ```ts
-// packages/draconic-teams/src/index.ts — team_spawn
+// packages/heio-teams/src/index.ts — team_spawn
 description:
  "Reconcile a named teammate pane. A live matching pane is adopted. Requires tmux.",
 ```
@@ -47,7 +47,7 @@ description:
 ## Authority
 
 - Behaviour: [[spec-tmux-agent-teams]]
-- Mailbox: [[architecture-draconic-coms]]
+- Mailbox: [[architecture-heio-coms]]
 - Pack layout: [[architecture-pack-and-packages]]
 
 ## Open product questions

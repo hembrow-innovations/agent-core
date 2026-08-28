@@ -5,7 +5,7 @@ argument-hint: "<issue-id>"
 
 # Verify issue
 
-Forensic audit of exactly one tracker note under `.draconic/`. Goal: surface what is true, false, incomplete, or unproven, so a suspicious issue cannot survive on vibes. Evidence only. No edits unless the user explicitly asks to append the report.
+Forensic audit of exactly one tracker note under `.heio/`. Goal: surface what is true, false, incomplete, or unproven, so a suspicious issue cannot survive on vibes. Evidence only. No edits unless the user explicitly asks to append the report.
 
 Load **management** if layout is unclear. Load **docs** for committed truth. Do not load **triage** to change state. This prompt never flips status or tags.
 
@@ -31,7 +31,7 @@ If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, `docs/pla
 - Issue id (`657`, `issue-657`), slug fragment, path, or `[[wikilink]]`
 - Empty → ask once for the target. Do not pick an issue yourself
 
-Resolve the file under `.draconic/inbox/issues/` and `.draconic/closed/`. Prefer exact id. Fall back to content search.
+Resolve the file under `.heio/inbox/issues/` and `.heio/closed/`. Prefer exact id. Fall back to content search.
 
 If zero or many matches, stop and ask. Include `closed/` in the search. A "suspicious" issue may already be closed or wontfix.
 
@@ -80,7 +80,7 @@ How to gather evidence (pick what fits; skip irrelevant):
 - **Contracts / purpose:** discover under `docs/` via **docs**. Name promise ids if they exist.
 - **ADRs / glossary:** discover under `docs/`. Flag term or decision collisions.
 - **Out-of-scope / prior rejection:** search `docs/` for rejection notes (see **triage** `OUT-OF-SCOPE.md`).
-- **Duplicates / prior art:** search `.draconic/inbox/issues/` and `closed/` for the same concept.
+- **Duplicates / prior art:** search `.heio/inbox/issues/` and `closed/` for the same concept.
 - **Bug repro:** if steps exist, trace code and run the cheapest honest check (unit test, targeted command, or read-only query). If environment blocks repro, result is **UNKNOWN** with blocker named. Never "probably true".
 - **Already implemented:** if behaviour already ships, mark claim **REFUTED** (as a gap) and record where it lives.
 
@@ -129,7 +129,7 @@ Emit exactly this structure. Keep prose tight. No preamble.
 ```markdown
 # Issue verification. <id>. <title>
 
-**Target:** `.draconic/inbox/issues/...` or `.draconic/closed/...`
+**Target:** `.heio/inbox/issues/...` or `.heio/closed/...`
 **Status/tags:** …
 **Verdict:** SOLID | WEAK | SUSPECT | FALSE | UNKNOWN
 <!-- SOLID = claims hold, shape is executable

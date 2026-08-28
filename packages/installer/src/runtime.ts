@@ -16,13 +16,18 @@ export function installPiRuntime(
 
 export function writeRuntime(srcRoot: string, dest: Destination): void {
   const pack = join(packRoot(srcRoot), "pi");
-  const required = ["APPEND_SYSTEM.md", "draconic-models.md"];
+  const required = ["APPEND_SYSTEM.md", "heio-models.md"];
   for (const name of required) {
     if (!existsSync(join(pack, name))) {
       throw new Error(`Pi pack missing: expected ai/pi/${name}`);
     }
   }
 
+  const previousModels = ".pi/draconic-models.md";
+  const models = ".pi/heio-models.md";
+  if (dest.exists(previousModels) && !dest.exists(models)) {
+    dest.writeText(models, dest.readText(previousModels));
+  }
   dest.removeLeftovers();
 
   writeAppendSystem(
@@ -31,11 +36,9 @@ export function writeRuntime(srcRoot: string, dest: Destination): void {
     readFileSync(join(pack, "APPEND_SYSTEM.md"), "utf8"),
     srcRoot,
   );
-  dest.writeText(
-    ".pi/draconic-models.md",
-    readFileSync(join(pack, "draconic-models.md"), "utf8"),
-    { ifMissing: true },
-  );
+  dest.writeText(models, readFileSync(join(pack, "heio-models.md"), "utf8"), {
+    ifMissing: true,
+  });
   dest.ensureGitignore();
 }
 

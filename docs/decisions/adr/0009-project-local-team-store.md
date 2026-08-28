@@ -1,8 +1,8 @@
 ---
 id: "adr-9"
-title: "ADR-0009: team runtime lives in project .draconic"
+title: "ADR-0009: team runtime lives in project .heio"
 kind: adr
-description: "Team roster, member records, and the task board live under the project .draconic/teams tree."
+description: "Team roster, member records, and the task board live under the project .heio/teams tree."
 status: accepted
 domain: pack
 area: teams
@@ -11,7 +11,7 @@ created_at: "2026-08-26"
 updated_at: "2026-08-26"
 ---
 
-# ADR-0009: team runtime lives in project .draconic
+# ADR-0009: team runtime lives in project .heio
 
 ## Context
 
@@ -19,7 +19,7 @@ Teams stored runtime under `$PI_TEAMS_DIR` or `~/.pi/teams`. That is user-global
 
 ## Decision
 
-Default team runtime is `<cwd>/.draconic/teams/<team>/`. `PI_TEAMS_DIR` still overrides. Old `~/.pi/teams` files are not migrated.
+Default team runtime is `<cwd>/.heio/teams/<team>/`. `PI_TEAMS_DIR` still overrides. Old `~/.pi/teams` files are not migrated.
 
 A teammate is an instance of an agent definition. `--cname` is the unique instance name. Optional spawn `agent` is the dest `.pi/agents/` file. `builder-1` and `builder-2` may share `builder`.
 
@@ -29,7 +29,7 @@ Working context is the JSONL. The lead drops it by shutdown then spawn of the sa
 
 ## Alternatives considered
 
-Keep `~/.pi/teams` and only add logs under `.draconic`. Identity would still be global and easy to attach to the wrong checkout.
+Keep `~/.pi/teams` and only add logs under `.heio`. Identity would still be global and easy to attach to the wrong checkout.
 
 Give the model a flush tool or auto-wipe on `task_complete`. Both fire at the wrong time. Event handlers cannot `navigateTree`.
 
@@ -37,9 +37,9 @@ Treat `/new` or `/compact` as a task reset. `/new` drops the file and can rename
 
 ## Consequences
 
-Team files are gitignored with the rest of `.draconic/`. A clone does not see them. Management `layout-folder` must name `teams/` as reserved.
+Team files are gitignored with the rest of `.heio/`. A clone does not see them. Management `layout-folder` must name `teams/` as reserved.
 
-Spawn, adopt, and shutdown stay in `packages/draconic-teams`. Spec: [[spec-tmux-agent-teams]].
+Spawn, adopt, and shutdown stay in `packages/heio-teams`. Spec: [[spec-tmux-agent-teams]].
 
 ## Relationships
 

@@ -4,8 +4,8 @@ Parent and **round-orchestrator** only. Do not inject this file into panelists.
 
 ## Paths
 
-Session: `.draconic/planning/arena/<arena-name>/`
-Round: `.draconic/planning/arena/<arena-name>/rounds/round-<N>/`
+Session: `.heio/planning/arena/<arena-name>/`
+Round: `.heio/planning/arena/<arena-name>/rounds/round-<N>/`
 
 - Questions: `round-<N>-questions.md`
 - Answer: `round-<N>-questions-<panel_member_name>.md`

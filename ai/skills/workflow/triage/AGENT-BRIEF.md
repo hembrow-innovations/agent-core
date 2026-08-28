@@ -2,7 +2,7 @@
 
 An agent brief is a structured `## Agent Brief` section appended to the issue note when it moves to `ready-for-agent`. It is the authoritative specification that an AFK agent will work from. The original issue body and discussion are context. The agent brief is the contract.
 
-Issues live under `.draconic/` via **management**. Do not write briefs into `docs/`.
+Issues live under `.heio/` via **management**. Do not write briefs into `docs/`.
 
 ## Principles
 

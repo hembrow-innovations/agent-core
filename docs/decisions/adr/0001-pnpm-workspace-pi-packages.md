@@ -22,12 +22,12 @@ This repo is the only place first-party TypeScript is developed. Dest projects m
 TypeScript that we develop and install becomes workspace packages. Skills and playbooks stay markdown files. The workspace packages are:
 
 - `packages/lib`
-- `packages/draconic-todo`
-- `packages/draconic-coms`
-- `packages/draconic-boot`
+- `packages/heio-todo`
+- `packages/heio-coms`
+- `packages/heio-boot`
 - `packages/installer`
 
-Package names are scoped. Folders stay unscoped. The name for todo is `@agentic-core/draconic-todo`. Protocol code lives inside the coms package. `draconic-coms-protocol` is not a product extension. Lib stays a source package for imports and tests. There are no skill packages. There is no meta package that installs every extension as one unit. There is no npm publish.
+Package names are scoped. Folders stay unscoped. The name for todo is `@agentic-core/heio-todo`. Protocol code lives inside the coms package. `heio-coms-protocol` is not a product extension. Lib stays a source package for imports and tests. There are no skill packages. There is no meta package that installs every extension as one unit. There is no npm publish.
 
 ## Alternatives considered
 

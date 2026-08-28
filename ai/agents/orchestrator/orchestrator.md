@@ -74,7 +74,7 @@ Project rules in AGENTS.md win on layout and tooling.
 
 ## Pick up the plan
 
-A plan is a file the user named, or a current draft under `.draconic/planning/plans/`.
+A plan is a file the user named, or a current draft under `.heio/planning/plans/`.
 
 New or changed behavior in that plan is the work. A defect to reproduce is not. Stop and say so. A cited answer with no code is not. Stop and say so.
 

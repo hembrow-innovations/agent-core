@@ -128,7 +128,7 @@ class RpcSession {
     this.name = opts.name;
     this.purpose = opts.purpose;
     this.cwd = opts.cwd;
-    this.agent = opts.agent || "draconic";
+    this.agent = opts.agent || "heio";
     this.lines = [];
     this.waiters = [];
     this.pending = new Map();
@@ -450,13 +450,13 @@ Do not edit .pi/, run/, or .coms/.
     name: "joiner",
     purpose: "Writes the pantry CLI",
     cwd: PLAY,
-    agent: "draconic",
+    agent: "heio",
   });
   const inspector = new RpcSession({
     name: "inspector",
     purpose: "Reviews the pantry CLI",
     cwd: PLAY,
-    agent: "draconic",
+    agent: "heio",
   });
   const mason = new RpcSession({
     name: "mason",
@@ -551,14 +551,7 @@ Do not edit .pi/, run/, or .coms/.
 async function main() {
   if (
     !existsSync(
-      join(
-        PLAY,
-        ".pi",
-        "npm",
-        "node_modules",
-        "@agentic-core",
-        "draconic-coms",
-      ),
+      join(PLAY, ".pi", "npm", "node_modules", "@agentic-core", "heio-coms"),
     )
   ) {
     throw new Error(

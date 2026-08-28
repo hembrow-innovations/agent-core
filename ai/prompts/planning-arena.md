@@ -7,6 +7,6 @@ argument-hint: "[idea]"
 
 Load **planning-arena**. The argument is the idea.
 
-Run the planning frontier. Each round is a panel: the panel answers, a judge selects. Record every round under `.draconic/planning/arena/`.
+Run the planning frontier. Each round is a panel: the panel answers, a judge selects. Record every round under `.heio/planning/arena/`.
 
 $ARGUMENTS

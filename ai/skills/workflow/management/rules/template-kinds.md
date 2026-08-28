@@ -9,13 +9,13 @@ tags: [template]
 Copy the template. Do not invent a new skeleton.
 
 | Kind | Template | Destination | Filename |
-|---|---|---|---|
-| inbox dump | none | `.draconic/inbox/` | `{slug}.md` or `{YYYY-MM-DD}-{slug}.md` |
-| issue | `templates/issue.md` | `.draconic/inbox/issues/` | `issue-<N>-<slug>.md` |
-| plan | `templates/plan.md` | `.draconic/planning/plans/` | `plan-<N>-<slug>.md` |
-| task | `templates/task.md` | `.draconic/planning/tasks/` | `task-<N>-<slug>.md` |
-| journal | `templates/journal_day.md` | `.draconic/logs/journal/{YYYY}/{MM}/` | `YYYY-MM-DD.md` |
-| report | `templates/report.md` | `.draconic/logs/reports/` | `YYYY-MM-DD-report-<slug>.md` |
+| --- | --- | --- | --- |
+| inbox dump | none | `.heio/inbox/` | `{slug}.md` or `{YYYY-MM-DD}-{slug}.md` |
+| issue | `templates/issue.md` | `.heio/inbox/issues/` | `issue-<N>-<slug>.md` |
+| plan | `templates/plan.md` | `.heio/planning/plans/` | `plan-<N>-<slug>.md` |
+| task | `templates/task.md` | `.heio/planning/tasks/` | `task-<N>-<slug>.md` |
+| journal | `templates/journal_day.md` | `.heio/logs/journal/{YYYY}/{MM}/` | `YYYY-MM-DD.md` |
+| report | `templates/report.md` | `.heio/logs/reports/` | `YYYY-MM-DD-report-<slug>.md` |
 
 Shared fields: `templates/required-fields.md`.
 

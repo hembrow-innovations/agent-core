@@ -1,12 +1,12 @@
 ---
-title: docs is truth, .draconic is local
+title: docs is truth, .heio is local
 impact: HIGH
 tags: [docs]
 ---
 
-# docs is truth, .draconic is local
+# docs is truth, .heio is local
 
-`.draconic/` is working memory on this machine. Git ignores it. A clone does not see it.
+`.heio/` is working memory on this machine. Git ignores it. A clone does not see it.
 
 `docs/` is the committed source of truth. ADRs, specs, architecture notes, and guides that the next person needs live there. Load the **docs** skill before you write under `docs/`.
 
@@ -16,4 +16,4 @@ Write in `docs/` when the note should survive a clone, a new machine, or a futur
 
 Do not keep two living copies. Promote a finished plan by writing the durable outcome as an ADR, spec, architecture note, or guide. Then close the working file. Do not copy a plan into `docs/` as a plan.
 
-This skill stops at the `.draconic/` tree.
+This skill stops at the `.heio/` tree.

@@ -19,6 +19,7 @@ Look recursively for `.pi/skills/**/*-mode/SKILL.md` and `~/.pi/skills/*-mode/SK
 - Start fresh (rare; ask why before doing it)
 
 Update mode changes the rest of the flow:
+
 - Step 1 mines only history since the skill was last edited (`git log -1 --format=%cI <path>`).
 - Step 2 asks what's changed or missing, not what to capture from zero.
 - Step 4 edits the existing file in place. Preserve sections the user hasn't contradicted; revise ones with new evidence; add new sections only for genuinely new rules.
@@ -59,7 +60,7 @@ Group the combined signals into sections. Common ones (use only what applies):
 - **Process**: git worktrees, commits, PRs, review/merge tooling.
 - **Skills**: skill-authoring habits, fix-the-skill-first, proposing new skills.
 
-The **draconic-mode** skill shows the shape. Read it for granularity. Don't copy its content; the user's rules are not the same as draconic-mode's.
+The **heio-mode** skill shows the shape. Read it for granularity. Don't copy its content; the user's rules are not the same as heio-mode's.
 
 ### 4. Draft the skill
 
@@ -103,7 +104,7 @@ Run a description-optimization loop only if the skill's trigger accuracy turns o
 
 ## Reference files
 
-- The **draconic-mode** skill: example of the output shape.
+- The **heio-mode** skill: example of the output shape.
 - The **unslop** skill: prose discipline for every line.
 - Cursor's built-in `create-skill` skill: skill authoring process and writing guidelines.
 

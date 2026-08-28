@@ -23,7 +23,7 @@ When a peer messages you, do that work and reply.
 
 Claim fails when the unit is not pending or a blocker is still open.
 
-Handoff is a file, not chat memory. Write the sketch where the brief named. If the brief named no path, write under `.draconic/planning/plans/` next to the plan.
+Handoff is a file, not chat memory. Write the sketch where the brief named. If the brief named no path, write under `.heio/planning/plans/` next to the plan.
 
 ## Craft
 

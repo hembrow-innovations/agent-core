@@ -6,12 +6,12 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const tests = spawnSync(
   "pnpm",
-  ["--filter", "@agentic-core/draconic-coms", "test"],
+  ["--filter", "@agentic-core/heio-coms", "test"],
   { cwd: ROOT, stdio: "inherit" },
 );
 if (tests.status !== 0) process.exit(tests.status ?? 1);
 
-const ext = join(ROOT, "packages", "draconic-coms", "src", "index.ts");
+const ext = join(ROOT, "packages", "heio-coms", "src", "index.ts");
 process.stdout.write(`
 Named tmux panes on top of this transport live in scripts/try-teams.mjs.
 

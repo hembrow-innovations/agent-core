@@ -27,7 +27,7 @@ Done when this session is inside tmux and the system prompt names the bound proj
 
 If `team_status` lists this team, skip create. If it says `no team file yet` for the bound project, `team_create` with that bound name. `no team. /team create` with no project means the flags never reached this process. One team per lead session.
 
-Store is `<cwd>/.draconic/teams/<team>/`. `PI_TEAMS_DIR` still overrides.
+Store is `<cwd>/.heio/teams/<team>/`. `PI_TEAMS_DIR` still overrides.
 
 `team_spawn` each teammate. Purpose is what they are for. `--cname` is the instance. Optional spawn `agent` is the dest `.pi/agents/` file, distinct from `--cname`. Prefer agent names that match dest `.pi/agents/` files.
 

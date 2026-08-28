@@ -17,7 +17,7 @@ Superseded by [[0007-agent-attach-is-opt-in]]. Cold start attaches nothing.
 
 ## Context
 
-An earlier note wanted a cold start with no persona. Trusted-folder `APPEND_SYSTEM.md` made every session draconic. The competing switcher drafts then split. Compiled toggle. Presets. An open-agents fork.
+An earlier note wanted a cold start with no persona. Trusted-folder `APPEND_SYSTEM.md` made every session heio. The competing switcher drafts then split. Compiled toggle. Presets. An open-agents fork.
 
 The destination still needs an identity on the first turn. An empty coding-assistant prompt plus a 21 KB ritual is the bug we are leaving. A remembered last switch would make two `pi` processes in the same folder disagree after a restart.
 

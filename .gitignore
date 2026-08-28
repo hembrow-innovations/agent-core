@@ -1,10 +1,10 @@
 .DS_Store
 .opencode/
 .pi/
-.draconic/worktrees/
-.draconic/sessions/
-.draconic/TODO.md
-.draconic/decisions.tsv
-.draconic/
+.heio/worktrees/
+.heio/sessions/
+.heio/TODO.md
+.heio/decisions.tsv
+.heio/
 playground/
 node_modules/

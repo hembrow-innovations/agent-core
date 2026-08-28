@@ -23,20 +23,20 @@ Load **pi-subagents** before any spawn. **round-orchestrator** may spawn; it is 
 
 ## Store
 
-Load **management** before any write under `.draconic/`. Load **docs** only when a settled outcome should survive a clone. Load **domain-modeling** when a term or ADR belongs in the vault.
+Load **management** before any write under `.heio/`. Load **docs** only when a settled outcome should survive a clone. Load **domain-modeling** when a term or ADR belongs in the vault.
 
 If `AGENTS.md` or `WORKSPACE.md` already names a tracker, that file wins. Do not start a second tree.
 
-Session: `.draconic/planning/arena/<arena-name>/`
-Rounds: `.draconic/planning/arena/<arena-name>/rounds/round-<N>/`
+Session: `.heio/planning/arena/<arena-name>/`
+Rounds: `.heio/planning/arena/<arena-name>/rounds/round-<N>/`
 
 `<arena-name>` is a kebab-case slug. A name the user gives wins.
 
 ## Workflow
 
 1. If the idea is empty, ask once.
-2. Search `.draconic/planning/arena/` and `closed/` for an existing session on this topic. Update that session if you find one.
-3. Otherwise pick `.draconic/planning/arena/<arena-name>/` as the session.
+2. Search `.heio/planning/arena/` and `closed/` for an existing session on this topic. Update that session if you find one.
+3. Otherwise pick `.heio/planning/arena/<arena-name>/` as the session.
 4. Ask the whole **frontier** the way **planning** does. Create `rounds/round-<N>/`. Spawn one **round-orchestrator** for the round. Wait for it to return before the next frontier.
 5. After the round returns, append the next frontier. Repeat until the frontier is empty.
 6. Stop. Wait for the user to confirm a shared understanding.
@@ -67,8 +67,8 @@ Promote first. Then close.
 
 Load **docs**. Write the durable outcome as an ADR, spec, architecture note, or guide. Do not copy this session into `docs/` as a plan.
 
-If work should be executed next, stay on **management**. Copy the plan template to `.draconic/planning/plans/plan-<N>-<slug>.md` from the selected answers. Status `ready`. Split tasks. Follow lifecycle-flow.
+If work should be executed next, stay on **management**. Copy the plan template to `.heio/planning/plans/plan-<N>-<slug>.md` from the selected answers. Status `ready`. Split tasks. Follow lifecycle-flow.
 
-If this was decide-only, move the session to `.draconic/closed/<arena-name>/`.
+If this was decide-only, move the session to `.heio/closed/<arena-name>/`.
 
 If the tree will not fit in one session, stop and load **wayfinder**.

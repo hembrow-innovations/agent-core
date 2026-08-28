@@ -27,7 +27,7 @@ Allowed keys are `skills`, `agents`, `prompts`, `packages`, and `settings`. All 
 
 - **prompts.** Same three shapes as agents. `all` selects every `ai/prompts/*.md` except `README.md`. Overlay writes `.pi/prompts/<id>.md`. Extra dest prompt markdown stays.
 
-- **packages.** String list of Pi package sources. Missing or `null` becomes `[]`. A present non-list is an error. Each item is `npm:<name>` or `local:@agentic-core/<name>`. Local names must be `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, or `draconic-footer`. A bare first-party name is an error. Use the `local:` source. `vendor:` and `vendor/` sources fail at load. `npm:` with nothing after the prefix is `Invalid package source`. Install copies those trees to `.pi/npm/node_modules/@agentic-core/<name>` and merges dest-relative `npm/node_modules/@agentic-core/<name>` into `.pi/settings.json` `packages` in list order. Settings do not list `npm:@agentic-core/<name>`. `--extension` appends a local source. Profile order wins, then CLI, duplicates dropped.
+- **packages.** String list of Pi package sources. Missing or `null` becomes `[]`. A present non-list is an error. Each item is `npm:<name>` or `local:@agentic-core/<name>`. Local names must be `heio-todo`, `heio-coms`, `heio-boot`, `heio-teams`, or `heio-footer`. A bare first-party name is an error. Use the `local:` source. `vendor:` and `vendor/` sources fail at load. `npm:` with nothing after the prefix is `Invalid package source`. Install copies those trees to `.pi/npm/node_modules/@agentic-core/<name>` and merges dest-relative `npm/node_modules/@agentic-core/<name>` into `.pi/settings.json` `packages` in list order. Settings do not list `npm:@agentic-core/<name>`. `--extension` appends a local source. Profile order wins, then CLI, duplicates dropped.
 
 - **settings.** Untyped map merged into dest `.pi/settings.json`. Missing or `null` is omit. A present non-map is `"settings" must be a map`. There is no key allowlist. Unknown keys are not rejected. `settings.packages` is not a load error. `packages:` stays a sibling and keeps the package-source union. Install merges `packages:` first, then deep-merges `settings:`. Dest keys the profile does not name stay. Objects merge recursively. Profile wins scalar leaf conflicts and type mismatches. Arrays merge as sets. Dest order stays. Profile items append when not already present. Duplicates drop. Scalar equality is value equality. Nested array values compare with `JSON.stringify`.
 
@@ -83,7 +83,7 @@ agents: all
 prompts: all
 packages:
   - npm:pi-lens
-  - local:@agentic-core/draconic-todo
+  - local:@agentic-core/heio-todo
 settings:
   toolDescriptionMode: compact
   defaultTools:

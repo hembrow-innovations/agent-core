@@ -6,11 +6,11 @@ packages:
   - npm:pi-web-access
   - npm:pi-subagents
   - npm:@ff-labs/pi-fff
-  - local:@agentic-core/draconic-todo
-  - local:@agentic-core/draconic-coms
-  - local:@agentic-core/draconic-boot
-  - local:@agentic-core/draconic-teams
-  - local:@agentic-core/draconic-footer
+  - local:@agentic-core/heio-todo
+  - local:@agentic-core/heio-coms
+  - local:@agentic-core/heio-boot
+  - local:@agentic-core/heio-teams
+  - local:@agentic-core/heio-footer
 settings:
   toolDescriptionMode: compact
   defaultTools:
@@ -35,7 +35,7 @@ skills:
   - planning-with-agents
   - planning-arena
   - research
-  - setup-draconic
+  - setup-heio
   - tdd
   - thermo-review
   - to-issues

@@ -3,7 +3,7 @@
 - No Skill tool. Read the file.
 - No Task tool. Use `subagent` for fan-out. If that tool is missing, do the work in this session and review your own diff.
 - No MCP. Use git, gh, and project CLIs.
-- Decision log lives at `.draconic/decisions.tsv`.
+- Decision log lives at `.heio/decisions.tsv`.
 - Project rules in AGENTS.md win on layout and tooling.
 
 ## Search

@@ -4,21 +4,21 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { bindPeer } from "../packages/draconic-coms/src/protocol.ts";
-import { sendComsPrompt } from "../packages/draconic-teams/src/coms-send.ts";
+import { bindPeer } from "../packages/heio-coms/src/protocol.ts";
+import { sendComsPrompt } from "../packages/heio-teams/src/coms-send.ts";
 import {
   claimTask,
   createTask,
   createTeam,
   readTeam,
   upsertMember,
-} from "../packages/draconic-teams/src/store.ts";
+} from "../packages/heio-teams/src/store.ts";
 import {
   applySpawn,
   defaultTmuxRunner,
   killPane,
   shellQuote,
-} from "../packages/draconic-teams/src/tmux.ts";
+} from "../packages/heio-teams/src/tmux.ts";
 
 const HERE = fileURLToPath(import.meta.url);
 const ROOT = join(dirname(HERE), "..");

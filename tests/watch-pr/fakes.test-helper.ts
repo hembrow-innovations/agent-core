@@ -9,8 +9,8 @@ import type {
   Repository,
   ReviewThread,
   RollupPage,
-} from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
-import { parsePrNumber } from "../../ai/skills/workflow/draconic-mode/scripts/watch-pr/types.ts";
+} from "../../ai/skills/workflow/heio-mode/scripts/watch-pr/types.ts";
+import { parsePrNumber } from "../../ai/skills/workflow/heio-mode/scripts/watch-pr/types.ts";
 
 export interface FakeReaderOptions {
   readonly facts?: Partial<Omit<PullRequestFacts, "context">>;
@@ -57,7 +57,7 @@ export function failedCheck(name = "ci"): Check {
 }
 
 export function fakeReader(
-  options: FakeReaderOptions = {}
+  options: FakeReaderOptions = {},
 ): GitHubReader & { readonly calls: readonly string[] } {
   const calls: string[] = [];
   const context = options.current ?? {

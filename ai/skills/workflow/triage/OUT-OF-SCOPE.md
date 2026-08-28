@@ -1,13 +1,13 @@
 # Out-of-scope knowledge
 
-Rejected feature requests are durable knowledge. They survive a clone. Write them through **docs**, not under `.draconic/`.
+Rejected feature requests are durable knowledge. They survive a clone. Write them through **docs**, not under `.heio/`.
 
 They serve two purposes:
 
 1. **Institutional memory.** Why a feature was rejected, so the reasoning isn't lost when the issue is closed.
 2. **Deduplication.** When a new issue matches a prior rejection, surface the previous decision instead of re-litigating it.
 
-Do not invent a folder under `.draconic/` for this. **management** does not name one.
+Do not invent a folder under `.heio/` for this. **management** does not name one.
 
 ## Where the notes live
 
@@ -49,9 +49,10 @@ interface ThemeConfig {
 
 ## Prior requests
 
-- [[issue-42-dark-mode]]. "Add dark mode support"
-- [[issue-87-night-theme]]. "Night theme for accessibility"
-- [[issue-134-dark-theme]]. "Dark theme option"
+- `[[issue-42-dark-mode]]`. "Add dark mode support"
+- `[[issue-87-night-theme]]`. "Night theme for accessibility"
+- `[[issue-134-dark-theme]]`. "Dark theme option"
+
 ```
 
 ### Naming the file
@@ -95,7 +96,7 @@ The flow:
 3. If yes: append the new issue to the "Prior requests" list
 4. If no: create a new note via **docs** with the concept name, decision, reason, and first prior request
 5. Append a `## Comments` note on the issue explaining the decision and `[[wikilink]]`-ing the rejection note
-6. Set the issue `status: wontfix` and move it to `.draconic/closed/`
+6. Set the issue `status: wontfix` and move it to `.heio/closed/`
 
 ## Updating or removing rejection notes
 

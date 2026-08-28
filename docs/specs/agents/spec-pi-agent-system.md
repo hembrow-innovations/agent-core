@@ -24,7 +24,7 @@ Pi only.
 Source identity files live under `ai/agents/<stem>/<stem>.md`. Dest holds the same stem at `.pi/agents/<stem>.md`. `agentFile` is the dest path boot reads.
 
 ```ts
-// packages/draconic-boot/src/index.ts — agentFile
+// packages/heio-boot/src/index.ts — agentFile
 function agentFile(cwd: string, name: string): string {
   return join(cwd, ".pi", "agents", `${name}.md`);
 }
@@ -32,9 +32,9 @@ function agentFile(cwd: string, name: string): string {
 
 The file is YAML frontmatter plus a Pi-safe body. Allowed keys are `name`, `skills`, `tools`, and `model`. `parseAgentDefinition` throws on unknown keys, a missing or empty name, a name that fails `^[a-z][a-z0-9-]{0,63}$`, missing fences, or an empty body. Pack files in `ai/agents/` parse today with `name` only. Some name `skills`. None name `tools`.
 
-`draconic-boot` is the switch. `registerFlag("agent")` is the process flag. `/agent` is the command. `before_agent_start` appends `def.body` when a stem is selected. A new process attaches nothing. The last pick is not written to disk. See [[0007-agent-attach-is-opt-in]].
+`heio-boot` is the switch. `registerFlag("agent")` is the process flag. `/agent` is the command. `before_agent_start` appends `def.body` when a stem is selected. A new process attaches nothing. The last pick is not written to disk. See [[0007-agent-attach-is-opt-in]].
 
-`draconic-coms` stamps a second identity. Boot does not own that stamp, `--project`, or `--cname`. See [[architecture-draconic-coms]].
+`heio-coms` stamps a second identity. Boot does not own that stamp, `--project`, or `--cname`. See [[architecture-heio-coms]].
 
 A lone session and a teammate share one dest file format and one attach meaning. Append. How a pane is named is not this spec. Nicobailon children keep their own format.
 
@@ -44,7 +44,7 @@ A team is a lead plus named living TUI peers on coms. Tmux spawn is a separate b
 
 `skills` and `model` parse into `AgentDefinition`. Boot does not load skills or set the model from those fields. Applying them is tracked as `issue-36-apply-definition-skills` and `issue-37-apply-definition-model`.
 
-Quality is proven by tests in `packages/draconic-boot/src/*.test.ts` and by evals on a real Pi session.
+Quality is proven by tests in `packages/heio-boot/src/*.test.ts` and by evals on a real Pi session.
 
 ## Non-goals
 
@@ -64,7 +64,7 @@ Quality is proven by tests in `packages/draconic-boot/src/*.test.ts` and by eval
 `selected` starts as `null`. `session_start` reads `--agent` through `flagString`. It sets `selected` only when `loadAgent` returns a definition. A missing dest file or a parse throw is `undefined`. The chip is `off`. `before_agent_start` returns nothing. The base system prompt is unchanged.
 
 ```ts
-// packages/draconic-boot/src/index.ts — session_start
+// packages/heio-boot/src/index.ts — session_start
 pi.on("session_start", (_event, ctx) => {
   parkedNames = parkThirdPartyTools(pi);
   const flagged = flagString(pi, "agent");
@@ -76,7 +76,7 @@ pi.on("session_start", (_event, ctx) => {
 `loadAgent` swallows parse errors. It does not crash the session.
 
 ```ts
-// packages/draconic-boot/src/index.ts — loadAgent
+// packages/heio-boot/src/index.ts — loadAgent
 function loadAgent(cwd: string, name: string): AgentDefinition | undefined {
   const path = agentFile(cwd, name);
   if (!existsSync(path)) return undefined;
@@ -97,7 +97,7 @@ Tests: `session_start paints off when no agent is selected`, `before_agent_start
 An unknown stem notifies `unknown agent: <stem>` and keeps the current file. `/agent` writes no dest settings and no flag file.
 
 ```ts
-// packages/draconic-boot/src/index.ts — before_agent_start
+// packages/heio-boot/src/index.ts — before_agent_start
 pi.on("before_agent_start", (event, ctx) => {
   const def = loadCurrent(ctx.cwd);
   applyDefinition(ctx, def);
@@ -108,7 +108,7 @@ pi.on("before_agent_start", (event, ctx) => {
 });
 ```
 
-`--agent <stem>` is the same attach for this process. `session_start` ignores a missing dest file. There is no fallback to `draconic`.
+`--agent <stem>` is the same attach for this process. `session_start` ignores a missing dest file. There is no fallback to `heio`.
 
 Tests: `/agent other appends that file on the next turn`, `/agent default clears the agent`, `unknown /agent name keeps the current file`, `--agent flag selects that file for this process`.
 
@@ -117,7 +117,7 @@ Tests: `/agent other appends that file on the next turn`, `/agent default clears
 `parseAgentDefinition` splits on `---` fences. It keeps `name`, optional `skills`, optional `tools`, and optional `model`. Unknown keys throw `AgentDefinitionError` with code `unknown_keys`. `cname` is not a boot key.
 
 ```ts
-// packages/draconic-boot/src/definition.ts — parseAgentDefinition
+// packages/heio-boot/src/definition.ts — parseAgentDefinition
 const NAME_RE = /^[a-z][a-z0-9-]{0,63}$/;
 const ALLOWED_KEYS = new Set(["name", "skills", "tools", "model"]);
 ```
@@ -135,7 +135,7 @@ No definition, or a definition with `tools` omitted, restores `toolsSnapshot` wh
 When `tools` is present, the first bind snapshots the live set after park. Names that are not builtin are dropped. If no valid builtin remains, `setActiveTools` is not called. Otherwise the live set is the valid builtins, currently active unparked extensions, first-party tools, and `dest_activate_tools`. Parked third-party names stay registered and inactive. `dest_activate_tools` is the only unpark path.
 
 ```ts
-// packages/draconic-boot/src/index.ts — bindActiveTools
+// packages/heio-boot/src/index.ts — bindActiveTools
 const extensions = all
   .filter(
     (tool) =>
@@ -159,7 +159,7 @@ Skill catalog and playbook bodies are not boot. `skills` and `model` on the defi
 - A missing or broken dest file is `undefined`. The session stays up. The chip stays `off` unless another stem is already selected
 - A `tools` allowlist keeps first-party tools and `dest_activate_tools`. Parked third-party tools stay inactive. Unknown builtin names drop. An empty valid list leaves the live set. Off restores the snapshot without parked names
 - `parseAgentDefinition` rejects unknown keys and an empty body. Pack agents under `ai/agents/` parse
-- Tests in `packages/draconic-boot/src/index.test.ts` and `definition.test.ts` fail if those bars regress
+- Tests in `packages/heio-boot/src/index.test.ts` and `definition.test.ts` fail if those bars regress
 
 ## Open questions
 

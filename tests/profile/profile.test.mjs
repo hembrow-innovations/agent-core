@@ -40,13 +40,13 @@ const CORE_WITHOUT =
 test("parseProfileYaml: comments, scalars, booleans, lists, all", () => {
 	const got = parseProfileYaml(`
 # header
-mode: draconic
+mode: heio
 playbooks: all
 skills: [architect, arena]
 empty: []
 `);
 	assert.deepEqual(got, {
-		mode: "draconic",
+		mode: "heio",
 		playbooks: "all",
 		skills: ["architect", "arena"],
 		empty: [],
@@ -113,11 +113,11 @@ test("parseProfileYaml: quoted numbers stay strings; leading zeros stay strings"
 test("parseProfileYaml: colon without space stays a scalar list item", () => {
 	const got = parseProfileYaml(`packages:
   - npm:pi-lens
-  - local:@agentic-core/draconic-todo
+  - local:@agentic-core/heio-todo
 `);
 	assert.deepEqual(got.packages, [
 		"npm:pi-lens",
-		"local:@agentic-core/draconic-todo",
+		"local:@agentic-core/heio-todo",
 	]);
 });
 
@@ -170,7 +170,7 @@ test("loadProfile: leftover playbooks key dies", () => {
 
 test("loadProfile: leftover dest keys die", () => {
 	const root = tempRoot();
-	writeYaml(root, "mode", "mode: draconic\nskills: []\n");
+	writeYaml(root, "mode", "mode: heio\nskills: []\n");
 	assert.throws(
 		() => loadProfile(root, "mode"),
 		/leftover "mode:". dest playbooks live at \.pi\/playbooks/,
@@ -190,7 +190,7 @@ test("loadProfile: leftover dest keys die", () => {
 		() => loadProfile(root, "commands"),
 		/leftover "commands:". dest is always \.pi/,
 	);
-	writeYaml(root, "extensions", "extensions:\n  - draconic-todo\n");
+	writeYaml(root, "extensions", "extensions:\n  - heio-todo\n");
 	assert.throws(
 		() => loadProfile(root, "extensions"),
 		/leftover "extensions:". use packages:/,
@@ -218,7 +218,7 @@ test("loadProfile: packages, agents, and prompts shapes", () => {
 		"listed",
 		`packages:
   - npm:pi-lens
-  - local:@agentic-core/draconic-todo
+  - local:@agentic-core/heio-todo
 agents:
   - architect
   - coder
@@ -228,11 +228,11 @@ prompts:
 	);
 	writeYaml(root, "all", "agents: all\nprompts: all\n");
 	writeYaml(root, "bad-agents", "agents: true\n");
-	writeYaml(root, "bare-pkg", "packages:\n  - draconic-todo\n");
+	writeYaml(root, "bare-pkg", "packages:\n  - heio-todo\n");
 	assert.deepEqual(loadProfile(root, "bare").packages, []);
 	assert.deepEqual(loadProfile(root, "listed").packages, [
 		{ kind: "npm", source: "npm:pi-lens" },
-		{ kind: "local", name: "draconic-todo" },
+		{ kind: "local", name: "heio-todo" },
 	]);
 	assert.deepEqual(loadProfile(root, "listed").agents, {
 		kind: "list",
@@ -247,7 +247,7 @@ prompts:
 	assert.throws(() => loadProfile(root, "bad-agents"), /Invalid agents value/);
 	assert.throws(
 		() => loadProfile(root, "bare-pkg"),
-		/Invalid package source: draconic-todo/,
+		/Invalid package source: heio-todo/,
 	);
 	assert.equal(loadProfile(root, "bare").settings, null);
 });
@@ -497,11 +497,11 @@ test("repo profiles list npm and local packages", () => {
 		{ kind: "npm", source: "npm:pi-web-access" },
 		{ kind: "npm", source: "npm:pi-subagents" },
 		{ kind: "npm", source: "npm:@ff-labs/pi-fff" },
-		{ kind: "local", name: "draconic-todo" },
-		{ kind: "local", name: "draconic-coms" },
-		{ kind: "local", name: "draconic-boot" },
-		{ kind: "local", name: "draconic-teams" },
-		{ kind: "local", name: "draconic-footer" },
+		{ kind: "local", name: "heio-todo" },
+		{ kind: "local", name: "heio-coms" },
+		{ kind: "local", name: "heio-boot" },
+		{ kind: "local", name: "heio-teams" },
+		{ kind: "local", name: "heio-footer" },
 	];
 	for (const name of ["agentic-core", "life-engine"]) {
 		const p = loadProfile(REPO, name);
@@ -512,21 +512,21 @@ test("repo profiles list npm and local packages", () => {
 	assert.equal(loadProfile(REPO, "life-engine").settings, null);
 });
 
-test("always-on text does not dump dest draconic-mode", () => {
+test("always-on text does not dump dest heio-mode", () => {
 	const append = readFileSync(
 		join(REPO, "ai", "pi", "APPEND_SYSTEM.md"),
 		"utf8",
 	);
 	const agent = readFileSync(
-		join(REPO, "ai", "agents", "draconic", "draconic.md"),
+		join(REPO, "ai", "agents", "heio", "heio.md"),
 		"utf8",
 	);
 	for (const text of [append, agent]) {
 		assert.doesNotMatch(
 			text,
-			/Read `\.pi\/skills\/draconic-mode\/SKILL\.md` in full/,
+			/Read `\.pi\/skills\/heio-mode\/SKILL\.md` in full/,
 		);
-		assert.doesNotMatch(text, /running draconic-mode on Pi/);
+		assert.doesNotMatch(text, /running heio-mode on Pi/);
 	}
 });
 
@@ -541,7 +541,7 @@ test("repo agentic-core profile resolves every skill from skills/", () => {
 	assert.equal(existsSync(join(REPO, "ai", "pi", "install.mjs")), false);
 	assert.equal(existsSync(join(REPO, "ai", "pi", "packages.json")), true);
 	assert.equal(existsSync(join(REPO, "ai", "pi", "APPEND_SYSTEM.md")), true);
-	assert.equal(existsSync(join(REPO, "ai", "pi", "draconic-models.md")), true);
+	assert.equal(existsSync(join(REPO, "ai", "pi", "heio-models.md")), true);
 	assert.deepEqual(readPiPackages(join(REPO, "ai", "pi")), [
 		"npm:pi-lens",
 		"npm:pi-web-access",
@@ -558,7 +558,7 @@ test("installPiRuntime writes boot and models and leaves prompts alone", () => {
 		"export default function () {}\n",
 	);
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-	writeFileSync(join(root, "ai", "pi", "draconic-models.md"), "models\n");
+	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
 	writeFileSync(join(root, "ai", "pi", "prompts", "how.md"), "how\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-"));
@@ -568,13 +568,13 @@ test("installPiRuntime writes boot and models and leaves prompts alone", () => {
 		"boot\n",
 	);
 	assert.equal(
-		readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"),
+		readFileSync(join(dest, ".pi", "heio-models.md"), "utf8"),
 		"models\n",
 	);
 	assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), false);
 
 	writeFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "custom\n");
-	writeFileSync(join(dest, ".pi", "draconic-models.md"), "picked\n");
+	writeFileSync(join(dest, ".pi", "heio-models.md"), "picked\n");
 	mkdirSync(join(dest, ".pi", "prompts"), { recursive: true });
 	writeFileSync(join(dest, ".pi", "prompts", "leftover.md"), "stale\n");
 	installPiRuntime(root, dest, { skills: ["how"], playbooks: ["orchestrate"] });
@@ -583,10 +583,31 @@ test("installPiRuntime writes boot and models and leaves prompts alone", () => {
 		"custom\n",
 	);
 	assert.equal(
-		readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"),
+		readFileSync(join(dest, ".pi", "heio-models.md"), "utf8"),
 		"picked\n",
 	);
 	assert.equal(existsSync(join(dest, ".pi", "prompts", "leftover.md")), true);
+});
+
+test("installPiRuntime migrates dest models from the previous filename", () => {
+	const root = tempRoot();
+	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
+	writeFileSync(
+		join(root, "ai", "pi", "extensions", "boot.ts"),
+		"export default function () {}\n",
+	);
+	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
+	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
+
+	const dest = mkdtempSync(join(tmpdir(), "pi-rt-models-mig-"));
+	mkdirSync(join(dest, ".pi"), { recursive: true });
+	writeFileSync(join(dest, ".pi", "draconic-models.md"), "picked\n");
+	installPiRuntime(root, dest);
+	assert.equal(existsSync(join(dest, ".pi", "draconic-models.md")), false);
+	assert.equal(
+		readFileSync(join(dest, ".pi", "heio-models.md"), "utf8"),
+		"picked\n",
+	);
 });
 
 test("installPiRuntime does not merge pack packages into settings.json", () => {
@@ -597,7 +618,7 @@ test("installPiRuntime does not merge pack packages into settings.json", () => {
 		"export default function () {}\n",
 	);
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-	writeFileSync(join(root, "ai", "pi", "draconic-models.md"), "models\n");
+	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
 	writeFileSync(
 		join(root, "ai", "pi", "packages.json"),
 		JSON.stringify(["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"]),
@@ -691,7 +712,7 @@ test("installPiRuntime rewrites a dest APPEND_SYSTEM that still matches the old 
 		"export default function () {}\n",
 	);
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "new stub\n");
-	writeFileSync(join(root, "ai", "pi", "draconic-models.md"), "models\n");
+	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-append-mig-"));
 	mkdirSync(join(dest, ".pi"), { recursive: true });
@@ -725,7 +746,7 @@ test("installPiRuntime rewrites a dest APPEND_SYSTEM that still names the dest r
 		"export default function () {}\n",
 	);
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "new stub\n");
-	writeFileSync(join(root, "ai", "pi", "draconic-models.md"), "models\n");
+	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-append-variant-"));
 	mkdirSync(join(dest, ".pi"), { recursive: true });
@@ -788,7 +809,7 @@ test("installPiRuntime removes leftover dest roles", () => {
 	const root = tempRoot();
 	mkdirSync(join(root, "ai", "pi"), { recursive: true });
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-	writeFileSync(join(root, "ai", "pi", "draconic-models.md"), "models\n");
+	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-roles-"));
 	mkdirSync(join(dest, ".pi", "roles"), { recursive: true });
@@ -828,48 +849,36 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 	assert.match(r.stdout, /Profile: agentic-core/);
 	assert.doesNotMatch(r.stdout, /Harness:/);
 	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")),
+		existsSync(join(dest, ".pi", "skills", "heio-mode", "SKILL.md")),
 		false,
 	);
 	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
 	assert.equal(existsSync(join(dest, ".pi", "roles")), false);
-	assert.equal(existsSync(join(dest, ".pi", "agents", "draconic.md")), true);
+	assert.equal(existsSync(join(dest, ".pi", "agents", "heio.md")), true);
 	assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
 	assert.equal(existsSync(join(dest, ".pi", "prompts", "arena.md")), true);
 	assert.doesNotMatch(
-		readFileSync(join(dest, ".pi", "agents", "draconic.md"), "utf8"),
+		readFileSync(join(dest, ".pi", "agents", "heio.md"), "utf8"),
 		/Skill|Task/,
 	);
 	const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
+	assert.equal(existsSync(join(npmRoot, "heio-todo", "src", "index.ts")), true);
+	assert.equal(existsSync(join(npmRoot, "heio-coms", "src", "index.ts")), true);
+	assert.equal(existsSync(join(npmRoot, "heio-boot", "src", "index.ts")), true);
+	assert.equal(existsSync(join(npmRoot, "heio-teams", "src", "index.ts")), true);
 	assert.equal(
-		existsSync(join(npmRoot, "draconic-todo", "src", "index.ts")),
-		true,
-	);
-	assert.equal(
-		existsSync(join(npmRoot, "draconic-coms", "src", "index.ts")),
-		true,
-	);
-	assert.equal(
-		existsSync(join(npmRoot, "draconic-boot", "src", "index.ts")),
-		true,
-	);
-	assert.equal(
-		existsSync(join(npmRoot, "draconic-teams", "src", "index.ts")),
-		true,
-	);
-	assert.equal(
-		existsSync(join(npmRoot, "draconic-footer", "src", "index.ts")),
+		existsSync(join(npmRoot, "heio-footer", "src", "index.ts")),
 		true,
 	);
 	assert.equal(existsSync(join(dest, ".pi", "vendor", "@agentic-core")), false);
 	const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
-	assert.doesNotMatch(append, /running draconic-mode on Pi/);
+	assert.doesNotMatch(append, /running heio-mode on Pi/);
 	assert.doesNotMatch(
 		append,
-		/Read `\.pi\/skills\/draconic-mode\/SKILL\.md` in full/,
+		/Read `\.pi\/skills\/heio-mode\/SKILL\.md` in full/,
 	);
 	assert.match(
-		readFileSync(join(dest, ".pi", "draconic-models.md"), "utf8"),
+		readFileSync(join(dest, ".pi", "heio-models.md"), "utf8"),
 		/feature, refactoring:/,
 	);
 	assert.deepEqual(
@@ -880,11 +889,11 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 				"npm:pi-web-access",
 				"npm:pi-subagents",
 				"npm:@ff-labs/pi-fff",
-				"npm/node_modules/@agentic-core/draconic-todo",
-				"npm/node_modules/@agentic-core/draconic-coms",
-				"npm/node_modules/@agentic-core/draconic-boot",
-				"npm/node_modules/@agentic-core/draconic-teams",
-				"npm/node_modules/@agentic-core/draconic-footer",
+				"npm/node_modules/@agentic-core/heio-todo",
+				"npm/node_modules/@agentic-core/heio-coms",
+				"npm/node_modules/@agentic-core/heio-boot",
+				"npm/node_modules/@agentic-core/heio-teams",
+				"npm/node_modules/@agentic-core/heio-footer",
 			],
 			toolDescriptionMode: "compact",
 			defaultTools: ["read", "bash", "edit", "write", "ls"],
@@ -898,7 +907,7 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 	assert.equal(existsSync(join(dest, ".opencode")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
 	assert.equal(existsSync(join(dest, ".agents")), false);
-	assert.equal(existsSync(join(dest, ".draconic")), false);
+	assert.equal(existsSync(join(dest, ".heio")), false);
 });
 
 test("install --profile agentic-core writes .pi only", () => {
@@ -912,7 +921,7 @@ test("install --profile agentic-core writes .pi only", () => {
 	assert.match(r.stdout, /Profile: agentic-core/);
 	assert.doesNotMatch(r.stdout, /Harness:/);
 	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")),
+		existsSync(join(dest, ".pi", "skills", "heio-mode", "SKILL.md")),
 		false,
 	);
 	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
@@ -956,7 +965,7 @@ test("install --profile life-engine writes .pi only", () => {
 	assert.match(r.stdout, /Profile: life-engine/);
 	assert.doesNotMatch(r.stdout, /Harness:/);
 	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "draconic-mode", "SKILL.md")),
+		existsSync(join(dest, ".pi", "skills", "heio-mode", "SKILL.md")),
 		false,
 	);
 	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
@@ -965,10 +974,7 @@ test("install --profile life-engine writes .pi only", () => {
 		true,
 	);
 	const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
-	assert.equal(
-		existsSync(join(npmRoot, "draconic-todo", "src", "index.ts")),
-		true,
-	);
+	assert.equal(existsSync(join(npmRoot, "heio-todo", "src", "index.ts")), true);
 	assert.equal(existsSync(join(dest, ".pi", "vendor", "@agentic-core")), false);
 	assert.equal(existsSync(join(dest, ".opencode")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
@@ -1064,7 +1070,7 @@ test("install uses profiles yaml only and does not write preference stubs", () =
 	assert.equal(existsSync(join(REPO, "preferences")), false);
 });
 
-test("pstack source tree is gone and draconic install resolves", () => {
+test("pstack source tree is gone and heio install resolves", () => {
 	const r = spawnSync(
 		process.execPath,
 		[join(REPO, "scripts", "checks", "check-no-pstack.mjs")],

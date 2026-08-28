@@ -7,7 +7,7 @@ description: Break a plan, spec, or PRD into independently-grabbable management 
 
 Break a plan into independently-grabbable notes using vertical slices (tracer bullets).
 
-Load **management** before any write under `.draconic/`. Load **docs** for glossary terms and ADRs. Load **planning-workflow** if the loop is unclear.
+Load **management** before any write under `.heio/`. Load **docs** for glossary terms and ADRs. Load **planning-workflow** if the loop is unclear.
 
 If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, `docs/planning/`, GitHub Issues), that file wins. Do not start a second tree.
 
@@ -15,7 +15,7 @@ If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, `docs/pla
 
 ### 1. Gather context
 
-Work from conversation context. If the user passes a plan or issue id, read that note under `.draconic/` (include `closed/`).
+Work from conversation context. If the user passes a plan or issue id, read that note under `.heio/` (include `closed/`).
 
 ### 2. Explore the codebase (optional)
 

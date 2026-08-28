@@ -83,7 +83,7 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
 
   const skillRoot = join(dest, ".pi", "skills");
   const folders = readdirSync(skillRoot);
-  assert.equal(folders.includes("draconic-mode"), false, folders.join(", "));
+  assert.equal(folders.includes("heio-mode"), false, folders.join(", "));
   assert.equal(folders.includes("how"), false, folders.join(", "));
   assert.equal(folders.includes("why"), false, folders.join(", "));
   assert.equal(folders.includes("unslop"), false, folders.join(", "));
@@ -127,39 +127,30 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
       "npm:pi-web-access",
       "npm:pi-subagents",
       "npm:@ff-labs/pi-fff",
-      "npm/node_modules/@agentic-core/draconic-todo",
-      "npm/node_modules/@agentic-core/draconic-coms",
-      "npm/node_modules/@agentic-core/draconic-boot",
-      "npm/node_modules/@agentic-core/draconic-teams",
-      "npm/node_modules/@agentic-core/draconic-footer",
+      "npm/node_modules/@agentic-core/heio-todo",
+      "npm/node_modules/@agentic-core/heio-coms",
+      "npm/node_modules/@agentic-core/heio-boot",
+      "npm/node_modules/@agentic-core/heio-teams",
+      "npm/node_modules/@agentic-core/heio-footer",
     ],
   );
   const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
   assert.deepEqual(readdirSync(npmRoot).sort(), [
-    "draconic-boot",
-    "draconic-coms",
-    "draconic-footer",
-    "draconic-teams",
-    "draconic-todo",
+    "heio-boot",
+    "heio-coms",
+    "heio-footer",
+    "heio-teams",
+    "heio-todo",
   ]);
+  assert.equal(existsSync(join(npmRoot, "heio-todo", "src", "index.ts")), true);
+  assert.equal(existsSync(join(npmRoot, "heio-coms", "src", "index.ts")), true);
+  assert.equal(existsSync(join(npmRoot, "heio-boot", "src", "index.ts")), true);
   assert.equal(
-    existsSync(join(npmRoot, "draconic-todo", "src", "index.ts")),
+    existsSync(join(npmRoot, "heio-teams", "src", "index.ts")),
     true,
   );
   assert.equal(
-    existsSync(join(npmRoot, "draconic-coms", "src", "index.ts")),
-    true,
-  );
-  assert.equal(
-    existsSync(join(npmRoot, "draconic-boot", "src", "index.ts")),
-    true,
-  );
-  assert.equal(
-    existsSync(join(npmRoot, "draconic-teams", "src", "index.ts")),
-    true,
-  );
-  assert.equal(
-    existsSync(join(npmRoot, "draconic-footer", "src", "index.ts")),
+    existsSync(join(npmRoot, "heio-footer", "src", "index.ts")),
     true,
   );
   assert.equal(existsSync(join(npmRoot, "lib")), false);
@@ -179,7 +170,7 @@ test("install --profile agentic-core removes leftover dest extension files", () 
   mkdirSync(join(dest, ".pi", "extensions"), { recursive: true });
   mkdirSync(join(dest, ".pi", "lib"), { recursive: true });
   mkdirSync(join(dest, ".pi", "roles"), { recursive: true });
-  writeFileSync(join(dest, ".pi", "extensions", "draconic-boot.ts"), "old\n");
+  writeFileSync(join(dest, ".pi", "extensions", "heio-boot.ts"), "old\n");
   writeFileSync(join(dest, ".pi", "lib", "old.ts"), "old\n");
   writeFileSync(join(dest, ".pi", "roles", "architect.md"), "old role\n");
   const r = runCli(["install", dest, "--profile", "agentic-core"]);
@@ -212,14 +203,7 @@ test("install --profile agentic-core writes .pi/skills and does not wire this ch
   assert.equal(existsSync(join(dest, ".opencode")), false);
   assert.equal(
     existsSync(
-      join(
-        dest,
-        ".pi",
-        "npm",
-        "node_modules",
-        "@agentic-core",
-        "draconic-todo",
-      ),
+      join(dest, ".pi", "npm", "node_modules", "@agentic-core", "heio-todo"),
     ),
     true,
   );
@@ -231,7 +215,7 @@ test("install --profile agentic-core writes .pi/skills and does not wire this ch
   if (after) {
     assert.doesNotMatch(
       after,
-      /packages\/(?:lib|draconic-todo|draconic-coms|draconic-boot|draconic-teams|draconic-footer)/,
+      /packages\/(?:lib|heio-todo|heio-coms|heio-boot|heio-teams|heio-footer)/,
     );
   }
 });
@@ -362,15 +346,15 @@ function assertNoCheckoutPath(root: string): void {
   }
 }
 
-test("install --extension draconic-todo writes a dest-relative npm package", () => {
+test("install --extension heio-todo writes a dest-relative npm package", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-ext-"));
-  const r = runCli(["install", dest, "--extension", "draconic-todo"]);
+  const r = runCli(["install", dest, "--extension", "heio-todo"]);
   assert.equal(r.status, 0, r.stderr || r.stdout);
 
   const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
-  const local = join(npmRoot, "draconic-todo");
+  const local = join(npmRoot, "heio-todo");
   assert.equal(existsSync(local), true);
-  assert.deepEqual(readdirSync(npmRoot), ["draconic-todo"]);
+  assert.deepEqual(readdirSync(npmRoot), ["heio-todo"]);
   assert.equal(existsSync(join(dest, ".pi", "skills")), false);
   assert.equal(existsSync(join(npmRoot, "lib")), false);
   assert.equal(existsSync(join(local, "src", "lib")), false);
@@ -391,7 +375,7 @@ test("install --extension draconic-todo writes a dest-relative npm package", () 
   ) as { packages?: unknown };
   assert.ok(Array.isArray(settings.packages), "settings.packages");
   assert.deepEqual(settings.packages, [
-    "npm/node_modules/@agentic-core/draconic-todo",
+    "npm/node_modules/@agentic-core/heio-todo",
   ]);
 
   const gitignore = readFileSync(join(dest, ".pi", ".gitignore"), "utf8");
@@ -403,13 +387,7 @@ test("install --extension draconic-todo writes a dest-relative npm package", () 
 
 test("install removes installer-owned vendor trees and keeps other dest extras", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-drop-vendor-"));
-  const vendorTodo = join(
-    dest,
-    ".pi",
-    "vendor",
-    "@agentic-core",
-    "draconic-todo",
-  );
+  const vendorTodo = join(dest, ".pi", "vendor", "@agentic-core", "heio-todo");
   mkdirSync(vendorTodo, { recursive: true });
   writeFileSync(join(vendorTodo, "old.ts"), "old vendor\n");
   mkdirSync(join(dest, ".pi", "vendor", "other-extra"), { recursive: true });
@@ -422,8 +400,8 @@ test("install removes installer-owned vendor trees and keeps other dest extras",
     `${JSON.stringify(
       {
         packages: [
-          "vendor/@agentic-core/draconic-todo",
-          "npm/node_modules/@agentic-core/draconic-todo",
+          "vendor/@agentic-core/heio-todo",
+          "npm/node_modules/@agentic-core/heio-todo",
         ],
       },
       null,
@@ -450,7 +428,7 @@ test("install removes installer-owned vendor trees and keeps other dest extras",
         "npm",
         "node_modules",
         "@agentic-core",
-        "draconic-todo",
+        "heio-todo",
         "src",
         "index.ts",
       ),
@@ -461,10 +439,10 @@ test("install removes installer-owned vendor trees and keeps other dest extras",
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   ) as { packages: string[] };
   assert.ok(
-    settings.packages.includes("npm/node_modules/@agentic-core/draconic-todo"),
+    settings.packages.includes("npm/node_modules/@agentic-core/heio-todo"),
   );
   assert.equal(
-    settings.packages.includes("vendor/@agentic-core/draconic-todo"),
+    settings.packages.includes("vendor/@agentic-core/heio-todo"),
     false,
   );
   assert.doesNotMatch(JSON.stringify(settings.packages), /npm:@agentic-core\//);
@@ -476,9 +454,9 @@ test("install --extension can repeat and a second run overwrites the npm copy", 
     "install",
     dest,
     "--extension",
-    "draconic-todo",
+    "heio-todo",
     "--extension",
-    "draconic-boot",
+    "heio-boot",
   ]);
   assert.equal(first.status, 0, first.stderr || first.stdout);
 
@@ -488,7 +466,7 @@ test("install --extension can repeat and a second run overwrites the npm copy", 
     "npm",
     "node_modules",
     "@agentic-core",
-    "draconic-todo",
+    "heio-todo",
   );
   const boot = join(
     dest,
@@ -496,7 +474,7 @@ test("install --extension can repeat and a second run overwrites the npm copy", 
     "npm",
     "node_modules",
     "@agentic-core",
-    "draconic-boot",
+    "heio-boot",
   );
   assert.equal(existsSync(todo), true);
   assert.equal(existsSync(boot), true);
@@ -509,7 +487,7 @@ test("install --extension can repeat and a second run overwrites the npm copy", 
 
   const leftover = join(todo, "leftover.txt");
   writeFileSync(leftover, "stale\n", "utf8");
-  const second = runCli(["install", dest, "--extension", "draconic-todo"]);
+  const second = runCli(["install", dest, "--extension", "heio-todo"]);
   assert.equal(second.status, 0, second.stderr || second.stdout);
   assert.equal(existsSync(leftover), false);
   assert.equal(existsSync(join(todo, "src", "index.ts")), true);
@@ -518,46 +496,46 @@ test("install --extension can repeat and a second run overwrites the npm copy", 
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   ) as { packages?: unknown };
   assert.deepEqual(settings.packages, [
-    "npm/node_modules/@agentic-core/draconic-todo",
-    "npm/node_modules/@agentic-core/draconic-boot",
+    "npm/node_modules/@agentic-core/heio-todo",
+    "npm/node_modules/@agentic-core/heio-boot",
   ]);
   assertNoCheckoutPath(dest);
 });
 
-test("parseProfilePackage accepts local:@agentic-core/draconic-todo", () => {
-  assert.deepEqual(parseProfilePackage("local:@agentic-core/draconic-todo"), {
+test("parseProfilePackage accepts local:@agentic-core/heio-todo", () => {
+  assert.deepEqual(parseProfilePackage("local:@agentic-core/heio-todo"), {
     kind: "local",
-    name: "draconic-todo",
+    name: "heio-todo",
   });
 });
 
 test("parseProfilePackage and loadProfile reject vendor: and vendor/ sources", () => {
   assert.throws(
-    () => parseProfilePackage("vendor:@agentic-core/draconic-todo"),
-    /vendor:@agentic-core\/draconic-todo/,
+    () => parseProfilePackage("vendor:@agentic-core/heio-todo"),
+    /vendor:@agentic-core\/heio-todo/,
   );
   assert.throws(
-    () => parseProfilePackage("vendor/@agentic-core/draconic-todo"),
-    /vendor\/@agentic-core\/draconic-todo/,
+    () => parseProfilePackage("vendor/@agentic-core/heio-todo"),
+    /vendor\/@agentic-core\/heio-todo/,
   );
 
   const srcRoot = mkdtempSync(join(tmpdir(), "installer-vendor-src-"));
   mkdirSync(join(srcRoot, "profiles"));
   writeFileSync(
     join(srcRoot, "profiles", "vendor-colon.yaml"),
-    "packages:\n  - vendor:@agentic-core/draconic-todo\n",
+    "packages:\n  - vendor:@agentic-core/heio-todo\n",
   );
   writeFileSync(
     join(srcRoot, "profiles", "vendor-slash.yaml"),
-    "packages:\n  - vendor/@agentic-core/draconic-todo\n",
+    "packages:\n  - vendor/@agentic-core/heio-todo\n",
   );
   assert.throws(
     () => loadProfile(srcRoot, "vendor-colon"),
-    /vendor:@agentic-core\/draconic-todo/,
+    /vendor:@agentic-core\/heio-todo/,
   );
   assert.throws(
     () => loadProfile(srcRoot, "vendor-slash"),
-    /vendor\/@agentic-core\/draconic-todo/,
+    /vendor\/@agentic-core\/heio-todo/,
   );
 });
 

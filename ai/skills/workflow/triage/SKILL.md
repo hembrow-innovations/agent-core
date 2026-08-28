@@ -5,7 +5,7 @@ description: Triage management issues through a state machine of triage roles. U
 
 # Triage
 
-Move issue notes under `.draconic/` through a small state machine of triage roles.
+Move issue notes under `.heio/` through a small state machine of triage roles.
 
 Load **management**. That skill owns paths, templates, ids, status, and close-moves. Load **docs** for committed truth and for durable rejection notes. Load **planning-workflow** if the loop is unclear.
 
@@ -54,7 +54,7 @@ State transitions: an untriaged issue (no state tag) normally goes to `needs-tri
 
 ### Terminal states are a flip and a move
 
-Live folders hold only live issues. The moment an issue reaches `closed` or `wontfix`, set the status and `mv` it to `.draconic/closed/`. Keep the filename. **management** owns the move. Setting `status` and stopping leaves the issue sitting in the active backlog.
+Live folders hold only live issues. The moment an issue reaches `closed` or `wontfix`, set the status and `mv` it to `.heio/closed/`. Keep the filename. **management** owns the move. Setting `status` and stopping leaves the issue sitting in the active backlog.
 
 After any close, live issue folders must not still hold terminal notes.
 
@@ -69,7 +69,7 @@ The maintainer invokes `/triage` and describes what they want. Interpret the req
 
 ## Show what needs attention
 
-Scan `.draconic/inbox/issues/` and any matching notes in `closed/` you need for history. Read each note's frontmatter and present three buckets, oldest first (by `created_at`):
+Scan `.heio/inbox/issues/` and any matching notes in `closed/` you need for history. Read each note's frontmatter and present three buckets, oldest first (by `created_at`):
 
 1. **Untriaged.** `status: open` with no state tag.
 2. **`needs-triage`.** Evaluation in progress.
@@ -93,10 +93,10 @@ Show counts and a one-line summary per issue. Let the maintainer pick.
    - `ready-for-agent`. Append an agent brief under `## Agent Brief` ([AGENT-BRIEF.md](AGENT-BRIEF.md)).
    - `ready-for-human`. Same structure as an agent brief, but note why it can't be delegated (judgment calls, external access, design decisions, manual testing).
    - `needs-info`. Append triage notes (template below) under `## Comments`.
-   - `wontfix` (already implemented). Append a `## Comments` note pointing at where the feature already lives (module or package, and the concept name it goes by), set `status: wontfix`, then move the note to `.draconic/closed/`. Do not write a rejection note. That record is for rejected requests, and a built feature recorded there would poison the dedup check.
-   - `wontfix` (bug). Append a polite explanation under `## Comments`, set `status: wontfix`, then move the note to `.draconic/closed/`.
-   - `wontfix` (enhancement). Write a durable rejection note through **docs**, `[[wikilink]]` it from a `## Comments` note, set `status: wontfix`, then move the note to `.draconic/closed/` ([OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)).
-   - `closed` (fixed during triage, or the work landed). Append what was found and done under `## Comments`, set `status: closed`, then move the note to `.draconic/closed/`.
+   - `wontfix` (already implemented). Append a `## Comments` note pointing at where the feature already lives (module or package, and the concept name it goes by), set `status: wontfix`, then move the note to `.heio/closed/`. Do not write a rejection note. That record is for rejected requests, and a built feature recorded there would poison the dedup check.
+   - `wontfix` (bug). Append a polite explanation under `## Comments`, set `status: wontfix`, then move the note to `.heio/closed/`.
+   - `wontfix` (enhancement). Write a durable rejection note through **docs**, `[[wikilink]]` it from a `## Comments` note, set `status: wontfix`, then move the note to `.heio/closed/` ([OUT-OF-SCOPE.md](OUT-OF-SCOPE.md)).
+   - `closed` (fixed during triage, or the work landed). Append what was found and done under `## Comments`, set `status: closed`, then move the note to `.heio/closed/`.
    - `needs-triage`. Set the tag. Optional `## Comments` note if there's partial progress.
 
 ## Quick state override

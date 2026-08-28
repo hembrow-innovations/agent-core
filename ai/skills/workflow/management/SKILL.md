@@ -1,11 +1,11 @@
 ---
 name: management
-description: How to find, read, and write local project management under `.draconic/`. Working inbox, issues, plans, tasks, journal, and reports. Gitignored. `docs/` stays the committed source of truth. Use whenever you look for project work, add an issue, plan, or task, close a note, or write a journal or report.
+description: How to find, read, and write local project management under `.heio/`. Working inbox, issues, plans, tasks, journal, and reports. Gitignored. `docs/` stays the committed source of truth. Use whenever you look for project work, add an issue, plan, or task, close a note, or write a journal or report.
 ---
 
 # Management. Local working files
 
-`.draconic/` is the local working tree for project management. It holds inbox notes, issues, plans, tasks, the daily journal, and one-off reports. Git ignores the folder. `docs/` is the committed source of truth.
+`.heio/` is the local working tree for project management. It holds inbox notes, issues, plans, tasks, the daily journal, and one-off reports. Git ignores the folder. `docs/` is the committed source of truth.
 
 There is no GitHub Issues tracker in this convention. Live work lives here.
 Durable knowledge that should survive a clone is written into `docs/`. Load the **docs** skill for that tree.
@@ -16,7 +16,7 @@ If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, `docs/pla
 
 ## Before writing (always)
 
-1. Search `.draconic/` first. Update in place over near-dupes.
+1. Search `.heio/` first. Update in place over near-dupes.
 2. Pick the kind. Copy the matching file from `templates/`.
 3. Place and name per `layout-folder` and the template convention.
 4. Leave reserved root files alone (`TODO.md`, `decisions.tsv`, `worktrees/`, `sessions/`).
@@ -25,11 +25,11 @@ Full steps: `rules/write-before.md`.
 
 ## When to apply
 
-- Finding or reading working notes under `.draconic/`
+- Finding or reading working notes under `.heio/`
 - Adding or updating an issue, plan, task, journal day, or report
 - Closing work and moving it out of the live folders
 - Choosing a path, filename, frontmatter field, or status
-- Deciding whether a note belongs in `.draconic/` or `docs/`
+- Deciding whether a note belongs in `.heio/` or `docs/`
 
 ## Prefer / careful / do not
 
@@ -49,9 +49,9 @@ Full steps: `rules/write-before.md`.
 
 ### Do not
 
-- Commit `.draconic/`
-- Treat `.draconic/` as the project's second brain
-- Invent a folder under `.draconic/` that `layout-folder` does not name
+- Commit `.heio/`
+- Treat `.heio/` as the project's second brain
+- Invent a folder under `.heio/` that `layout-folder` does not name
 - Open a GitHub Issue for work this tree already tracks
 - Use relative `.md` paths between notes (use `[[wikilinks]]` on the `id`)
 - Move `TODO.md`, `decisions.tsv`, `worktrees/`, or `sessions/` into inbox, planning, or logs
@@ -89,7 +89,7 @@ Full steps: `rules/write-before.md`.
 
 ### 6. Docs boundary (HIGH)
 
-- `docs-boundary` - `docs/` is truth. `.draconic/` is local working files
+- `docs-boundary` - `docs/` is truth. `.heio/` is local working files
 
 ## How to use
 

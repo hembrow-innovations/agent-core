@@ -56,18 +56,18 @@ Product code lives under `packages/`. Folder names stay unscoped. Package names 
 
 The folders are:
 
-- `packages/draconic-todo` is `@agentic-core/draconic-todo`.
-- `packages/draconic-coms` is `@agentic-core/draconic-coms`.
-- `packages/draconic-boot` is `@agentic-core/draconic-boot`.
-- `packages/draconic-teams` is `@agentic-core/draconic-teams`.
-- `packages/draconic-footer` is `@agentic-core/draconic-footer`.
+- `packages/heio-todo` is `@agentic-core/heio-todo`.
+- `packages/heio-coms` is `@agentic-core/heio-coms`.
+- `packages/heio-boot` is `@agentic-core/heio-boot`.
+- `packages/heio-teams` is `@agentic-core/heio-teams`.
+- `packages/heio-footer` is `@agentic-core/heio-footer`.
 - `packages/installer` is the install CLI.
 
-Protocol code lives inside the coms package. `draconic-coms-protocol` is not a product extension. See [[architecture-draconic-coms]].
+Protocol code lives inside the coms package. `heio-coms-protocol` is not a product extension. See [[architecture-heio-coms]].
 
-Session checklist persistence lives in the todo package. There is no `packages/lib`. See [[architecture-draconic-todo]].
+Session checklist persistence lives in the todo package. There is no `packages/lib`. See [[architecture-heio-todo]].
 
-The TUI paints one footer line from the footer package. See [[architecture-draconic-footer]].
+The TUI paints one footer line from the footer package. See [[architecture-heio-footer]].
 
 There is no npm publish. There is no git package source.
 
@@ -115,7 +115,7 @@ walkSkillDirs(skillsRoot, (dir) => {
 
 ```bash
 pnpm exec agentic-core install <target> --profile agentic-core
-pnpm exec agentic-core install <target> --extension draconic-todo
+pnpm exec agentic-core install <target> --extension heio-todo
 ```
 
 `--extension` can repeat. Dest is always `.pi/`.

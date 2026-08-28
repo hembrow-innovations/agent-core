@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const REPO = fileURLToPath(new URL("../..", import.meta.url));
 const INSTALLER = join(REPO, "packages", "installer", "src", "cli.ts");
-const FULL_READ = /Read `\.pi\/skills\/draconic-mode\/SKILL\.md` in full/;
+const FULL_READ = /Read `\.pi\/skills\/heio-mode\/SKILL\.md` in full/;
 
 test("cold start dest ships the opt-in agent file", () => {
   const dest = mkdtempSync(join(tmpdir(), "agent-system-cold-"));
@@ -18,10 +18,10 @@ test("cold start dest ships the opt-in agent file", () => {
     { encoding: "utf8" },
   );
   assert.equal(r.status, 0, r.stderr || r.stdout);
-  const destAgent = join(dest, ".pi", "agents", "draconic.md");
+  const destAgent = join(dest, ".pi", "agents", "heio.md");
   assert.equal(existsSync(destAgent), true);
   const destText = readFileSync(destAgent, "utf8");
-  assert.match(destText, /^name: draconic$/m);
+  assert.match(destText, /^name: heio$/m);
   assert.doesNotMatch(destText, /^tools:/m);
   for (const stem of [
     "architect",
@@ -49,21 +49,21 @@ test("cold start dest ships the opt-in agent file", () => {
   }
   assert.equal(existsSync(join(dest, ".pi", "roles")), false);
   const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
-  assert.doesNotMatch(append, /running draconic-mode on Pi/);
+  assert.doesNotMatch(append, /running heio-mode on Pi/);
   assert.doesNotMatch(append, FULL_READ);
 });
 
-test("pack append and agent files do not dump dest draconic-mode", () => {
+test("pack append and agent files do not dump dest heio-mode", () => {
   const append = readFileSync(
     join(REPO, "ai", "pi", "APPEND_SYSTEM.md"),
     "utf8",
   );
   const agent = readFileSync(
-    join(REPO, "ai", "agents", "draconic", "draconic.md"),
+    join(REPO, "ai", "agents", "heio", "heio.md"),
     "utf8",
   );
   for (const text of [append, agent]) {
     assert.doesNotMatch(text, FULL_READ);
-    assert.doesNotMatch(text, /running draconic-mode on Pi/);
+    assert.doesNotMatch(text, /running heio-mode on Pi/);
   }
 });

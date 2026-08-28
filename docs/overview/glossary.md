@@ -28,10 +28,10 @@ _Avoid_: live path
 A named install set in `profiles/`. Selected with `--profile`. Skills, agents, prompts, packages, and optional settings. Dest is always `.pi/`. Schema: [[schema-profile]].
 
 **Workspace package**:
-A TypeScript package under `packages/`. Folders are `draconic-todo`, `draconic-coms`, `draconic-boot`, `draconic-teams`, `draconic-footer`, and `installer`.
+A TypeScript package under `packages/`. Folders are `heio-todo`, `heio-coms`, `heio-boot`, `heio-teams`, `heio-footer`, and `installer`.
 
 **First-party extension**:
-A product extension among the workspace packages. The five are `@agentic-core/draconic-todo`, `@agentic-core/draconic-coms`, `@agentic-core/draconic-boot`, `@agentic-core/draconic-teams`, and `@agentic-core/draconic-footer`.
+A product extension among the workspace packages. The five are `@agentic-core/heio-todo`, `@agentic-core/heio-coms`, `@agentic-core/heio-boot`, `@agentic-core/heio-teams`, and `@agentic-core/heio-footer`.
 _Avoid_: loose extension file
 
 **Local first-party copy**:
@@ -45,15 +45,15 @@ _Avoid_: curl install
 The gitignored `.pi/` dest in this repo. It is not auto-wired to `packages/`.
 
 **Coms**:
-The living-session mailbox in `@agentic-core/draconic-coms`. Bind, stamp, send, get, await. Architecture: [[architecture-draconic-coms]].
+The living-session mailbox in `@agentic-core/heio-coms`. Bind, stamp, send, get, await. Architecture: [[architecture-heio-coms]].
 _Avoid_: second mailbox, PI_* project flags
 
 **Session checklist**:
-The per-session file at `.draconic/sessions/<sessionId>/TODO.md`. `draconic_todo` writes it. The stub `.draconic/TODO.md` is not the live list. Architecture: [[architecture-draconic-todo]].
-_Avoid_: playbook checklist in `.draconic/TODO.md`
+The per-session file at `.heio/sessions/<sessionId>/TODO.md`. `heio_todo` writes it. The stub `.heio/TODO.md` is not the live list. Architecture: [[architecture-heio-todo]].
+_Avoid_: playbook checklist in `.heio/TODO.md`
 
 **TUI footer**:
-The one-line status `draconic-footer` paints in TUI mode. Architecture: [[architecture-draconic-footer]].
+The one-line status `heio-footer` paints in TUI mode. Architecture: [[architecture-heio-footer]].
 _Avoid_: default Pi footer
 
 ## Agent identity
@@ -64,7 +64,7 @@ _Avoid_: persona, preset, OpenCode agent, role
 
 **Primary switch**:
 The process-local control that appends one agent definition to the Pi system prompt. A new process attaches nothing. The last pick does not persist.
-_Avoid_: /draconic-mode, APPEND_SYSTEM, sticky primary, default agent
+_Avoid_: /heio-mode, APPEND_SYSTEM, sticky primary, default agent
 
 **Opt-in agent**:
 A dest `.pi/agents/` file boot appends only after `/agent` or `--agent`.
@@ -83,7 +83,7 @@ The unique seat name on `--cname`. `builder-1` and `builder-2` are two instances
 _Avoid_: agent, identity, role
 
 **Member record**:
-The on-disk folder `.draconic/teams/<team>/roster/<cname>/`. Identity, work log, handoff, optional notes.
+The on-disk folder `.heio/teams/<team>/roster/<cname>/`. Identity, work log, handoff, optional notes.
 _Avoid_: session file, agent definition
 
 **Handoff**:

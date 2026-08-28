@@ -81,7 +81,7 @@ if (existsSync(piRoot)) {
   const names = new Set(readdirSync(piRoot).filter((n) => !n.startsWith(".")));
   const allowed = new Set([
     "APPEND_SYSTEM.md",
-    "draconic-models.md",
+    "heio-models.md",
     "prompts",
     "packages.json",
     "settings.json",
@@ -94,7 +94,7 @@ if (existsSync(piRoot)) {
   const extra = [...names].filter((n) => !allowed.has(n)).sort();
   if (extra.length) errors.push(`ai/pi/ unexpected ${extra.join(", ")}`);
   for (const rel of [
-    "ai/agents/draconic/draconic.md",
+    "ai/agents/heio/heio.md",
     "ai/agents/architect/architect.md",
     "ai/agents/spec/spec.md",
     "ai/agents/planner/planner.md",
@@ -142,22 +142,22 @@ try {
     console.error(r.stderr);
     process.exit(1);
   }
-  const setupSkill = join(dest, ".pi", "skills", "setup-draconic", "SKILL.md");
+  const setupSkill = join(dest, ".pi", "skills", "setup-heio", "SKILL.md");
   if (!existsSync(setupSkill)) {
-    console.error("agentic-core install did not copy setup-draconic");
+    console.error("agentic-core install did not copy setup-heio");
     process.exit(1);
   }
   if (existsSync(join(dest, ".pi", "playbooks"))) {
     console.error("agentic-core install still copied .pi/playbooks");
     process.exit(1);
   }
-  if (existsSync(join(dest, ".pi", "skills", "draconic-mode"))) {
-    console.error("agentic-core install still copied draconic-mode");
+  if (existsSync(join(dest, ".pi", "skills", "heio-mode"))) {
+    console.error("agentic-core install still copied heio-mode");
     process.exit(1);
   }
   for (const extra of [".opencode", ".claude", ".agents"]) {
     if (existsSync(join(dest, extra))) {
-      console.error(`draconic install wrote ${extra}`);
+      console.error(`agentic-core install wrote ${extra}`);
       process.exit(1);
     }
   }

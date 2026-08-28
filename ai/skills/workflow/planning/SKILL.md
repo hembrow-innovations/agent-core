@@ -1,6 +1,6 @@
 ---
 name: planning
-description: Interview the user on a design tree. Use when the user wants to plan or stress-test their thinking in a project that uses the management and docs skills. Working notes stay under .draconic/. Durable outcomes go in docs/.
+description: Interview the user on a design tree. Use when the user wants to plan or stress-test their thinking in a project that uses the management and docs skills. Working notes stay under .heio/. Durable outcomes go in docs/.
 ---
 
 # Planning with local management
@@ -11,7 +11,7 @@ Do not build. Do not open a GitHub Issue. Do not write the interview into `docs/
 
 ## Store
 
-Load **management** before any write under `.draconic/`. Load **docs** before any write under `docs/`. Load **domain-modeling** when a term or ADR belongs in the vault.
+Load **management** before any write under `.heio/`. Load **docs** before any write under `docs/`. Load **domain-modeling** when a term or ADR belongs in the vault.
 
 If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, GitHub Issues, `docs/planning/`), that file wins. Do not start a second tree.
 
@@ -41,7 +41,7 @@ Stop. Do not act until the user confirms a shared understanding.
 
 Then persist only what should outlive the chat.
 
-- In-flight work. Load **management**. Copy the plan template into `.draconic/planning/plans/`. Status `draft` until you are ready to split tasks.
+- In-flight work. Load **management**. Copy the plan template into `.heio/planning/plans/`. Status `draft` until you are ready to split tasks.
 - Durable knowledge. Load **docs**. Write an ADR, spec, architecture note, or guide. Do not copy the interview or the plan into `docs/` as a plan.
 
 If the conversation will not fit in one sitting, stop and load **planning-with-docs** or **wayfinder**.

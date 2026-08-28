@@ -17,6 +17,14 @@ export const SETTINGS_PATH = ".pi/settings.json";
 export const GITIGNORE_PATH = ".pi/.gitignore";
 export const GITIGNORE_BODY = "npm/\ngit/\n";
 
+const PREVIOUS_FIRST_PARTY = [
+  "draconic-todo",
+  "draconic-coms",
+  "draconic-boot",
+  "draconic-teams",
+  "draconic-footer",
+] as const;
+
 export type DestEntry = {
   name: string;
   isFile: boolean;
@@ -108,6 +116,14 @@ export function openDestination(target: string): Destination {
     remove(".pi/lib");
     remove(".pi/roles");
     remove(".pi/vendor/@agentic-core");
+    remove(".pi/draconic-models.md");
+    remove(".pi/agents/draconic.md");
+    remove(".pi/skills/draconic-mode");
+    remove(".pi/skills/setup-draconic");
+    for (const name of PREVIOUS_FIRST_PARTY) {
+      remove(`.pi/npm/node_modules/@agentic-core/${name}`);
+    }
+    dropPreviousFirstPartySettings(path(SETTINGS_PATH));
   };
 
   return {
@@ -133,6 +149,35 @@ export function packageSource(entry: unknown): string | null {
   if (typeof entry === "string") return entry;
   if (isRecord(entry) && typeof entry.source === "string") return entry.source;
   return null;
+}
+
+function isPreviousFirstPartySource(source: string): boolean {
+  const canon = canonicalizePackageSource(source);
+  return PREVIOUS_FIRST_PARTY.some(
+    (name) =>
+      canon === `npm/node_modules/@agentic-core/${name}` ||
+      canon.endsWith(`/@agentic-core/${name}`) ||
+      canon.includes(`@agentic-core/${name}/`),
+  );
+}
+
+function dropPreviousFirstPartySettings(settingsPath: string): void {
+  if (!existsSync(settingsPath)) return;
+  let raw: unknown;
+  try {
+    raw = JSON.parse(readFileSync(settingsPath, "utf8"));
+  } catch {
+    throw new Error(".pi/settings.json must be valid JSON");
+  }
+  if (!isRecord(raw) || !Array.isArray(raw.packages)) return;
+  const next = raw.packages.filter((item) => {
+    const source = packageSource(item);
+    if (!source) return true;
+    return !isPreviousFirstPartySource(source);
+  });
+  if (JSON.stringify(raw.packages) === JSON.stringify(next)) return;
+  raw.packages = next;
+  writeFileSync(settingsPath, `${JSON.stringify(raw, null, 2)}\n`, "utf8");
 }
 
 export function mergePiSettingsPackages(

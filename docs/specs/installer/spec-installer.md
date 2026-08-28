@@ -96,7 +96,7 @@ Unknown agent or prompt ids fail in `resolveNamedIds` when the plan is built. In
 
 Selected skills copy from `ai/skills/` to `.pi/skills/<name>/`. `findSkillDir` walks with `walkSkillDirs`. A missing name fails with `Skill not found in source`. Overlay agents write `.pi/agents/<id>.md`. Overlay prompts write `.pi/prompts/<id>.md`. Each overlay updates listed ids. Extra dest markdown of that kind stays. Extra dest skill dirs, extra dest playbooks, and extra settings keys stay. Install does not write `.pi/playbooks/`.
 
-Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md` and `ai/pi/draconic-models.md`. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, `.pi/roles`, and installer-owned `.pi/vendor/@agentic-core`. Other dest extras stay. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. It writes `.pi/draconic-models.md` only when missing. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing.
+Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md` and `ai/pi/heio-models.md`. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, `.pi/roles`, and installer-owned `.pi/vendor/@agentic-core`. Other dest extras stay. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. It writes `.pi/heio-models.md` only when missing. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing.
 
 `ai/pi/packages.json` is not merged on install.
 
@@ -116,7 +116,7 @@ copyTsSources(join(srcPkg, "src"), dest, join(destRel, "src"));
 
 `copyTsSources` copies `.ts` files and skips `*.test.ts`. Re-run deletes the dest folder first, so leftover files go away.
 
-The package `@agentic-core/draconic-todo` lands at `.pi/npm/node_modules/@agentic-core/draconic-todo`. The same shape holds for `draconic-coms`, `draconic-boot`, `draconic-teams`, and `draconic-footer`.
+The package `@agentic-core/heio-todo` lands at `.pi/npm/node_modules/@agentic-core/heio-todo`. The same shape holds for `heio-coms`, `heio-boot`, `heio-teams`, and `heio-footer`.
 
 `dest.mergePackages` writes `.pi/settings.json`. Sources are dest-relative. `canonicalizePackageSource` rewrites `vendor/@agentic-core/<name>` and `.pi/vendor/@agentic-core/<name>` to `npm/node_modules/@agentic-core/<name>`. Leftover vendor settings drop when that npm path is present. No path back to this checkout.
 
