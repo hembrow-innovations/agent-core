@@ -16,7 +16,7 @@ Load **principals**. Pick the rule ids this plan needs and read those `rules/<id
 
 ## 2. Scope and constraints
 
-State your read of scope and constraints in one paragraph. Use `AskQuestion` only for genuinely ambiguous intent (the **never-block-on-the-human** principle skill); give concrete options with each open question.
+State your read of scope and constraints in one paragraph. Ask in prose only for genuinely ambiguous product or preference intent (the **never-block-on-the-human** principle skill); give concrete options with each open question.
 
 Resolve what is in scope vs explicitly out, technical or platform constraints, patterns to preserve, and the definition of done.
 
@@ -24,8 +24,8 @@ Resolve what is in scope vs explicitly out, technical or platform constraints, p
 
 Delegate codebase exploration (the **guard-the-context-window** principle skill).
 
-- Prefer `subagent_type: "heio-agent"`. `generalPurpose` is the fallback. Never use the built-in `plan` subagent_type; it ignores this skill.
-- Pass `model:` explicitly per the configured roles (defaults `grok-4.6-fast-xhigh` for code, `claude-fable-5-thinking-max` for judgment).
+- Prefer a read-only `subagent` (`scout` or `reviewer`). Never spawn a planner child that ignores this skill.
+- Pass `model` from `.pi/heio-models.md` when a role has a real slug. Omit it for inherit-parent. Defaults when present: `grok-4.6-fast-xhigh` for code, `claude-fable-5-thinking-max` for judgment.
 
 Each explorer returns file pointers, conventions, dependencies, test infrastructure, and entry points. No inlined dumps.
 
@@ -73,7 +73,7 @@ Order phases so infrastructure and shared types land first (the **foundational-t
 
 For changes touching existing code, apply the **redesign-from-first-principles** principle skill: if we'd built this with the new requirement on day one, what would it look like? Redesign holistically; deliver incrementally.
 
-If a phase creates or edits a skill, the phase instructs the implementer to use the **create-skill** skill (Cursor's built-in for authoring SKILL.md files).
+If a phase creates or edits a skill, the phase instructs the implementer to use this pack's **create-skill** skill (`ai/skills/engineering/create-skill`).
 
 ## 5. Verification per phase
 
@@ -81,12 +81,12 @@ Each phase needs both:
 
 **Static.** Type check, lint, project tests pass.
 
-**Runtime.** Exercise the feature on the matching surface via the relevant control skill:
+**Runtime.** Exercise the feature on the matching surface via the project `verify-*` skill:
 
-- Browser / Electron / Web UIs: the `control-ui` skill from the `cursor-team-kit` plugin.
-- CLIs and TUIs: the `control-cli` skill from the `cursor-team-kit` plugin.
+- Browser / Electron / Web UIs: the project's `verify-*` skill.
+- CLIs and TUIs: the project's `verify-*` skill.
 - Native mobile: whatever simulator-driving skill your team has.
-- No control skill for the touched surface: flag it in the plan.
+- No `verify-*` skill for the touched surface: flag it in the plan.
 
 For bug fixes, the loop is reproduce on the surface, fix, verify on the same surface. Unit tests show a branch behaves a certain way; they do not prove the bug is gone (the **prove-it-works** principle skill).
 
@@ -95,9 +95,9 @@ For bug fixes, the loop is reproduce on the surface, fix, verify on the same sur
 In the overview, name which heio-mode non-negotiables the implementer must apply, by name:
 
 - the **how** skill over each unfamiliar subsystem before changing it.
-- `/deslop` over each diff before commit. the **unslop** skill over any prose surface.
+- the **unslop** skill over each diff before commit, and over any prose surface.
 - a `.heio/decisions.tsv` trail when the plan is large enough to need an auditable record.
-- Cursor's built-in **babysit** skill after opening the PR.
+- the **Babysit** playbook (`playbooks/babysit.md`) after opening the PR.
 
 ## 7. Hand back
 

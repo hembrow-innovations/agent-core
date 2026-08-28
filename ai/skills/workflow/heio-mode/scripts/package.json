@@ -1,5 +1,5 @@
 {
-  "name": "@cursor-skill/heio-mode-tools",
+  "name": "heio-mode-tools",
   "private": true,
   "type": "module",
   "scripts": {

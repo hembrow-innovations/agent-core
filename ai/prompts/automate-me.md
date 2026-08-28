@@ -7,13 +7,13 @@ argument-hint: "[update|fresh]"
 
 A guided flow for turning the user's working conventions into a skill agents will follow. The output is one `-mode` skill tailored to them (e.g. `jay-mode`, `priya-mode`).
 
-This prompt orchestrates three others: an inline mining pass (see step 1), Cursor's built-in `create-skill` (authoring), and the **unslop** skill (prose discipline). It sequences them; it doesn't replace them.
+This prompt orchestrates three others: an inline mining pass (see step 1), this pack skill `ai/skills/engineering/create-skill` (authoring), and the **unslop** skill (prose discipline). It sequences them; it doesn't replace them.
 
 ## Flow
 
 ### 0. Check for an existing skill
 
-Look recursively for `.pi/skills/**/*-mode/SKILL.md` and `~/.pi/skills/*-mode/SKILL.md` matching the user's handle. Mode skills can live in a personal category directory (`.pi/skills/<handle>/`), not only at the top level. If one exists, confirm intent with `AskQuestion` (unless they already said "update my skill" or similar):
+Look recursively for `.pi/skills/**/*-mode/SKILL.md` and `~/.pi/skills/*-mode/SKILL.md` matching the user's handle. Mode skills can live in a personal category directory (`.pi/skills/<handle>/`), not only at the top level. If one exists, ask in prose (unless they already said "update my skill" or similar). Ask only for product or preference:
 
 - Update the existing skill (default for repeat runs)
 - Start fresh (rare; ask why before doing it)
@@ -26,7 +26,7 @@ Update mode changes the rest of the flow:
 
 ### 1. Mine their history
 
-Locate the active workspace's transcripts before fanning out. The system prompt names the workspace's `agent-transcripts/` directory. Use only that path. Don't glob across `~/.cursor/projects/*/`. That crosses workspace boundaries and reads private chats from unrelated projects.
+Locate the active workspace's transcripts before fanning out. Use `~/.pi/agent/sessions/` for this cwd, or `PI_SESSION_FILE`. Do not glob other projects. That crosses workspace boundaries and reads private chats from unrelated projects.
 
 Survey recent agent conversations within that scope for recurring patterns. Run multiple parallel subagents across slices of history (e.g. last 2-4 weeks, split into 3 slices so each has enough material). Each slice mining subagent reads transcripts from the workspace-scoped path the parent provides, looks for the signals below, and returns a short structured list of patterns it saw with evidence pointers. Default signals worth hunting:
 
@@ -41,9 +41,9 @@ Cross-check across slices before elevating a signal. Patterns seen in 2+ slices 
 
 ### 2. Ask the user directly
 
-Mining misses intent that hasn't come up yet. Use the `AskQuestion` tool (structured multi-choice) rather than asking the user to type from scratch. Lower cognitive load, higher hit rate.
+Mining misses intent that hasn't come up yet. Ask in prose rather than asking the user to type from scratch. Lower cognitive load, higher hit rate. Ask only for product or preference.
 
-Shape: one or two questions with 4-6 options each, `allow_multiple: true` for category questions. Start broad ("Which areas matter most?"), then follow up on selected areas with specific options. After the structured rounds, one free-form chat question catches anything the options missed.
+Shape: one or two questions with 4-6 options each. Start broad ("Which areas matter most?"), then follow up on selected areas with specific options. After those rounds, one free-form question catches anything the options missed.
 
 Don't dump 20 questions. Two structured rounds plus one open question is usually enough.
 
@@ -64,7 +64,7 @@ The **heio-mode** skill shows the shape. Read it for granularity. Don't copy its
 
 ### 4. Draft the skill
 
-Use Cursor's built-in `create-skill` skill to author the skill. Placement:
+Use this pack skill `ai/skills/engineering/create-skill` to author the skill. Placement:
 
 - Path: preserve an existing mode skill's category. For a new mode, use `.pi/skills/<handle>/<handle>-mode/SKILL.md` when the repo has an established personal category for that handle; otherwise default to `.pi/skills/<handle>-mode/SKILL.md` in the project (or `~/.pi/skills/<handle>-mode/` if the user prefers a personal skill).
 - Handle: the user's first name or chosen identifier.
@@ -106,6 +106,6 @@ Run a description-optimization loop only if the skill's trigger accuracy turns o
 
 - The **heio-mode** skill: example of the output shape.
 - The **unslop** skill: prose discipline for every line.
-- Cursor's built-in `create-skill` skill: skill authoring process and writing guidelines.
+- This pack skill `ai/skills/engineering/create-skill`: skill authoring process and writing guidelines.
 
 $ARGUMENTS

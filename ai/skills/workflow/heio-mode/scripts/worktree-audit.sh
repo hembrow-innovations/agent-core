@@ -25,10 +25,10 @@ prs=$(mktemp)
 gh pr list --author "@me" --state all --limit 1000 \
 	--json number,state,headRefName 2>/dev/null >"$prs" || echo "[]" >"$prs"
 
-# Transcripts: OpenCode sessions for this repo, plus local spawn sessions.
+# Transcripts: local spawn sessions first, then Pi sessions for this cwd.
 transcripts="$repo/.heio/sessions"
 if [ ! -d "$transcripts" ]; then
-	transcripts="${OPENCODE_SESSION_DIR:-$HOME/.local/share/opencode}"
+	transcripts="$HOME/.pi/agent/sessions"
 fi
 now=$(date +%s)
 

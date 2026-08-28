@@ -1,11 +1,11 @@
 ---
 title: Pause safely
-when: "Suspending in-flight work cleanly so it can be resumed, on an explicit pause, going offline, a Cursor restart, or imminent context compaction. The complement to Session pickup. Full steps: `playbooks/pause-safely.md`."
+when: "Suspending in-flight work cleanly so it can be resumed, on an explicit pause, going offline, a Pi or session restart, or imminent context compaction. The complement to Session pickup. Full steps: `playbooks/pause-safely.md`."
 ---
 
 ### Pause safely
 
-**You own a clean stop. Leave a checkpoint a cold-start agent can resume from.** For "pause safely", "I need to go offline", "restart Cursor", or "board my flight", and when context is about to compact or summarize. This is explicit only. On "keep going", "going to bed, keep going", or "don't stop", do not pause. Those mean continue, and Autonomous run already checkpoints per iteration.
+**You own a clean stop. Leave a checkpoint a cold-start agent can resume from.** For "pause safely", "I need to go offline", "restart Pi", "restart this session", or "board my flight", and when context is about to compact or summarize. This is explicit only. On "keep going", "going to bed, keep going", or "don't stop", do not pause. Those mean continue, and Autonomous run already checkpoints per iteration.
 
 1. Stop at a safe boundary. Finish the current atomic step or back out of it. Never stop mid-edit in a known-broken state. Start nothing new, and cancel any nested subagents.
 2. Don't cross an irreversible line to pause. No PR and no push unless you already had one out.

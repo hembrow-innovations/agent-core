@@ -5,7 +5,7 @@ when: "A long task to drive to completion without stopping (\"run until done\", 
 
 ### Autonomous run
 
-**You own the exit condition. Define done, then drive to it without stopping.** For "going to bed" / "run until done" / "/loop until X".
+**You own the exit condition. Define done, then drive to it without stopping.** For "going to bed" / "run until done" / "/loop until X". Stay in this session or poll with bash; there is no Cursor `/loop` command.
 
 1. State the exit condition as a checkable predicate before the first iteration (tests green, repro fixed, all N PRs merged, pixel-diff zero). A vague goal stalls; a predicate lets you stop.
 2. Pick the wake mechanism. Stay in this session or poll with bash. An event to watch (CI, a merge, a ref advancing) gets a watcher subagent that wakes you on the event, with a long time-based heartbeat as fallback. No event gets a fixed-interval heartbeat sized to when the result is worth re-checking.

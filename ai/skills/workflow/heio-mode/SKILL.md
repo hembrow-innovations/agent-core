@@ -45,10 +45,10 @@ Load **principals**. Read its router, pick 1-N rule ids for this task, and `Read
 
 ## Delegates
 
-Use the Task tool for playbook delegates, arena arms, swarm workers, and how/why explorers.
+Use `subagent` for playbook delegates, arena arms, swarm workers, and how/why explorers.
 
-- Writing children: `subagent_type: "heio-agent"`. Pass a standalone prompt with file paths, success criteria, and the prove-it-works bar.
-- Read-only reviews: `subagent_type: "explore"`.
+- Writing children: agent `worker` with `worktree` true. Pass a standalone prompt with file paths, success criteria, and the prove-it-works bar.
+- Read-only reviews: `scout` or `reviewer`.
 - Isolate writes in a git worktree under `.heio/worktrees/` when the child should not touch the main tree.
 - Pass `model` from `.pi/heio-models.md` when a role has a real slug. Omit it for inherit-parent.
 
@@ -91,12 +91,12 @@ A large or cross-cutting effort (a migration across many call sites, an ambitiou
 - **Multi-phase or multi-PR plan.** Work that spans phases or stacked PRs. `playbooks/multi-phase-plan.md`.
 - **Opening a PR.** Invoked at the end of every other playbook. `playbooks/opening-a-pr.md`.
 - **Orchestrate.** A standing project handed to one coordinator chat: multi-day, many stacked PRs, dozens to hundreds of subagents, minimal human turns ("run this whole project", "own this migration until it lands"). Distinct from Autonomous run, which drives one task to a predicate; work one agent could finish inside the session's budget routes there, not here, however program-shaped the phrasing sounds. `playbooks/orchestrate.md`.
-- **Pause safely.** Suspending in-flight work cleanly so it can be resumed, on an explicit pause, going offline, a Cursor restart, or imminent context compaction. The complement to Session pickup. Full steps: `playbooks/pause-safely.md`. `playbooks/pause-safely.md`.
+- **Pause safely.** Suspending in-flight work cleanly so it can be resumed, on an explicit pause, going offline, a Pi or session restart, or imminent context compaction. The complement to Session pickup. Full steps: `playbooks/pause-safely.md`.
 - **Perf issue.** A measured slowness to trace and improve against a baseline. `playbooks/perf-issue.md`.
 - **Prototype.** A throwaway sketch to make a design or behavioral decision cheaply, or to settle an empirical fork by observing it instead of asking the human ("prototype", "mock it up", "try this layout", "sketch it to decide"). `playbooks/prototype.md`.
 - **Refactoring.** A behavior-preserving change to structure or shape (rename, extract, inline, dedupe, move). `playbooks/refactoring.md`.
 - **Runtime forensics.** Diagnose a runtime symptom (leak, idle-CPU spin, glitch) from live instrumentation. The deliverable is a diagnosis, not a fix. `playbooks/runtime-forensics.md`.
-- **Session pickup.** Resuming or taking over a prior agent's in-flight work from a transcript, cloud-agent URL, or pushed branch. `playbooks/session-pickup.md`.
+- **Session pickup.** Resuming or taking over a prior agent's in-flight work from a transcript, session file, or pushed branch. `playbooks/session-pickup.md`.
 - **Shipping.** The half after Babysit. Independently verifying a green stack, then landing the contiguous verified run with Graphite merge-when-ready. `playbooks/shipping.md`.
 - **Trace forensics.** Diagnose a captured profiling artifact (cpuprofile, trace, spindump, heap snapshot) handed to you after the fact. The deliverable is a diagnosis, not a fix. `playbooks/trace-forensics.md`.
 - **Visual parity.** Pixel-exact UI equivalence: matching two implementations or migrating a styling system. `playbooks/visual-parity.md`.

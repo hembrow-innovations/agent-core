@@ -24,7 +24,7 @@ If the argument is empty, ask once for the pack to build. Then decide from the r
 - **Name.** kebab-case, matches the folder
 - **Kind.** many independent rules (pack) vs ordered steps (playbook). A playbook stays a normal `SKILL.md` or a command. Stop and say so.
 - **Invocation.** model-invoked when the agent should reach it mid-task; user-invoked only if it never fires except by name
-- **Dest.** this pack: `ai/skills/<category>/<name>/`. Never edit `.pi/` or `.opencode/` copies here. A consuming project: that harness's skill dest (`.pi/skills/<name>/`, `.opencode/skills/<name>/`, `.claude/skills/<name>/`, `.agents/skills/<name>/`). Categories in this pack: `data`, `engineering`, `gamedev`, `principals`, `setup`, `testing`, `ui`, `workflow`
+- **Dest.** this pack: `ai/skills/<category>/<name>/`. Never edit `.pi/` copies here. A consuming project: `.pi/skills/<name>/` only. Categories in this pack: `data`, `engineering`, `gamedev`, `principals`, `setup`, `testing`, `ui`, `workflow`
 - **Stack.** what this repo already uses, and what not to introduce
 
 **Done when** name, dest path, invocation, and "this is a pack" are decided. Stop if it is not a pack.
