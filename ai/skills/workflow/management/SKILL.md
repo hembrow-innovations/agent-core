@@ -19,7 +19,7 @@ If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, `docs/pla
 1. Search `.heio/` first. Update in place over near-dupes.
 2. Pick the kind. Copy the matching file from `templates/`.
 3. Place and name per `layout-folder` and the template convention.
-4. Leave reserved root files alone (`TODO.md`, `decisions.tsv`, `worktrees/`, `sessions/`, `teams/`).
+4. Leave reserved root files alone (`TODO.md`, `decisions.tsv`, `oracles.md`, `worktrees/`, `sessions/`, `teams/`).
 
 Full steps: `rules/write-before.md`.
 
@@ -54,7 +54,7 @@ Full steps: `rules/write-before.md`.
 - Invent a folder under `.heio/` that `layout-folder` does not name
 - Open a GitHub Issue for work this tree already tracks
 - Use relative `.md` paths between notes (use `[[wikilinks]]` on the `id`)
-- Move `TODO.md`, `decisions.tsv`, `worktrees/`, `sessions/`, or `teams/` into inbox, planning, or logs
+- Move `TODO.md`, `decisions.tsv`, `oracles.md`, `worktrees/`, `sessions/`, or `teams/` into inbox, planning, or logs
 
 ## Rule categories by priority
 

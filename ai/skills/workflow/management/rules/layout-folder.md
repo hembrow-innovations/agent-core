@@ -33,6 +33,7 @@ Reserved at the root, owned by other skills. Do not relocate them.
 
 - **TODO.md**: session checklist
 - **decisions.tsv**: long-run decision trail
+- **oracles.md**: completion ledger owned by the oracle skill
 - **worktrees/**: isolated child work
 - **sessions/**: child session transcripts
 - **teams/**: agent-teams

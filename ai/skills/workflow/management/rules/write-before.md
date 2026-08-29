@@ -23,6 +23,7 @@ Leave these root files where they are:
 
 - `TODO.md`
 - `decisions.tsv`
+- `oracles.md`
 - `worktrees/`
 - `sessions/`
 - `teams/`

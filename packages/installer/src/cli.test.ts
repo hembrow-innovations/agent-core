@@ -99,10 +99,15 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
     "triage",
     "wayfinder",
     "create-verification-skill",
+    "oracle",
   ]) {
     assert.ok(folders.includes(name), folders.join(", "));
     assert.equal(existsSync(join(skillRoot, name, "SKILL.md")), true);
   }
+  assert.equal(
+    existsSync(join(skillRoot, "oracle", "scripts", "oracle-check.mjs")),
+    true,
+  );
   assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "prompts", "arena.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "playbooks")), false);

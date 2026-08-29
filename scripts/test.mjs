@@ -24,6 +24,7 @@ const piTests = readdirSync(join(ROOT, "tests", "pi"))
 run("node", [
   "--test",
   join(ROOT, "tests", "profile", "profile.test.mjs"),
+  join(ROOT, "tests", "oracle", "oracle-check.test.mjs"),
   ...piTests,
 ]);
 
