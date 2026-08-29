@@ -7,7 +7,7 @@ domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-08-27"
+updated_at: "2026-08-30"
 ---
 
 # Pack and packages
@@ -16,7 +16,7 @@ updated_at: "2026-08-27"
 
 This repo is a pnpm workspace. It is the only place you install from. A dest project never depends on this checkout at runtime. The installer copies a self-contained tree the dest can commit.
 
-The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus the Pi runtime pack and profiles. `scripts/` holds the checks. The installer package owns profile parse and dest writes. Workspace packages are the TypeScript products under `packages/`. The dest tree is the copied project layout after install. First-party packages land under `.pi/npm/node_modules/@agentic-core/`.
+The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus the Pi runtime pack and profiles. `tests/` holds the checks and repo tests. `scripts/` is the npm entrypoints. The installer package owns profile parse and dest writes. Workspace packages are the TypeScript products under `packages/`. The dest tree is the copied project layout after install. First-party packages land under `.pi/npm/local/@agentic-core/`.
 
 See [[glossary]] for the names used here.
 
@@ -26,15 +26,15 @@ The old installer copied a profile into a dest tree. For harness pi it copied `p
 
 That mix left dest coupled to loose files. It also left a sibling lib that dest should not own.
 
-The settled layout keeps the markdown pack. It moves first-party extensions into workspace packages. Dest receives a local copy under `.pi/npm/node_modules/`. Dest has no live path back to this checkout.
+The settled layout keeps the markdown pack. It moves first-party extensions into workspace packages. Dest receives a local copy under `.pi/npm/local/`. Dest has no live path back to this checkout.
 
-[[0001-pnpm-workspace-pi-packages]], [[0002-standalone-vendor-install]], [[0010-local-packages-in-npm]], [[0004-source-pack-under-ai]], [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], and [[0008-todo-owns-checklist-store]] record those choices.
+[[0001-pnpm-workspace-pi-packages]], [[0002-standalone-vendor-install]], [[0010-local-packages-in-npm]], [[0011-local-packages-in-npm-local]], [[0004-source-pack-under-ai]], [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], and [[0008-todo-owns-checklist-store]] record those choices.
 
 ## Design
 
 ### Source pack
 
-The source pack stays in this checkout, under `ai/`. Skills do not become packages. `profiles/` and `scripts/` stay at the checkout root.
+The source pack stays in this checkout, under `ai/`. Skills do not become packages. `profiles/`, `scripts/`, and `tests/` stay at the checkout root.
 
 The folders are:
 
@@ -44,7 +44,8 @@ The folders are:
 - `ai/prompts/` is the prompt/command library.
 - `ai/pi/` is the Pi runtime pack. Prompts, skills, agents, and roles do not live here. It has no `extensions/` and no `lib/`.
 - `profiles/` is the install profiles.
-- `scripts/` is the checks. Profile parse lives in `packages/installer`.
+- `scripts/` is the npm entrypoints plus installer fixtures. Profile parse lives in `packages/installer`.
+- `tests/` is the repo checks and tests. See [[architecture-verify]].
 
 Leftover empty stub dirs under `ai/` are not libraries.
 
@@ -57,13 +58,11 @@ Product code lives under `packages/`. Folder names stay unscoped. Package names 
 The folders are:
 
 - `packages/heio-todo` is `@agentic-core/heio-todo`.
-- `packages/heio-coms` is `@agentic-core/heio-coms`.
 - `packages/heio-boot` is `@agentic-core/heio-boot`.
-- `packages/heio-teams` is `@agentic-core/heio-teams`.
 - `packages/heio-footer` is `@agentic-core/heio-footer`.
 - `packages/installer` is the install CLI.
 
-Protocol code lives inside the coms package. `heio-coms-protocol` is not a product extension. See [[architecture-heio-coms]].
+`heio-coms` and `heio-teams` live under `deprecated/packages/`. They are not workspace packages and no profile installs them. See [[architecture-heio-coms]] and [[spec-tmux-agent-teams]].
 
 Session checklist persistence lives in the todo package. There is no `packages/lib`. See [[architecture-heio-todo]].
 
@@ -79,14 +78,14 @@ A dest project never depends on this checkout at runtime.
 
 ### Local first-party copy
 
-Each first-party extension lands as a copied package at `.pi/npm/node_modules/@agentic-core/<name>`. Settings gain a dest-relative path to that folder. Settings do not list `npm:@agentic-core/<name>`. Re-running install overwrites the copy. Dest extras stay. A dest rewrite removes only installer-owned `.pi/vendor/@agentic-core` trees.
+Each first-party extension lands as a copied package at `.pi/npm/local/@agentic-core/<name>`. Settings gain a dest-relative path to that folder. Settings do not list `npm:@agentic-core/<name>`. Re-running install overwrites the copy. Dest extras stay. A dest rewrite removes installer-owned `.pi/vendor/@agentic-core` trees and leftover `.pi/npm/node_modules/@agentic-core/<name>` copies for names it writes. Pi npm install owns `.pi/npm/node_modules/` and must not own the first-party copies.
 
 The copy writes `package.json` and non-test `.ts` files from `packages/<name>/src` into that npm tree. First-party extensions do not copy from `pi/extensions/`. That folder is not part of the pack.
 
 ```ts
 // packages/installer/src/extensions.ts writeVendorExtension
 const srcPkg = join(srcRoot, "packages", name);
-const destRel = join(".pi", "npm", "node_modules", "@agentic-core", name);
+const destRel = join(".pi", "npm", "local", "@agentic-core", name);
 dest.copyFile(join(srcPkg, "package.json"), join(destRel, "package.json"));
 copyTsSources(join(srcPkg, "src"), dest, join(destRel, "src"));
 ```
@@ -120,7 +119,7 @@ pnpm exec agentic-core install <target> --extension heio-todo
 
 `--extension` can repeat. Dest is always `.pi/`.
 
-A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the third-party `npm:` sources plus `local:@agentic-core/` packages for todo, coms, boot, teams, and footer.
+A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the third-party `npm:` sources plus `local:@agentic-core/` packages for todo, boot, and footer. They do not install coms or teams.
 
 A leftover `playbooks:` or `mode:` key is an error. Install does not write `.pi/playbooks/`.
 
@@ -134,7 +133,7 @@ This checkout's Pi is not wired to `packages/`. Nothing appears in this checkout
 
 ## Trade-offs
 
-The design optimises for dest independence. Dest can keep a self-contained first-party copy under `.pi/npm/node_modules/`. Re-install is overwrite, not a live link.
+The design optimises for dest independence. Dest can keep a self-contained first-party copy under `.pi/npm/local/`. Re-install is overwrite, not a live link. Pi npm install can rebuild `node_modules` without deleting those copies.
 
 It sacrifices a short inner loop that would load `packages/` from this checkout without install. Developers must run the installer against `.` to use the extensions here.
 

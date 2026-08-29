@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 /**
- * Live pi-coms scenario. Install playground first:
- *   pnpm exec agentic-core install playground --profile agentic-core
- * Then:
- *   node scripts/run-pi-coms-larder.mjs --smoke
- *   node scripts/run-pi-coms-larder.mjs
+ * Parked living-session scenario.
+ *   node deprecated/scripts/run-pi-coms-larder.mjs --smoke
+ *   node deprecated/scripts/run-pi-coms-larder.mjs
  */
 import { spawn, spawnSync } from "node:child_process";
 import {
@@ -18,7 +16,7 @@ import {
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const PLAY = join(ROOT, "playground");
 const RUN = join(PLAY, "run");
 const LARDER = join(PLAY, "larder");

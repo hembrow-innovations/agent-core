@@ -24,7 +24,7 @@ settings:
 
 Install writes `.pi/skills` and the Pi pack into `.pi/`:
 
-- first-party local packages from `profile.packages` into `.pi/npm/node_modules/@agentic-core/`
+- first-party local packages from `profile.packages` into `.pi/npm/local/@agentic-core/`
 - every selected `ai/prompts/*.md` except README, into `.pi/prompts/`
 - `ai/pi/APPEND_SYSTEM.md` and `ai/pi/heio-models.md` if those dest files are missing
 - `.pi/.gitignore` if that file is missing

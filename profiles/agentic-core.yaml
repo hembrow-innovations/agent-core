@@ -7,9 +7,7 @@ packages:
   - npm:pi-subagents
   - npm:@ff-labs/pi-fff
   - local:@agentic-core/heio-todo
-  - local:@agentic-core/heio-coms
   - local:@agentic-core/heio-boot
-  - local:@agentic-core/heio-teams
   - local:@agentic-core/heio-footer
 settings:
   toolDescriptionMode: compact
@@ -20,7 +18,6 @@ settings:
     - write
     - ls
 skills:
-  - agent-teams
   - architect
   - codebase-design
   - create-verification-skill
@@ -36,7 +33,6 @@ skills:
   - planning-with-agents
   - planning-arena
   - research
-  - setup-heio
   - tdd
   - thermo-review
   - to-issues

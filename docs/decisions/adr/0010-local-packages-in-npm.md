@@ -3,15 +3,17 @@ id: "adr-10"
 title: "ADR-0010: local first-party packages in dest npm/node_modules"
 kind: adr
 description: "First-party packages use local: and land at .pi/npm/node_modules/@agentic-core/<name>."
-status: accepted
+status: superseded
 domain: pack
 area: decisions
 tags: [installer, packages]
 created_at: "2026-08-27"
-updated_at: "2026-08-27"
+updated_at: "2026-08-30"
 ---
 
 # ADR-0010: local first-party packages in dest npm/node_modules
+
+Superseded by [[0011-local-packages-in-npm-local]]. First-party packages land at `.pi/npm/local/@agentic-core/<name>`.
 
 ## Context
 
@@ -41,6 +43,7 @@ Dest first-party copies sit where Pi already looks for local packages. Profiles 
 
 ## Relationships
 
+- [[0011-local-packages-in-npm-local]]
 - [[0002-standalone-vendor-install]]
 - [[0008-todo-owns-checklist-store]]
 - [[architecture-pack-and-packages]]

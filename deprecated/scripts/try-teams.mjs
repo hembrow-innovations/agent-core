@@ -21,7 +21,7 @@ import {
 } from "../packages/heio-teams/src/tmux.ts";
 
 const HERE = fileURLToPath(import.meta.url);
-const ROOT = join(dirname(HERE), "..");
+const ROOT = join(dirname(HERE), "../..");
 const TEAM = "try-teams";
 const MEMBER = "researcher";
 
@@ -61,8 +61,7 @@ const BAR = `Teams living bar.
 
 Install, then run this script inside tmux:
 
-  pnpm exec agentic-core install . --profile agentic-core
-  node scripts/try-teams.mjs
+  node deprecated/scripts/try-teams.mjs
 
 The script writes artifacts under a temp dir and prints that path.
 Those files must show pong, one claimed task, and a dead pane id.

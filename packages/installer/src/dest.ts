@@ -23,6 +23,8 @@ const PREVIOUS_FIRST_PARTY = [
   "draconic-boot",
   "draconic-teams",
   "draconic-footer",
+  "heio-coms",
+  "heio-teams",
 ] as const;
 
 export type DestEntry = {
@@ -120,8 +122,10 @@ export function openDestination(target: string): Destination {
     remove(".pi/agents/draconic.md");
     remove(".pi/skills/draconic-mode");
     remove(".pi/skills/setup-draconic");
+    remove(".pi/skills/agent-teams");
     for (const name of PREVIOUS_FIRST_PARTY) {
       remove(`.pi/npm/node_modules/@agentic-core/${name}`);
+      remove(`.pi/npm/local/@agentic-core/${name}`);
     }
     dropPreviousFirstPartySettings(path(SETTINGS_PATH));
   };
@@ -155,6 +159,7 @@ function isPreviousFirstPartySource(source: string): boolean {
   const canon = canonicalizePackageSource(source);
   return PREVIOUS_FIRST_PARTY.some(
     (name) =>
+      canon === `npm/local/@agentic-core/${name}` ||
       canon === `npm/node_modules/@agentic-core/${name}` ||
       canon.endsWith(`/@agentic-core/${name}`) ||
       canon.includes(`@agentic-core/${name}/`),
@@ -339,10 +344,10 @@ function settingsArrayKey(item: SettingsJson): string {
 
 function canonicalizePackageSource(source: string): string {
   const match = source.match(
-    /^(?:\.pi\/)?vendor\/@agentic-core\/([a-z0-9-]+)$/,
+    /^(?:\.pi\/)?(?:vendor|npm\/node_modules)\/@agentic-core\/([a-z0-9-]+)$/,
   );
   if (!match) return source;
-  return `npm/node_modules/@agentic-core/${match[1]}`;
+  return `npm/local/@agentic-core/${match[1]}`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

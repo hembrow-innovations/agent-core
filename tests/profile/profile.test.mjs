@@ -30,7 +30,7 @@ import {
 	renderPlaybookCatalog,
 	resolvePlaybookIds,
 	rewriteSkillPlaybooks,
-} from "../../scripts/lib/profile.mjs";
+} from "../lib/profile.mjs";
 
 const REPO = fileURLToPath(new URL("../..", import.meta.url));
 const INSTALLER = join(REPO, "packages", "installer", "src", "cli.ts");
@@ -498,9 +498,7 @@ test("repo profiles list npm and local packages", () => {
 		{ kind: "npm", source: "npm:pi-subagents" },
 		{ kind: "npm", source: "npm:@ff-labs/pi-fff" },
 		{ kind: "local", name: "heio-todo" },
-		{ kind: "local", name: "heio-coms" },
 		{ kind: "local", name: "heio-boot" },
-		{ kind: "local", name: "heio-teams" },
 		{ kind: "local", name: "heio-footer" },
 	];
 	for (const name of ["agentic-core", "life-engine"]) {
@@ -861,11 +859,11 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 		readFileSync(join(dest, ".pi", "agents", "heio.md"), "utf8"),
 		/Skill|Task/,
 	);
-	const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
+	const npmRoot = join(dest, ".pi", "npm", "local", "@agentic-core");
 	assert.equal(existsSync(join(npmRoot, "heio-todo", "src", "index.ts")), true);
-	assert.equal(existsSync(join(npmRoot, "heio-coms", "src", "index.ts")), true);
+	assert.equal(existsSync(join(npmRoot, "heio-coms")), false);
 	assert.equal(existsSync(join(npmRoot, "heio-boot", "src", "index.ts")), true);
-	assert.equal(existsSync(join(npmRoot, "heio-teams", "src", "index.ts")), true);
+	assert.equal(existsSync(join(npmRoot, "heio-teams")), false);
 	assert.equal(
 		existsSync(join(npmRoot, "heio-footer", "src", "index.ts")),
 		true,
@@ -889,11 +887,9 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 				"npm:pi-web-access",
 				"npm:pi-subagents",
 				"npm:@ff-labs/pi-fff",
-				"npm/node_modules/@agentic-core/heio-todo",
-				"npm/node_modules/@agentic-core/heio-coms",
-				"npm/node_modules/@agentic-core/heio-boot",
-				"npm/node_modules/@agentic-core/heio-teams",
-				"npm/node_modules/@agentic-core/heio-footer",
+				"npm/local/@agentic-core/heio-todo",
+				"npm/local/@agentic-core/heio-boot",
+				"npm/local/@agentic-core/heio-footer",
 			],
 			toolDescriptionMode: "compact",
 			defaultTools: ["read", "bash", "edit", "write", "ls"],
@@ -973,7 +969,7 @@ test("install --profile life-engine writes .pi only", () => {
 		existsSync(join(dest, ".pi", "skills", "vault-pack", "SKILL.md")),
 		true,
 	);
-	const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
+	const npmRoot = join(dest, ".pi", "npm", "local", "@agentic-core");
 	assert.equal(existsSync(join(npmRoot, "heio-todo", "src", "index.ts")), true);
 	assert.equal(existsSync(join(dest, ".pi", "vendor", "@agentic-core")), false);
 	assert.equal(existsSync(join(dest, ".opencode")), false);
@@ -1073,7 +1069,7 @@ test("install uses profiles yaml only and does not write preference stubs", () =
 test("pstack source tree is gone and heio install resolves", () => {
 	const r = spawnSync(
 		process.execPath,
-		[join(REPO, "scripts", "checks", "check-no-pstack.mjs")],
+		[join(REPO, "tests", "checks", "check-no-pstack.mjs")],
 		{
 			encoding: "utf8",
 		},
@@ -1084,7 +1080,7 @@ test("pstack source tree is gone and heio install resolves", () => {
 test("ported life-engine skills keep the management/docs split", () => {
 	const r = spawnSync(
 		process.execPath,
-		[join(REPO, "scripts", "checks", "check-ported-skills.mjs")],
+		[join(REPO, "tests", "checks", "check-ported-skills.mjs")],
 		{
 			encoding: "utf8",
 		},
@@ -1105,39 +1101,45 @@ test("try-teams outside tmux prints the bar and exits 0", () => {
 	delete env.TMUX;
 	const r = spawnSync(
 		process.execPath,
-		[join(REPO, "scripts", "try-teams.mjs")],
+		[join(REPO, "deprecated", "scripts", "try-teams.mjs")],
 		{ encoding: "utf8", env },
 	);
 	assert.equal(r.status, 0, r.stderr);
 	assert.match(r.stdout, /Teams living bar/);
-	assert.match(r.stdout, /node scripts\/try-teams\.mjs/);
+	assert.match(r.stdout, /node deprecated\/scripts\/try-teams\.mjs/);
 	assert.match(r.stdout, /Not inside tmux/);
 	assert.doesNotMatch(r.stdout, /bash scripts\/try-teams\.sh/);
 });
 
-test("scripts root holds entrypoints and living bars only", () => {
-	const allowed = new Set([
-		"test.mjs",
-		"typecheck.mjs",
-		"try-teams.mjs",
-		"try-coms.mjs",
-		"run-pi-coms-larder.mjs",
-	]);
+test("scripts root holds npm entrypoints only", () => {
+	const allowed = new Set(["test.mjs", "typecheck.mjs"]);
 	const scripts = join(REPO, "scripts");
 	const rootFiles = readdirSync(scripts).filter((name) => {
 		const full = join(scripts, name);
-		return !statSync(full).isDirectory();
+		return !name.startsWith(".") && !statSync(full).isDirectory();
 	});
 	for (const name of rootFiles) {
 		assert.equal(allowed.has(name), true, name);
 	}
-	assert.equal(existsSync(join(scripts, "try-coms.mjs")), true);
-	assert.equal(existsSync(join(scripts, "checks", "check-no-pstack.mjs")), true);
+	assert.equal(existsSync(join(scripts, "checks")), false);
+	assert.equal(existsSync(join(scripts, "lib")), false);
 	assert.equal(
-		existsSync(join(scripts, "checks", "check-ported-skills.mjs")),
+		existsSync(join(scripts, "fixtures", "legacy-append-system.md")),
 		true,
 	);
-	assert.equal(existsSync(join(scripts, "lib", "profile.mjs")), true);
+	assert.equal(
+		existsSync(join(REPO, "tests", "checks", "check-no-pstack.mjs")),
+		true,
+	);
+	assert.equal(
+		existsSync(join(REPO, "tests", "checks", "check-ported-skills.mjs")),
+		true,
+	);
+	assert.equal(existsSync(join(REPO, "tests", "lib", "profile.mjs")), true);
+	assert.equal(
+		existsSync(join(REPO, "deprecated", "scripts", "try-coms.mjs")),
+		true,
+	);
 	const shellFiles = [];
 	walkFiles(scripts, (file) => {
 		if (file.endsWith(".sh")) shellFiles.push(file.replace(REPO + "/", ""));

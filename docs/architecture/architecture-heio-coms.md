@@ -7,16 +7,18 @@ domain: pack
 area: coms
 tags: [architecture, coms]
 created_at: "2026-08-26"
-updated_at: "2026-08-26"
+updated_at: "2026-08-30"
 ---
 
 # Heio coms
 
 ## Overview
 
+Parked under `deprecated/packages/heio-coms`. Not in the workspace. Not installed by any profile.
+
 `@agentic-core/heio-coms` is the living-session mailbox. A Pi process binds a name on a project, listens on a unix socket, and talks to other bound peers on the same machine.
 
-Protocol code lives in the same package, `packages/heio-coms/src/protocol.ts`. There is no `heio-coms-protocol` product. There is no second mailbox.
+Protocol code lives in the same package, `deprecated/packages/heio-coms/src/protocol.ts`. There is no `heio-coms-protocol` product. There is no second mailbox.
 
 Identity flags are `--cname`, `--purpose`, and `--project`. They are not `PI_*` env vars and not `pi --name`. Teams reads those flags. Teams must not register them. See [[spec-tmux-agent-teams]] and [[spec-pi-agent-system]].
 

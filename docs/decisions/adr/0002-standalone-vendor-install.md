@@ -13,7 +13,7 @@ updated_at: "2026-08-27"
 
 # ADR-0002: dest vendor copy with lib bundled
 
-Superseded by [[0010-local-packages-in-npm]]. First-party packages land at `.pi/npm/node_modules/@agentic-core/<name>`.
+Superseded by [[0010-local-packages-in-npm]], then [[0011-local-packages-in-npm-local]]. First-party packages land at `.pi/npm/local/@agentic-core/<name>`.
 
 ## Context
 

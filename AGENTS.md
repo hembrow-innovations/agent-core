@@ -14,8 +14,10 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
 - `ai/playbooks/` is the playbook library.
 - `ai/prompts/` is the prompt/command library.
 - `ai/pi/` is the Pi runtime pack. (prompts,skills,agents,roles, don't live in this directory)
+- `deprecated/` is parked code and skills. Not installed. Not in the workspace.
 - `profiles/` is the install profiles.
-- `scripts/` is the repo script entrypoints and checks. Profile parse lives in `packages/installer`.
+- `scripts/` is the npm entrypoints (`test`, `typecheck`) plus installer fixtures. Do not put checks or tests here.
+- `tests/` is the repo checks and tests. Profile parse lives in `packages/installer`. Package tests stay next to their source under `packages/`.
 - `packages/installer/` is the `agentic-core` CLI.
 
 ## Dest
@@ -31,6 +33,8 @@ pnpm exec agentic-core install . --profile agentic-core
 When you write or edit a skill, read `ai/skills/engineering/create-skill/SKILL.md`.
 
 ## Verify
+
+Repo checks live under `tests/checks/`. Repo tests live under `tests/<area>/`. `scripts/test.mjs` and `scripts/typecheck.mjs` are the only npm entrypoints.
 
 ```
 pnpm test

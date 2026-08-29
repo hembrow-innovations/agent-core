@@ -2,13 +2,13 @@
 id: "purpose-installer"
 title: "Installer purpose"
 kind: purpose
-description: "Copy committable first-party packages into dest npm/node_modules so the dest never depends on this checkout."
+description: "Copy committable first-party packages into dest npm/local so the dest never depends on this checkout."
 status: active
 domain: pack
 area: installer
 tags: [purpose]
 created_at: "2026-08-23"
-updated_at: "2026-08-26"
+updated_at: "2026-08-30"
 ---
 
 # Installer purpose
@@ -20,7 +20,7 @@ Install self-contained first-party copies a dest project can commit and run with
 ```ts
 // packages/installer/src/extensions.ts — localPackageSource
 export function localPackageSource(name: FirstPartyExtension): string {
-  return `npm/node_modules/@agentic-core/${name}`;
+  return `npm/local/@agentic-core/${name}`;
 }
 ```
 
@@ -32,7 +32,7 @@ export function localPackageSource(name: FirstPartyExtension): string {
 - Repeatable `--extension`
 - Dest always `.pi/`
 - Local copy of each named first-party package
-- Local copy at `.pi/npm/node_modules/@agentic-core/<name>`
+- Local copy at `.pi/npm/local/@agentic-core/<name>`
 - Dest-relative paths written into dest settings
 - Overwrite of the local copy on re-run
 - Never prune dest extras
@@ -62,7 +62,7 @@ The dest tree is `.pi/` plus dest settings.
 
 - Behaviour: [[spec-installer]]
 - Profile YAML: [[schema-profile]]
-- Decisions: [[0010-local-packages-in-npm]], [[0005-pi-only-dest]], and [[0008-todo-owns-checklist-store]]
+- Decisions: [[0011-local-packages-in-npm-local]], [[0010-local-packages-in-npm]], [[0005-pi-only-dest]], and [[0008-todo-owns-checklist-store]]
 - Layout: [[architecture-pack-and-packages]]
 
 ## Open product questions

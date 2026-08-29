@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [spec]
 created_at: "2026-08-23"
-updated_at: "2026-08-26"
+updated_at: "2026-08-30"
 ---
 
 # Installer spec
@@ -33,8 +33,8 @@ The command is `pnpm exec agentic-core install <target>`.
 A profile install also installs that profile's `packages` list.
 Dest is always `.pi/`.
 
-The dest receives a first-party copy at `.pi/npm/node_modules/@agentic-core/<name>`.
-Dest settings gain a dest-relative `npm/node_modules/@agentic-core/<name>` source.
+The dest receives a first-party copy at `.pi/npm/local/@agentic-core/<name>`.
+Dest settings gain a dest-relative `npm/local/@agentic-core/<name>` source.
 Settings do not list `npm:@agentic-core/<name>`.
 Re-running install overwrites the copy.
 The dest has no sibling lib package.
@@ -94,9 +94,9 @@ Unknown agent or prompt ids fail in `resolveNamedIds` when the plan is built. In
 
 ### Dest writes
 
-Selected skills copy from `ai/skills/` to `.pi/skills/<name>/`. `findSkillDir` walks with `walkSkillDirs`. A missing name fails with `Skill not found in source`. Overlay agents write `.pi/agents/<id>.md`. Overlay prompts write `.pi/prompts/<id>.md`. Each overlay updates listed ids. Extra dest markdown of that kind stays. Extra dest skill dirs, extra dest playbooks, and extra settings keys stay. Install does not write `.pi/playbooks/`.
+Selected skills copy from `ai/skills/` to `.pi/skills/<name>/`. `findSkillDir` walks with `walkSkillDirs`. A missing name fails with `Skill not found in source`. Overlay agents write `.pi/agents/<id>.md`. Overlay prompts write `.pi/prompts/<id>.md`. Each overlay updates listed ids. Extra dest markdown of that kind stays. Extra dest skill dirs, extra dest playbooks, and extra settings keys stay, except parked leftovers. Install does not write `.pi/playbooks/`.
 
-Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md` and `ai/pi/heio-models.md`. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, `.pi/roles`, and installer-owned `.pi/vendor/@agentic-core`. Other dest extras stay. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. It writes `.pi/heio-models.md` only when missing. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing.
+Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md` and `ai/pi/heio-models.md`. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, `.pi/roles`, installer-owned `.pi/vendor/@agentic-core`, parked dest copies of `heio-coms` and `heio-teams`, and `.pi/skills/agent-teams`. Other dest extras stay. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. It writes `.pi/heio-models.md` only when missing. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing.
 
 `ai/pi/packages.json` is not merged on install.
 
@@ -107,7 +107,8 @@ Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md
 ```ts
 // packages/installer/src/extensions.ts — writeVendorExtension
 const srcPkg = join(srcRoot, "packages", name);
-const destRel = join(".pi", "npm", "node_modules", "@agentic-core", name);
+const destRel = join(".pi", "npm", "local", "@agentic-core", name);
+dest.remove(join(".pi", "npm", "node_modules", "@agentic-core", name));
 dest.remove(destRel);
 dest.ensureDir(destRel);
 dest.copyFile(join(srcPkg, "package.json"), join(destRel, "package.json"));
@@ -116,9 +117,9 @@ copyTsSources(join(srcPkg, "src"), dest, join(destRel, "src"));
 
 `copyTsSources` copies `.ts` files and skips `*.test.ts`. Re-run deletes the dest folder first, so leftover files go away.
 
-The package `@agentic-core/heio-todo` lands at `.pi/npm/node_modules/@agentic-core/heio-todo`. The same shape holds for `heio-coms`, `heio-boot`, `heio-teams`, and `heio-footer`.
+The package `@agentic-core/heio-todo` lands at `.pi/npm/local/@agentic-core/heio-todo`. The same shape holds for `heio-boot` and `heio-footer`. Parked `heio-coms` and `heio-teams` dest copies are removed on profile install. Leftover `.pi/npm/node_modules/@agentic-core/<name>` copies for names the installer writes also go away.
 
-`dest.mergePackages` writes `.pi/settings.json`. Sources are dest-relative. `canonicalizePackageSource` rewrites `vendor/@agentic-core/<name>` and `.pi/vendor/@agentic-core/<name>` to `npm/node_modules/@agentic-core/<name>`. Leftover vendor settings drop when that npm path is present. No path back to this checkout.
+`dest.mergePackages` writes `.pi/settings.json`. Sources are dest-relative. `canonicalizePackageSource` rewrites `vendor/@agentic-core/<name>`, `.pi/vendor/@agentic-core/<name>`, and `npm/node_modules/@agentic-core/<name>` to `npm/local/@agentic-core/<name>`. Leftover vendor settings drop when that local path is present. No path back to this checkout.
 
 Third-party sources such as `npm:pi-lens` come from `profile.packages` and merge into dest settings in list order.
 
@@ -134,8 +135,8 @@ This checkout's Pi is not wired to `packages/`. Nothing vendors until the instal
 - A profile can select `agents` and `prompts` from the source libraries
 - A profile `settings:` map deep-merges into dest `.pi/settings.json` after the packages union
 - An extensions-only run copies packages into dest npm and does not copy skills
-- First-party path is `.pi/npm/node_modules/@agentic-core/<name>`
-- Settings contain dest-relative `npm/node_modules/@agentic-core/<name>` paths
+- First-party path is `.pi/npm/local/@agentic-core/<name>`
+- Settings contain dest-relative `npm/local/@agentic-core/<name>` paths
 - Settings do not list `npm:@agentic-core/<name>`
 - Re-run overwrites the dest npm copy
 - Extra dest skills, agents, playbooks, prompts, and settings keys survive a reinstall

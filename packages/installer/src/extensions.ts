@@ -4,9 +4,7 @@ import { type Destination, openDestination } from "./dest.ts";
 
 export const FIRST_PARTY_EXTENSIONS = [
   "heio-todo",
-  "heio-coms",
   "heio-boot",
-  "heio-teams",
   "heio-footer",
 ] as const;
 
@@ -26,7 +24,7 @@ export function isFirstPartyExtension(
 }
 
 export function localPackageSource(name: FirstPartyExtension): string {
-  return `npm/node_modules/@agentic-core/${name}`;
+  return `npm/local/@agentic-core/${name}`;
 }
 
 export function packageRefSource(pkg: ProfilePackage): string {
@@ -88,7 +86,7 @@ export function writeVendorTrees(
   dest.remove(".pi/vendor/@agentic-core");
   for (const name of uniqueNames(names)) {
     writeVendorExtension(srcRoot, dest, name);
-    console.log(`  local ${name} → .pi/npm/node_modules/@agentic-core/${name}`);
+    console.log(`  local ${name} → .pi/npm/local/@agentic-core/${name}`);
   }
 }
 
@@ -121,10 +119,11 @@ function writeVendorExtension(
   name: FirstPartyExtension,
 ): void {
   const srcPkg = join(srcRoot, "packages", name);
-  const destRel = join(".pi", "npm", "node_modules", "@agentic-core", name);
+  const destRel = join(".pi", "npm", "local", "@agentic-core", name);
   if (!existsSync(srcPkg)) {
     throw new Error(`Extension package not found: ${name}`);
   }
+  dest.remove(join(".pi", "npm", "node_modules", "@agentic-core", name));
   dest.remove(destRel);
   dest.ensureDir(destRel);
   dest.copyFile(join(srcPkg, "package.json"), join(destRel, "package.json"));

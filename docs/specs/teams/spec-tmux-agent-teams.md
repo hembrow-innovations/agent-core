@@ -3,23 +3,25 @@ id: "spec-tmux-agent-teams"
 title: "Tmux agent teams"
 kind: spec
 description: "Named Pi TUI panes in tmux talk on coms and share locked task files."
-status: active
+status: parked
 domain: pack
 area: teams
 tags: [spec, pi, tmux]
 created_at: "2026-08-24"
-updated_at: "2026-08-27"
+updated_at: "2026-08-30"
 ---
 
 # Tmux agent teams
 
 ## Goal
 
+Parked under `deprecated/packages/heio-teams` and `deprecated/skills/agent-teams`. Not in the workspace. Not installed by any profile.
+
 A lead Pi session can spawn named teammate TUIs in tmux panes. They talk on existing coms. They claim locked task files. The human can click a pane and type.
 
 ## Requirements
 
-- Source lives in `packages/heio-teams`. Dest receives a local npm copy.
+- Source lives in `deprecated/packages/heio-teams`. Dest does not receive a copy.
 - `/team` plus tools `team_create`, `team_spawn`, `team_status`, `team_shutdown`, `task_create`, `task_list`, `task_get`, `task_claim`, and `task_complete`.
 - Default spawn is `tmux split-window`. After start and replace, run `select-layout tiled`. Adopt does not rebalance. `team_spawn` may pass `useWindows` and then opens `tmux new-window`; that pane stays a dedicated window.
 - Spawned `pi` gets `--cname` (instance), `--purpose`, `--project <team>`, and `--name` (same instance). Optional spawn `agent` is the dest `.pi/agents/` file and becomes `--agent`, distinct from `--cname`. Optional `--model` follows when `team_spawn` is given a model.
@@ -33,7 +35,7 @@ A lead Pi session can spawn named teammate TUIs in tmux panes. They talk on exis
 - Claim is compare-and-set under `withBoardLock`. A leftover `tasks/.lock` whose pid is dead is unlinked first.
 - Teammate `agent_settled` writes status `idle` and sends the lead `idle: <name> settled` through `sendComsPrompt`. An inbound `coms-inbound` message writes status `working`.
 - Shutdown sends a coms stop prompt, waits 400ms, then `killPane`. A missing pane is `absent`. A name that is not a teammate is `absent`.
-- Reviewer bar is `node scripts/try-teams.mjs` inside tmux.
+- Reviewer bar is `node deprecated/scripts/try-teams.mjs` inside tmux.
 
 ## Non-goals
 
@@ -130,11 +132,10 @@ Lead-owned wipe is shutdown then spawn of that `--cname`. The new process reads 
 
 ## Acceptance
 
-- Dest `.pi/npm/node_modules/@agentic-core/heio-teams` exists after `pnpm exec agentic-core install . --profile agentic-core`
-- `pnpm --filter @agentic-core/heio-teams test` is green
-- `pnpm --filter @agentic-core/heio-coms test` is green
-- `pnpm run typecheck` is clean
-- Inside tmux, `node scripts/try-teams.mjs` artifacts show pong, one claimed task, and no leftover pane
+- Dest `.pi/npm/node_modules/@agentic-core/heio-teams` does not exist after `pnpm exec agentic-core install . --profile agentic-core`
+- Dest `.pi/skills/agent-teams` does not exist after that install
+- `pnpm test` and `pnpm run typecheck` stay green without these packages
+- Inside tmux, `node deprecated/scripts/try-teams.mjs` artifacts show pong, one claimed task, and no leftover pane
 - Default store is `<cwd>/.heio/teams/<team>/`. `PI_TEAMS_DIR` still overrides. No migrate from `~/.pi/teams`
 - Shutdown members are not adopted
 - Lead-owned wipe is shutdown then spawn. No flush tool

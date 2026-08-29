@@ -7,7 +7,7 @@ domain: system
 area: overview
 tags: [glossary]
 created_at: "2026-08-23"
-updated_at: "2026-08-26"
+updated_at: "2026-08-30"
 ---
 
 # Glossary
@@ -17,8 +17,12 @@ The language of this checkout. Source pack, dest copy, and the install path betw
 ## Language
 
 **Pack**:
-The source tree in this checkout. Agent, skill, playbook, and prompt libraries live under `ai/`. The Pi runtime pack lives in `ai/pi/`. Profiles stay at the root. Checks live in `scripts/`. Profile parse lives in `packages/installer`. First-party packages live under `packages/`. It is the only install source.
+The source tree in this checkout. Agent, skill, playbook, and prompt libraries live under `ai/`. The Pi runtime pack lives in `ai/pi/`. Profiles stay at the root. Checks and repo tests live in `tests/`. `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`. First-party packages live under `packages/`. It is the only install source.
 _Avoid_: monorepo-of-skills
+
+**Repo check**:
+A standalone integrity script under `tests/checks/`. Run by `pnpm test`. Not an npm entrypoint. Layout: [[architecture-verify]].
+_Avoid_: scripts/checks
 
 **Dest**:
 A project that holds a committed, self-contained copy of pack output. It has no runtime link back to this checkout.
@@ -28,14 +32,14 @@ _Avoid_: live path
 A named install set in `profiles/`. Selected with `--profile`. Skills, agents, prompts, packages, and optional settings. Dest is always `.pi/`. Schema: [[schema-profile]].
 
 **Workspace package**:
-A TypeScript package under `packages/`. Folders are `heio-todo`, `heio-coms`, `heio-boot`, `heio-teams`, `heio-footer`, and `installer`.
+A TypeScript package under `packages/`. Folders are `heio-todo`, `heio-boot`, `heio-footer`, and `installer`. Parked packages live under `deprecated/packages/`.
 
 **First-party extension**:
-A product extension among the workspace packages. The five are `@agentic-core/heio-todo`, `@agentic-core/heio-coms`, `@agentic-core/heio-boot`, `@agentic-core/heio-teams`, and `@agentic-core/heio-footer`.
+A product extension among the workspace packages. The three are `@agentic-core/heio-todo`, `@agentic-core/heio-boot`, and `@agentic-core/heio-footer`.
 _Avoid_: loose extension file
 
 **Local first-party copy**:
-The committed extension copy at `.pi/npm/node_modules/@agentic-core/<name>`. Profile YAML marks the source as `local:@agentic-core/<name>`.
+The committed extension copy at `.pi/npm/local/@agentic-core/<name>`. Profile YAML marks the source as `local:@agentic-core/<name>`. Settings name the dest-relative path `npm/local/@agentic-core/<name>`. That folder is outside Pi's `.pi/npm/node_modules/` install tree.
 
 **Installer**:
 The CLI in `packages/installer`, invoked as `pnpm exec agentic-core install`.
@@ -45,7 +49,7 @@ _Avoid_: curl install
 The gitignored `.pi/` dest in this repo. It is not auto-wired to `packages/`.
 
 **Coms**:
-The living-session mailbox in `@agentic-core/heio-coms`. Bind, stamp, send, get, await. Architecture: [[architecture-heio-coms]].
+The living-session mailbox formerly in `@agentic-core/heio-coms`. Bind, stamp, send, get, await. Parked under `deprecated/packages/heio-coms`. Architecture: [[architecture-heio-coms]].
 _Avoid_: second mailbox, PI_* project flags
 
 **Session checklist**:
@@ -71,7 +75,7 @@ A dest `.pi/agents/` file boot appends only after `/agent` or `--agent`.
 _Avoid_: default agent, sticky primary, APPEND_SYSTEM
 
 **Team**:
-A lead Pi session plus named living TUI peers that talk on coms and share tasks. Spec: [[spec-tmux-agent-teams]].
+A lead Pi session plus named living TUI peers that talk on coms and share tasks. Parked under `deprecated/packages/heio-teams`. Spec: [[spec-tmux-agent-teams]].
 _Avoid_: swarm, nicobailon fan-out
 
 **Teammate**:

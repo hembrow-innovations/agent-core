@@ -87,6 +87,7 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
   assert.equal(folders.includes("how"), false, folders.join(", "));
   assert.equal(folders.includes("why"), false, folders.join(", "));
   assert.equal(folders.includes("unslop"), false, folders.join(", "));
+  assert.equal(folders.includes("agent-teams"), false, folders.join(", "));
   for (const name of [
     "docs",
     "domain-modeling",
@@ -132,33 +133,32 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
       "npm:pi-web-access",
       "npm:pi-subagents",
       "npm:@ff-labs/pi-fff",
-      "npm/node_modules/@agentic-core/heio-todo",
-      "npm/node_modules/@agentic-core/heio-coms",
-      "npm/node_modules/@agentic-core/heio-boot",
-      "npm/node_modules/@agentic-core/heio-teams",
-      "npm/node_modules/@agentic-core/heio-footer",
+      "npm/local/@agentic-core/heio-todo",
+      "npm/local/@agentic-core/heio-boot",
+      "npm/local/@agentic-core/heio-footer",
     ],
   );
-  const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
+  const npmRoot = join(dest, ".pi", "npm", "local", "@agentic-core");
   assert.deepEqual(readdirSync(npmRoot).sort(), [
     "heio-boot",
-    "heio-coms",
     "heio-footer",
-    "heio-teams",
     "heio-todo",
   ]);
   assert.equal(existsSync(join(npmRoot, "heio-todo", "src", "index.ts")), true);
-  assert.equal(existsSync(join(npmRoot, "heio-coms", "src", "index.ts")), true);
+  assert.equal(existsSync(join(npmRoot, "heio-coms")), false);
   assert.equal(existsSync(join(npmRoot, "heio-boot", "src", "index.ts")), true);
-  assert.equal(
-    existsSync(join(npmRoot, "heio-teams", "src", "index.ts")),
-    true,
-  );
+  assert.equal(existsSync(join(npmRoot, "heio-teams")), false);
   assert.equal(
     existsSync(join(npmRoot, "heio-footer", "src", "index.ts")),
     true,
   );
   assert.equal(existsSync(join(npmRoot, "lib")), false);
+  assert.equal(
+    existsSync(
+      join(dest, ".pi", "npm", "node_modules", "@agentic-core", "heio-todo"),
+    ),
+    false,
+  );
   assert.doesNotMatch(
     JSON.stringify(
       JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8"))
@@ -186,6 +186,62 @@ test("install --profile agentic-core removes leftover dest extension files", () 
   assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
 });
 
+test("install --profile agentic-core removes parked heio-coms and heio-teams dest copies", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-parked-"));
+  const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
+  for (const name of ["heio-coms", "heio-teams"]) {
+    mkdirSync(join(npmRoot, name, "src"), { recursive: true });
+    writeFileSync(join(npmRoot, name, "src", "index.ts"), "old\n");
+  }
+  mkdirSync(join(dest, ".pi", "skills", "agent-teams"), { recursive: true });
+  writeFileSync(
+    join(dest, ".pi", "skills", "agent-teams", "SKILL.md"),
+    "# parked\n",
+  );
+  writeFileSync(
+    join(dest, ".pi", "settings.json"),
+    `${JSON.stringify(
+      {
+        packages: [
+          "npm/node_modules/@agentic-core/heio-todo",
+          "npm/node_modules/@agentic-core/heio-coms",
+          "npm/node_modules/@agentic-core/heio-teams",
+        ],
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  const r = runCli(["install", dest, "--profile", "agentic-core"]);
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.equal(existsSync(join(npmRoot, "heio-coms")), false);
+  assert.equal(existsSync(join(npmRoot, "heio-teams")), false);
+  assert.equal(existsSync(join(npmRoot, "heio-todo")), false);
+  assert.equal(existsSync(join(dest, ".pi", "skills", "agent-teams")), false);
+  const localRoot = join(dest, ".pi", "npm", "local", "@agentic-core");
+  assert.equal(
+    existsSync(join(localRoot, "heio-todo", "src", "index.ts")),
+    true,
+  );
+  assert.equal(existsSync(join(localRoot, "heio-coms")), false);
+  const settings = JSON.parse(
+    readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
+  ) as { packages: string[] };
+  assert.equal(
+    settings.packages.includes("npm/node_modules/@agentic-core/heio-coms"),
+    false,
+  );
+  assert.equal(
+    settings.packages.includes("npm/node_modules/@agentic-core/heio-teams"),
+    false,
+  );
+  assert.equal(
+    settings.packages.includes("npm/node_modules/@agentic-core/heio-todo"),
+    false,
+  );
+  assert.ok(settings.packages.includes("npm/local/@agentic-core/heio-todo"));
+});
+
 test("install --profile agentic-core writes .pi/skills and does not wire this checkout", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-core-"));
   const checkoutSettingsPath = join(REPO, ".pi", "settings.json");
@@ -204,12 +260,11 @@ test("install --profile agentic-core writes .pi/skills and does not wire this ch
   assert.equal(existsSync(join(skillRoot, "create-skill", "SKILL.md")), true);
   assert.equal(folders.includes("how"), false, folders.join(", "));
   assert.equal(folders.includes("unslop"), false, folders.join(", "));
+  assert.equal(folders.includes("agent-teams"), false, folders.join(", "));
   assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
   assert.equal(existsSync(join(dest, ".opencode")), false);
   assert.equal(
-    existsSync(
-      join(dest, ".pi", "npm", "node_modules", "@agentic-core", "heio-todo"),
-    ),
+    existsSync(join(dest, ".pi", "npm", "local", "@agentic-core", "heio-todo")),
     true,
   );
 
@@ -356,7 +411,7 @@ test("install --extension heio-todo writes a dest-relative npm package", () => {
   const r = runCli(["install", dest, "--extension", "heio-todo"]);
   assert.equal(r.status, 0, r.stderr || r.stdout);
 
-  const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
+  const npmRoot = join(dest, ".pi", "npm", "local", "@agentic-core");
   const local = join(npmRoot, "heio-todo");
   assert.equal(existsSync(local), true);
   assert.deepEqual(readdirSync(npmRoot), ["heio-todo"]);
@@ -379,9 +434,7 @@ test("install --extension heio-todo writes a dest-relative npm package", () => {
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   ) as { packages?: unknown };
   assert.ok(Array.isArray(settings.packages), "settings.packages");
-  assert.deepEqual(settings.packages, [
-    "npm/node_modules/@agentic-core/heio-todo",
-  ]);
+  assert.deepEqual(settings.packages, ["npm/local/@agentic-core/heio-todo"]);
 
   const gitignore = readFileSync(join(dest, ".pi", ".gitignore"), "utf8");
   assert.equal(gitignore, "npm/\ngit/\n");
@@ -431,7 +484,7 @@ test("install removes installer-owned vendor trees and keeps other dest extras",
         dest,
         ".pi",
         "npm",
-        "node_modules",
+        "local",
         "@agentic-core",
         "heio-todo",
         "src",
@@ -440,11 +493,19 @@ test("install removes installer-owned vendor trees and keeps other dest extras",
     ),
     true,
   );
+  assert.equal(
+    existsSync(
+      join(dest, ".pi", "npm", "node_modules", "@agentic-core", "heio-todo"),
+    ),
+    false,
+  );
   const settings = JSON.parse(
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   ) as { packages: string[] };
-  assert.ok(
+  assert.ok(settings.packages.includes("npm/local/@agentic-core/heio-todo"));
+  assert.equal(
     settings.packages.includes("npm/node_modules/@agentic-core/heio-todo"),
+    false,
   );
   assert.equal(
     settings.packages.includes("vendor/@agentic-core/heio-todo"),
@@ -465,28 +526,12 @@ test("install --extension can repeat and a second run overwrites the npm copy", 
   ]);
   assert.equal(first.status, 0, first.stderr || first.stdout);
 
-  const todo = join(
-    dest,
-    ".pi",
-    "npm",
-    "node_modules",
-    "@agentic-core",
-    "heio-todo",
-  );
-  const boot = join(
-    dest,
-    ".pi",
-    "npm",
-    "node_modules",
-    "@agentic-core",
-    "heio-boot",
-  );
+  const todo = join(dest, ".pi", "npm", "local", "@agentic-core", "heio-todo");
+  const boot = join(dest, ".pi", "npm", "local", "@agentic-core", "heio-boot");
   assert.equal(existsSync(todo), true);
   assert.equal(existsSync(boot), true);
   assert.equal(
-    existsSync(
-      join(dest, ".pi", "npm", "node_modules", "@agentic-core", "lib"),
-    ),
+    existsSync(join(dest, ".pi", "npm", "local", "@agentic-core", "lib")),
     false,
   );
 
@@ -501,8 +546,8 @@ test("install --extension can repeat and a second run overwrites the npm copy", 
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   ) as { packages?: unknown };
   assert.deepEqual(settings.packages, [
-    "npm/node_modules/@agentic-core/heio-todo",
-    "npm/node_modules/@agentic-core/heio-boot",
+    "npm/local/@agentic-core/heio-todo",
+    "npm/local/@agentic-core/heio-boot",
   ]);
   assertNoCheckoutPath(dest);
 });
@@ -541,6 +586,17 @@ test("parseProfilePackage and loadProfile reject vendor: and vendor/ sources", (
   assert.throws(
     () => loadProfile(srcRoot, "vendor-slash"),
     /vendor\/@agentic-core\/heio-todo/,
+  );
+});
+
+test("parseProfilePackage rejects parked heio-coms and heio-teams", () => {
+  assert.throws(
+    () => parseProfilePackage("local:@agentic-core/heio-coms"),
+    /Unknown extension: heio-coms/,
+  );
+  assert.throws(
+    () => parseProfilePackage("local:@agentic-core/heio-teams"),
+    /Unknown extension: heio-teams/,
   );
 });
 

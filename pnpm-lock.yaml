@@ -33,29 +33,11 @@ importers:
         specifier: 1.3.7
         version: 1.3.7
 
-  packages/heio-coms:
-    dependencies:
-      "@earendil-works/pi-coding-agent":
-        specifier: 0.84.2
-        version: 0.84.2(ws@8.21.3)
-      typebox:
-        specifier: 1.3.7
-        version: 1.3.7
-
   packages/heio-footer:
     dependencies:
       "@earendil-works/pi-coding-agent":
         specifier: 0.84.2
         version: 0.84.2(ws@8.21.3)
-
-  packages/heio-teams:
-    dependencies:
-      "@earendil-works/pi-coding-agent":
-        specifier: 0.84.2
-        version: 0.84.2(ws@8.21.3)
-      typebox:
-        specifier: 1.3.7
-        version: 1.3.7
 
   packages/heio-todo:
     dependencies:

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Repo checks and tests live under tests/. This file is the npm entrypoint.
 import { readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";

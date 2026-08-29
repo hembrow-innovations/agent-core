@@ -142,9 +142,9 @@ try {
     console.error(r.stderr);
     process.exit(1);
   }
-  const setupSkill = join(dest, ".pi", "skills", "setup-heio", "SKILL.md");
+  const setupSkill = join(dest, ".pi", "skills", "management", "SKILL.md");
   if (!existsSync(setupSkill)) {
-    console.error("agentic-core install did not copy setup-heio");
+    console.error("agentic-core install did not copy management");
     process.exit(1);
   }
   if (existsSync(join(dest, ".pi", "playbooks"))) {
