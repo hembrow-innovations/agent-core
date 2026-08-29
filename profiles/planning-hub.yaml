@@ -1,4 +1,37 @@
-# Planning dest. Skills only.
+agents: all
+prompts: all
+settings:
+  toolDescriptionMode: compact
+packages:
+  - npm:pi-lens
+  - npm:pi-web-access
+  - npm:pi-subagents
+  - npm:@ff-labs/pi-fff
+  - local:@agentic-core/heio-todo
+  - local:@agentic-core/heio-boot
+  - local:@agentic-core/heio-footer
 skills:
   - planning
+  - architect
+  - behaviour-contracts
+  - codebase-design
+  - create-verification-skill
+  - diagnose
+  - docs
+  - domain-modeling
+  - handoff
+  - improve-codebase-architecture
+  - playwright-cli
+  - prototype
+  - tanstack-query
+  - tanstack-ui
+  - tdd
+  - thermo-review
+  - to-issues
+  - triage
+  - typescript-best-practices
+  - vault-pack
+  - vitest
   - wayfinder
+  - webapp-testing
+  - create-skill

@@ -1,12 +1,12 @@
 ---
 name: wayfinder
-description: Plan a huge chunk of work as a shared map of decision tickets under .heio/. The map is a plan. Tickets are issues. Use when one agent session cannot hold the work and the project uses the management and docs skills.
+description: Interview a huge chunk of work into a shared map of decision tickets under .heio/. The map is a plan. Tickets are issues. Use when one agent session cannot hold the work and the project uses the management and docs skills.
 disable-model-invocation: true
 ---
 
 # Wayfinder on local management
 
-A loose idea is too big for one session, and the way to the destination is not visible yet. Chart that way as a **plan** plus child **issues** under `.heio/`. Resolve one decision at a time until the route is clear.
+A loose idea is too big for one session, and the way to the destination is not visible yet. Interview the map in rounds. Do not generate it. Do not dump the questions. Chart the confirmed way as a **plan** plus child **issues** under `.heio/`. Resolve one decision at a time until the route is clear.
 
 This skill plans. It does not build. Each ticket resolves a decision. The map is done when nothing is left to decide. Then hand off. An effort can override this in the plan's Approach. Absent that, produce decisions, not deliverables.
 
@@ -108,6 +108,16 @@ Do not chart what you cannot yet see. **Not yet specified** is in-scope fog that
 
 Ticket when you can state the question precisely, even if it is blocked. Leave it in fog when you cannot phrase it that sharply. Do not pre-slice fog into ticket-sized pieces.
 
+## Rounds
+
+The interview is iterative. Never one questionnaire.
+
+A round is the frontier: every question whose prerequisites are already settled, and that does not depend on any other question in this round. Each question stands alone. Its answer must not change the wording, options, or sense of any companion in the same round. A question that would be influenced by another still open belongs to a later round.
+
+Ask that whole frontier in **planning** round format. Number each question. Give your recommended answer. Then stop and wait. Do not attach the next round. Do not preview questions that still have open prerequisites. Do not list the rest of the tree "for context."
+
+Use rounds when charting the map and when proposing newly surfaced tickets.
+
 ## Invocation
 
 Never resolve more than one ticket per session, except research tickets.
@@ -116,12 +126,19 @@ Never resolve more than one ticket per session, except research tickets.
 
 User invokes with a loose idea.
 
-1. Name the destination. Run **planning** and **domain-modeling**.
-2. Map the frontier, breadth-first. If this surfaces no fog, you do not need a map. Stop and ask how they want to proceed.
-3. Create the plan. Destination in Objectives. Notes in Approach. Fog in Not yet specified. Decisions so far empty.
-4. Create the issues you can specify now. Wire `blocked_by` in a second pass.
-5. Fire research tickets in parallel.
-6. Stop. Charting hand-resolves nothing.
+Interview first, in rounds. Do not write the map or any ticket until the user confirms.
+
+1. Load **domain-modeling**. Ask rounds until the destination, tickets, types, blockers, fog, and out of scope are named.
+   - Destination first. That round includes nothing that hangs off the destination.
+   - Then the ticket tree, breadth-first. Sibling tickets may share a round only when none of them changes the others. A ticket's question, type, and blockers share a round only when they are independent. A child waits for its parent. Blockers wait until the named tickets exist.
+   - Fog and out of scope last, each as a round after the visible tree is confirmed.
+   - Do not resolve those ticket questions. Chart them.
+2. If this surfaces no fog, you do not need a map. Stop and ask how they want to proceed.
+3. When the rounds have settled the destination, tickets, types, blockers, fog, and out of scope, summarize the map. Stop. Wait for the user to confirm. Then write.
+4. Create the plan. Destination in Objectives. Notes in Approach. Fog in Not yet specified. Decisions so far empty.
+5. Create the confirmed issues. Wire `blocked_by` in a second pass.
+6. Fire research tickets in parallel.
+7. Stop. Charting hand-resolves nothing.
 
 ### Work through the map
 
@@ -131,7 +148,7 @@ User invokes with a plan id or title. A ticket is optional.
 2. If the user named a ticket, use it. Otherwise take the first frontier issue. Claim it.
 3. Resolve it. Load the skills Approach names. Zoom related closed issues on demand.
 4. Write `## Resolution` on the issue. Set `closed`. Append one gist line to Decisions so far.
-5. Add newly surfaced issues. Graduate fog that is now specifiable. If a ticket sits past the destination, set `wontfix`, move it to `closed/`, and add one line to Out of scope. Do not put it in Decisions so far.
+5. Propose newly surfaced issues in rounds. Graduate fog that is now specifiable. Independent proposals share a round. A proposal that depends on another still open belongs later. Do not create them until the user confirms. If a ticket sits past the destination, set `wontfix`, move it to `closed/`, and add one line to Out of scope. Do not put it in Decisions so far.
 6. If the decision invalidates other tickets, update or close them.
 
 Move a terminal issue to `.heio/closed/` the day it closes. Keep the filename.
