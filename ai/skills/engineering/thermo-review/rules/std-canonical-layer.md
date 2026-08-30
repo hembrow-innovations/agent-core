@@ -13,4 +13,4 @@ Keep logic in the canonical layer and reuse existing helpers.
 - Prefer existing canonical utilities/helpers over bespoke one-offs.
 - Push code toward the right package, service, or module instead of normalizing architectural drift.
 
-**life-engine note:** Respect `packages/<group>/<domain>/<platform>/` ownership and feature vs shared boundaries.
+**project note:** Respect `packages/<group>/<domain>/<platform>/` ownership and feature vs shared boundaries.

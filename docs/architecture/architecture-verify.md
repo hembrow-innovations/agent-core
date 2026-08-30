@@ -32,7 +32,6 @@ Root npm scripts each call one `scripts/<name>.mjs` file.
 
 - **test.mjs**: runs package tests, then `tests/` node tests, then bun tests
 - **typecheck.mjs**: runs package typecheck
-- **fixtures/**: installer data, not a test. `packages/installer` reads `legacy-append-system.md` to detect an old dest persona
 
 Do not put checks or tests here.
 

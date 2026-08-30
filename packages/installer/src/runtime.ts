@@ -34,7 +34,6 @@ export function writeRuntime(srcRoot: string, dest: Destination): void {
     dest,
     ".pi/APPEND_SYSTEM.md",
     readFileSync(join(pack, "APPEND_SYSTEM.md"), "utf8"),
-    srcRoot,
   );
   dest.writeText(models, readFileSync(join(pack, "heio-models.md"), "utf8"), {
     ifMissing: true,
@@ -63,31 +62,18 @@ export function readPiPackages(pack: string): string[] {
   return raw.map((item) => item.trim());
 }
 
-function writeAppendSystem(
-  dest: Destination,
-  rel: string,
-  body: string,
-  srcRoot: string,
-): void {
+function writeAppendSystem(dest: Destination, rel: string, body: string): void {
   if (!dest.exists(rel)) {
     dest.writeText(rel, body);
     return;
   }
   const current = dest.readText(rel);
-  if (current === body || !isLegacyAppendSystem(current, srcRoot)) return;
+  if (current === body || !isLegacyAppendSystem(current)) return;
   dest.writeText(rel, body);
 }
 
-function isLegacyAppendSystem(text: string, srcRoot: string): boolean {
-  const fixture = join(
-    srcRoot,
-    "scripts",
-    "fixtures",
-    "legacy-append-system.md",
-  );
-  const legacy = existsSync(fixture) ? readFileSync(fixture, "utf8") : "";
+function isLegacyAppendSystem(text: string): boolean {
   return (
-    (legacy !== "" && text === legacy) ||
     text === STUB_APPEND_SYSTEM ||
     text.startsWith("# Draconic\n") ||
     /You are running draconic-mode on Pi/.test(text) ||

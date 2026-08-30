@@ -25,7 +25,7 @@ function UserList() {
 **Correct (multiple instances share one request):**
 
 ```tsx
-import type { Database } from "@life-engine/database"
+import type { Database } from "@project_name/database"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { queryOptions, useQuery } from "@tanstack/react-query"
 
@@ -51,7 +51,7 @@ function EngineCount({ supabase }: { supabase: SupabaseClient<Database> }) {
 **Life-engine pattern (domain mutation with invalidation):**
 
 ```tsx
-import { createDomainMutation } from "@life-engine/react-api/main/utils"
+import { createDomainMutation } from "@project_name/react-api/main/utils"
 
 export const useCreateReminder = createDomainMutation({
   mutationFn: (client, reminder: NewReminder) => createReminder(client, reminder),

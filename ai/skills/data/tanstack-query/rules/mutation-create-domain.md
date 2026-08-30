@@ -7,7 +7,7 @@ tags: [mutation, optimistic, invalidation]
 
 ## Domain mutation helper for writes
 
-Discover the project's domain mutation helper. `createDomainMutation` from `@life-engine/react-api/main/utils` is one such helper. It injects the client and `useQueryClient()`.
+Discover the project's domain mutation helper. `createDomainMutation` from `@project_name/react-api/main/utils` is one such helper. It injects the client and `useQueryClient()`.
 
 Use that helper when it exists. Do not invent a new one. If none exists, keep the mutation in the data layer and invalidate through the key factory.
 

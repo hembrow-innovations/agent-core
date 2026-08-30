@@ -13,7 +13,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { parseProfilePackage } from "./extensions.ts";
+import { packageRefSource, parseProfilePackage } from "./extensions.ts";
 import { loadProfile } from "./profile.ts";
 
 const SRC = dirname(fileURLToPath(import.meta.url));
@@ -81,69 +81,37 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
   assert.match(r.stdout, /Profile: agentic-core/);
   assert.doesNotMatch(r.stdout, /Harness:/);
 
+  const profile = loadProfile(REPO, "agentic-core");
   const skillRoot = join(dest, ".pi", "skills");
-  const folders = readdirSync(skillRoot);
-  assert.equal(folders.includes("heio-mode"), false, folders.join(", "));
-  assert.equal(folders.includes("how"), false, folders.join(", "));
-  assert.equal(folders.includes("why"), false, folders.join(", "));
-  assert.equal(folders.includes("unslop"), false, folders.join(", "));
-  assert.equal(folders.includes("agent-teams"), false, folders.join(", "));
-  for (const name of [
-    "docs",
-    "domain-modeling",
-    "handoff",
-    "management",
-    "planning",
-    "planning-with-docs",
-    "planning-arena",
-    "to-issues",
-    "triage",
-    "wayfinder",
-    "create-verification-skill",
-    "oracle",
-  ]) {
-    assert.ok(folders.includes(name), folders.join(", "));
+  const folders = readdirSync(skillRoot).sort();
+  assert.deepEqual(folders, [...new Set(profile.skills)].sort());
+  for (const name of folders) {
     assert.equal(existsSync(join(skillRoot, name, "SKILL.md")), true);
   }
-  assert.equal(
-    existsSync(join(skillRoot, "oracle", "scripts", "oracle-check.mjs")),
-    true,
-  );
-  assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
-  assert.equal(existsSync(join(dest, ".pi", "prompts", "arena.md")), true);
+  if (folders.includes("oracle")) {
+    assert.equal(
+      existsSync(join(skillRoot, "oracle", "scripts", "oracle-check.mjs")),
+      true,
+    );
+  }
   assert.equal(existsSync(join(dest, ".pi", "playbooks")), false);
   const settings = JSON.parse(
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   );
-  assert.equal(settings.toolDescriptionMode, "compact");
-  assert.deepEqual(settings.defaultTools, [
-    "read",
-    "bash",
-    "edit",
-    "write",
-    "ls",
-  ]);
+  assert.deepEqual(settings, {
+    packages: profile.packages.map(packageRefSource),
+    ...profile.settings,
+  });
   assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
   assert.equal(existsSync(join(dest, ".pi", "roles")), false);
-  assert.deepEqual(
-    JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8"))
-      .packages,
-    [
-      "npm:pi-lens",
-      "npm:pi-web-access",
-      "npm:pi-subagents",
-      "npm:@ff-labs/pi-fff",
-      "npm/local/@agentic-core/heio-todo",
-      "npm/local/@agentic-core/heio-boot",
-      "npm/local/@agentic-core/heio-footer",
-    ],
-  );
   const npmRoot = join(dest, ".pi", "npm", "local", "@agentic-core");
-  assert.deepEqual(readdirSync(npmRoot).sort(), [
-    "heio-boot",
-    "heio-footer",
-    "heio-todo",
-  ]);
+  assert.deepEqual(
+    readdirSync(npmRoot).sort(),
+    profile.packages
+      .filter((pkg) => pkg.kind === "local")
+      .map((pkg) => pkg.name)
+      .sort(),
+  );
   assert.equal(existsSync(join(npmRoot, "heio-todo", "src", "index.ts")), true);
   assert.equal(existsSync(join(npmRoot, "heio-coms")), false);
   assert.equal(existsSync(join(npmRoot, "heio-boot", "src", "index.ts")), true);

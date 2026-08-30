@@ -27,6 +27,6 @@ await context.queryClient.prefetchQuery(
 );
 ```
 
-**Server query client:** discover the project's helper. `createServerQueryClient()` from `@life-engine/react-api/main/clients` is one (60s staleTime, no refetch on mount or focus).
+**Server query client:** discover the project's helper. `createServerQueryClient()` from `@project_name/react-api/main/clients` is one (60s staleTime, no refetch on mount or focus).
 
 **Notes:** Parallel independent prefetches with `Promise.all` when a route needs several domains.

@@ -16,7 +16,7 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
 - `ai/pi/` is the Pi runtime pack. (prompts,skills,agents,roles, don't live in this directory)
 - `deprecated/` is parked code and skills. Not installed. Not in the workspace.
 - `profiles/` is the install profiles.
-- `scripts/` is the npm entrypoints (`test`, `typecheck`) plus installer fixtures. Do not put checks or tests here.
+- `scripts/` is the npm entrypoints (`test`, `typecheck`). Do not put checks or tests here.
 - `tests/` is the repo checks and tests. Profile parse lives in `packages/installer`. Package tests stay next to their source under `packages/`.
 - `packages/installer/` is the `agentic-core` CLI.
 

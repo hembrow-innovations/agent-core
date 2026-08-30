@@ -37,13 +37,13 @@ function CodePanel({ code }: { code: string }) {
 }
 ```
 
-**Life-engine pattern (cross-package lazy loading):**
+**Project pattern (cross-package lazy loading):**
 
 ```tsx
 import { lazy, type ComponentType } from "react"
 
 const CreateEventModal = lazy(() =>
-  import("@life-engine/calendar-web/components").then((m) => ({
+  import("@project_name/calendar-web/components").then((m) => ({
     default: m.CreateEventModal as ComponentType<CreateModalProps>,
   })),
 )

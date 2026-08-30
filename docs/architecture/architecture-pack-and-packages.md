@@ -44,7 +44,7 @@ The folders are:
 - `ai/prompts/` is the prompt/command library.
 - `ai/pi/` is the Pi runtime pack. Prompts, skills, agents, and roles do not live here. It has no `extensions/` and no `lib/`.
 - `profiles/` is the install profiles.
-- `scripts/` is the npm entrypoints plus installer fixtures. Profile parse lives in `packages/installer`.
+- `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`.
 - `tests/` is the repo checks and tests. See [[architecture-verify]].
 
 Leftover empty stub dirs under `ai/` are not libraries.

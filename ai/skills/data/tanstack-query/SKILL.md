@@ -10,7 +10,7 @@ Patterns for client data hooks. Discover the data layer first. Read only the rul
 ## Discover first
 
 1. Find the package that owns query keys, query options, and domain mutations. Search exports of `useQuery`, `queryOptions`, key factories, and names like `createDomainMutation` or `useRealtimeQuery`.
-2. Copy that package's file layout, import paths, and helper names. `@life-engine/react-api` is one home, not the only one.
+2. Copy that package's file layout, import paths, and helper names.
 3. Feature UI packages consume those hooks. They do not own API, query, or mutation code unless the repo already does that.
 4. Durable data-flow, layering, and intent notes live under `docs/`. Load **docs** and search. Do not keep a hardcoded `docs/reference/...` path as the only law.
 
@@ -22,7 +22,7 @@ A project-local **tanstack-query** skill owns paved paths when present. `princip
 - Data hooks live in the discovered data-layer package. Feature UI only consumes them.
 
 ```ts
-import { useVehicle } from "@life-engine/react-api/vehicles/vehicle";
+import { useVehicle } from "@project_name/react-api/vehicles/vehicle";
 ```
 
 That import is an example.

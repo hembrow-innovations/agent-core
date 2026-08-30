@@ -19,10 +19,13 @@ import {
 	installPlaybooks,
 	installPiRuntime,
 	installPrompts,
+	listAgentIds,
 	listProfiles,
+	listPromptIds,
 	loadProfile,
 	mergePiSettings,
 	mergePiSettingsPackages,
+	packageRefSource,
 	packageSource,
 	parseProfileYaml,
 	readPiPackages,
@@ -432,83 +435,20 @@ test("readPlaybookMeta: frontmatter and heading fallback", () => {
 	});
 });
 
-test("repo life-engine profile loads", () => {
-	const p = loadProfile(REPO, "life-engine");
-	assert.equal(p.settings, null);
-	const ported = [
-		"behaviour-contracts",
-		"diagnose",
-		"tanstack-query",
-		"tanstack-ui",
-		"thermo-review",
-		"to-issues",
-		"triage",
-		"typography",
-		"vault-pack",
-		"webapp-testing",
-		"create-skill",
-	];
-	for (const name of ported) assert.ok(p.skills.includes(name), name);
-	const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
-	assert.deepEqual(missing, []);
-});
-
-test("repo agentic-core profile loads", () => {
-	const p = loadProfile(REPO, "agentic-core");
-	assert.deepEqual(p.settings, {
-		toolDescriptionMode: "compact",
-		defaultTools: ["read", "bash", "edit", "write", "ls"],
+for (const name of listProfiles(REPO)) {
+	test(`install --profile ${name} matches the yaml`, () => {
+		const profile = loadProfile(REPO, name);
+		const dest = mkdtempSync(join(tmpdir(), `install-${name}-`));
+		const r = spawnSync(
+			process.execPath,
+			[INSTALLER, "install", dest, "--profile", name],
+			{ encoding: "utf8" },
+		);
+		assert.equal(r.status, 0, r.stderr || r.stdout);
+		assert.match(r.stdout, new RegExp(`Profile: ${name}`));
+		assertInstallMatchesYaml(dest, profile);
 	});
-	const needed = [
-		"create-skill",
-		"diagnose",
-		"thermo-review",
-		"research",
-		"codebase-design",
-	];
-	for (const name of needed) assert.ok(p.skills.includes(name), name);
-	const banned = [
-		"godot-mono",
-		"vault-pack",
-		"playwright-cli",
-		"supabase",
-		"frontend-design",
-		"tanstack-ui",
-	];
-	for (const name of banned) assert.equal(p.skills.includes(name), false, name);
-	const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
-	assert.deepEqual(missing, []);
-});
-
-test("repo planning-hub profile loads", () => {
-	const p = loadProfile(REPO, "planning-hub");
-	assert.deepEqual(p.skills, ["planning", "wayfinder"]);
-	assert.deepEqual(p.agents, { kind: "omit" });
-	assert.deepEqual(p.prompts, { kind: "omit" });
-	assert.deepEqual(p.packages, []);
-	assert.equal(p.settings, null);
-	const missing = p.skills.filter((name) => !skillHasMarkdown(REPO, name));
-	assert.deepEqual(missing, []);
-});
-
-test("repo profiles list npm and local packages", () => {
-	const expected = [
-		{ kind: "npm", source: "npm:pi-lens" },
-		{ kind: "npm", source: "npm:pi-web-access" },
-		{ kind: "npm", source: "npm:pi-subagents" },
-		{ kind: "npm", source: "npm:@ff-labs/pi-fff" },
-		{ kind: "local", name: "heio-todo" },
-		{ kind: "local", name: "heio-boot" },
-		{ kind: "local", name: "heio-footer" },
-	];
-	for (const name of ["agentic-core", "life-engine"]) {
-		const p = loadProfile(REPO, name);
-		assert.deepEqual(p.packages, expected);
-		assert.deepEqual(p.agents, { kind: "all" });
-		assert.deepEqual(p.prompts, { kind: "all" });
-	}
-	assert.equal(loadProfile(REPO, "life-engine").settings, null);
-});
+}
 
 test("always-on text does not dump dest heio-mode", () => {
 	const append = readFileSync(
@@ -528,12 +468,14 @@ test("always-on text does not dump dest heio-mode", () => {
 	}
 });
 
-test("repo agentic-core profile resolves every skill from skills/", () => {
-	const p = loadProfile(REPO, "agentic-core");
-	const needed = [...p.skills];
-	for (const name of needed) {
-		assert.ok(findSkillDir(REPO, name), name);
-		assert.doesNotMatch(findSkillDir(REPO, name), /\/pi\/skills\//);
+test("repo profiles resolve every listed skill from skills/", () => {
+	for (const name of listProfiles(REPO)) {
+		const p = loadProfile(REPO, name);
+		for (const skill of p.skills) {
+			const dir = findSkillDir(REPO, skill);
+			assert.ok(dir, `${name}: ${skill}`);
+			assert.doesNotMatch(dir, /\/pi\/skills\//);
+		}
 	}
 	assert.equal(existsSync(join(REPO, "ai", "pi", "skills")), false);
 	assert.equal(existsSync(join(REPO, "ai", "pi", "install.mjs")), false);
@@ -716,10 +658,7 @@ test("installPiRuntime rewrites a dest APPEND_SYSTEM that still matches the old 
 	mkdirSync(join(dest, ".pi"), { recursive: true });
 	writeFileSync(
 		join(dest, ".pi", "APPEND_SYSTEM.md"),
-		readFileSync(
-			join(REPO, "scripts", "fixtures", "legacy-append-system.md"),
-			"utf8",
-		),
+		"# Draconic\n\nYou are running draconic-mode on Pi for this project.\n",
 	);
 	installPiRuntime(root, dest);
 	assert.equal(
@@ -852,22 +791,22 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 	);
 	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
 	assert.equal(existsSync(join(dest, ".pi", "roles")), false);
-	assert.equal(existsSync(join(dest, ".pi", "agents", "heio.md")), true);
-	assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
-	assert.equal(existsSync(join(dest, ".pi", "prompts", "arena.md")), true);
 	assert.doesNotMatch(
 		readFileSync(join(dest, ".pi", "agents", "heio.md"), "utf8"),
 		/Skill|Task/,
 	);
+	const profile = loadProfile(REPO, "agentic-core");
 	const npmRoot = join(dest, ".pi", "npm", "local", "@agentic-core");
-	assert.equal(existsSync(join(npmRoot, "heio-todo", "src", "index.ts")), true);
+	for (const pkg of profile.packages) {
+		if (pkg.kind !== "local") continue;
+		assert.equal(
+			existsSync(join(npmRoot, pkg.name, "src", "index.ts")),
+			true,
+			pkg.name,
+		);
+	}
 	assert.equal(existsSync(join(npmRoot, "heio-coms")), false);
-	assert.equal(existsSync(join(npmRoot, "heio-boot", "src", "index.ts")), true);
 	assert.equal(existsSync(join(npmRoot, "heio-teams")), false);
-	assert.equal(
-		existsSync(join(npmRoot, "heio-footer", "src", "index.ts")),
-		true,
-	);
 	assert.equal(existsSync(join(dest, ".pi", "vendor", "@agentic-core")), false);
 	const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
 	assert.doesNotMatch(append, /running heio-mode on Pi/);
@@ -881,19 +820,7 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 	);
 	assert.deepEqual(
 		JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8")),
-		{
-			packages: [
-				"npm:pi-lens",
-				"npm:pi-web-access",
-				"npm:pi-subagents",
-				"npm:@ff-labs/pi-fff",
-				"npm/local/@agentic-core/heio-todo",
-				"npm/local/@agentic-core/heio-boot",
-				"npm/local/@agentic-core/heio-footer",
-			],
-			toolDescriptionMode: "compact",
-			defaultTools: ["read", "bash", "edit", "write", "ls"],
-		},
+		expectedSettings(profile),
 	);
 	assert.match(
 		r.stdout,
@@ -921,30 +848,7 @@ test("install --profile agentic-core writes .pi only", () => {
 		false,
 	);
 	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
-	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "create-skill", "SKILL.md")),
-		true,
-	);
-	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "diagnose", "SKILL.md")),
-		true,
-	);
-	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "godot-mono", "SKILL.md")),
-		false,
-	);
-	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "vault-pack", "SKILL.md")),
-		false,
-	);
-	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "playwright-cli", "SKILL.md")),
-		false,
-	);
-	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "supabase", "SKILL.md")),
-		false,
-	);
+	assert.equal(existsSync(join(dest, ".pi", "skills")), true);
 	assert.equal(existsSync(join(dest, ".opencode")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
 	assert.equal(existsSync(join(dest, ".agents")), false);
@@ -965,12 +869,7 @@ test("install --profile life-engine writes .pi only", () => {
 		false,
 	);
 	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
-	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "vault-pack", "SKILL.md")),
-		true,
-	);
-	const npmRoot = join(dest, ".pi", "npm", "local", "@agentic-core");
-	assert.equal(existsSync(join(npmRoot, "heio-todo", "src", "index.ts")), true);
+	assert.equal(existsSync(join(dest, ".pi", "skills")), true);
 	assert.equal(existsSync(join(dest, ".pi", "vendor", "@agentic-core")), false);
 	assert.equal(existsSync(join(dest, ".opencode")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
@@ -1123,10 +1022,7 @@ test("scripts root holds npm entrypoints only", () => {
 	}
 	assert.equal(existsSync(join(scripts, "checks")), false);
 	assert.equal(existsSync(join(scripts, "lib")), false);
-	assert.equal(
-		existsSync(join(scripts, "fixtures", "legacy-append-system.md")),
-		true,
-	);
+	assert.equal(existsSync(join(scripts, "fixtures")), false);
 	assert.equal(
 		existsSync(join(REPO, "tests", "checks", "check-no-pstack.mjs")),
 		true,
@@ -1156,20 +1052,75 @@ function walkFiles(dir, visit) {
 	}
 }
 
-function skillHasMarkdown(root, name) {
-	return walkSkillMarkdown(join(root, "ai", "skills"), name);
+function destDirNames(dest, rel) {
+	const root = join(dest, rel);
+	if (!existsSync(root)) return [];
+	return readdirSync(root, { withFileTypes: true })
+		.filter((ent) => ent.isDirectory())
+		.map((ent) => ent.name)
+		.sort();
 }
 
-function walkSkillMarkdown(dir, name) {
-	if (!existsSync(dir)) return false;
-	if (existsSync(join(dir, name, "SKILL.md"))) return true;
-	for (const ent of readdirSync(dir, { withFileTypes: true })) {
-		if (!ent.isDirectory() || ent.name.startsWith(".")) continue;
-		const full = join(dir, ent.name);
-		if (existsSync(join(full, "SKILL.md"))) continue;
-		if (walkSkillMarkdown(full, name)) return true;
+function destMarkdownStems(dest, rel) {
+	const root = join(dest, rel);
+	if (!existsSync(root)) return [];
+	return readdirSync(root, { withFileTypes: true })
+		.filter((ent) => ent.isFile() && ent.name.endsWith(".md"))
+		.map((ent) => ent.name.slice(0, -3))
+		.sort();
+}
+
+function expectedNamedIds(selection, available) {
+	if (selection.kind === "omit") return [];
+	if (selection.kind === "all") return [...available];
+	return [...new Set(selection.ids)];
+}
+
+function expectedSettings(profile) {
+	const packages = profile.packages.map(packageRefSource);
+	if (packages.length === 0 && profile.settings == null) return null;
+	return {
+		...(packages.length > 0 ? { packages } : {}),
+		...(profile.settings ?? {}),
+	};
+}
+
+function assertInstallMatchesYaml(dest, profile) {
+	const skills = destDirNames(dest, ".pi/skills");
+	assert.deepEqual(skills, [...new Set(profile.skills)].sort());
+	for (const name of skills) {
+		assert.equal(
+			existsSync(join(dest, ".pi", "skills", name, "SKILL.md")),
+			true,
+			name,
+		);
 	}
-	return false;
+
+	assert.deepEqual(
+		destMarkdownStems(dest, ".pi/agents"),
+		expectedNamedIds(profile.agents, listAgentIds(REPO)).sort(),
+	);
+	assert.deepEqual(
+		destMarkdownStems(dest, ".pi/prompts"),
+		expectedNamedIds(profile.prompts, listPromptIds(REPO)).sort(),
+	);
+
+	const localNames = profile.packages
+		.filter((pkg) => pkg.kind === "local")
+		.map((pkg) => pkg.name)
+		.sort();
+	assert.deepEqual(
+		destDirNames(dest, ".pi/npm/local/@agentic-core"),
+		localNames,
+	);
+
+	const settingsPath = join(dest, ".pi", "settings.json");
+	const expected = expectedSettings(profile);
+	if (expected == null) {
+		assert.equal(existsSync(settingsPath), false);
+		return;
+	}
+	assert.deepEqual(JSON.parse(readFileSync(settingsPath, "utf8")), expected);
 }
 
 function tempRoot() {

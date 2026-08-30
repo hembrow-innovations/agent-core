@@ -8,14 +8,14 @@ tags: [product, react-api]
 ## React-api Owns Shared Behaviour
 
 **Incorrect:** `useSupabase().from(...)` in a screen, or a native twin of a web hook.
-**Correct:** Platform-free behaviour and domain PostgREST live in `@life-engine/react-api`.
+**Correct:** Platform-free behaviour and domain PostgREST live in `@project_name/react-api`.
 
-One product, three skins. Platform-free product behaviour and all domain PostgREST live in `@life-engine/react-api`. Feature packages are presentation.
+One product, three skins. Platform-free product behaviour and all domain PostgREST live in `@project_name/react-api`. Feature packages are presentation.
 
 **Why:** A hook in `features/*/web` and a twin in `features/*/native` is two products. A `useSupabase().from(...)` in a screen is a third data layer.
 
 **Pattern:**
-- Features and core UI import data only from `@life-engine/react-api/{feature}/{subdomain}`.
+- Features and core UI import data only from `@project_name/react-api/{feature}/{subdomain}`.
 - react-api owns query keys, Zod shapes, PostgREST, invalidation, realtime, and pure domain math.
 - There is no `features/*/shared` leaf and no third TypeScript data package.
 - Desktop is the web SPA in Electron. Do not fork desktop behaviour.

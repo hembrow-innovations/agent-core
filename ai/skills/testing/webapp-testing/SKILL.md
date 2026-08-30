@@ -16,7 +16,7 @@ If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, `docs/pla
 3. Read `AGENTS.md`, README, and any project test skill for gates and scratch dirs.
 4. Search `docs/` for committed test policy. Load **docs** before you write a durable note.
 
-Do not invent a workspace-wide `pnpm test` or a second E2E stack. `pnpm e2e:web` and `pnpm --filter @life-engine/... test` are examples, not the only paved path.
+Do not invent a workspace-wide `pnpm test` or a second E2E stack. `pnpm e2e:web` and `pnpm --filter @project_name/... test` are examples, not the only paved path.
 
 ## Decision tree
 

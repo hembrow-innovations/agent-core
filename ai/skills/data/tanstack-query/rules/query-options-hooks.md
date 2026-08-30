@@ -9,7 +9,7 @@ tags: [query, hooks, realtime, options]
 
 Put `{ queryKey, queryFn }` in `*.queries.ts`. Hooks call those options with the project's client hook and usually its realtime helper.
 
-Discover those helpers. `useSupabase`, `useRealtimeQuery`, and `useRealtimeInvalidation` from `@life-engine/react-api` are one project's names, not the only ones.
+Discover those helpers. `useSupabase`, `useRealtimeQuery`, and `useRealtimeInvalidation` from `@project_name/react-api` are one project's names, not the only ones.
 
 **Incorrect (options inlined only in the hook):**
 
