@@ -2,19 +2,19 @@
 id: "architecture-heio-todo"
 title: "Todo checklist store"
 kind: architecture
-description: "Session checklists live in the todo package. write and edit of those paths are blocked."
+description: "Session checklists live in the todo package. write, edit, and bash mutation of those paths are blocked."
 domain: pack
 area: architecture
 tags: [architecture, todo]
 created_at: "2026-08-26"
-updated_at: "2026-08-26"
+updated_at: "2026-08-30"
 ---
 
 # Todo checklist store
 
 ## Overview
 
-`@agentic-core/heio-todo` owns session checklist files. The live list is `.heio/sessions/<sessionId>/TODO.md`. The tool `heio_todo` writes and lists those files. Builtin `write` and `edit` cannot touch them.
+`@agentic-core/heio-todo` owns session checklist files. The live list is `.heio/sessions/<sessionId>/TODO.md`. The tool `heio_todo` writes and lists those files. Builtin `write`, `edit`, and bash mutation of those paths are blocked.
 
 There is no `packages/lib`. Dest receives a vendor copy of this package as it is. See [[0008-todo-owns-checklist-store]] and [[architecture-pack-and-packages]].
 
@@ -45,12 +45,12 @@ export function parseSessionId(raw: string): SessionId {
 
 ### Write
 
-`writeSessionChecklist` creates the session directory, writes the markdown with a trailing newline, and always rewrites the stub to `STUB_TODO_MARKDOWN`. A second session keeps its own file. Only the writer session is replaced.
+`writeSessionChecklist` creates the session directory and writes the markdown with a trailing newline. It writes the stub only when the file is missing or differs from `STUB_TODO_MARKDOWN`. A second session keeps its own file. Only the writer session is replaced.
 
 ```ts
 // packages/heio-todo/src/store.ts writeSessionChecklist
 writeFileSync(sessionPath, withTrailingNewline(input.markdown), "utf8");
-writeFileSync(stubPath, STUB_TODO_MARKDOWN, "utf8");
+writeStubIfNeeded(stubPath);
 ```
 
 The factory queues that write with `withFileMutationQueue` on the session path.
@@ -61,24 +61,20 @@ The factory queues that write with `withFileMutationQueue` on the session path.
 
 `listSessionChecklists` walks `.heio/sessions/`. It skips names that fail `parseSessionId` and skips entries that are not a `TODO.md` file. Title is the first non-empty line. Results sort by session id.
 
-Empty cwd text is `No session checklists.`
+List text leads with this session's items, or `No checklist for this session.` Sibling rows are titles only and capped.
 
 ### Write block
 
-`isProtectedTodoPath` is true for the stub and for `.heio/sessions/<id>/TODO.md`. A leading `@` is stripped. Other `.heio/` files are not protected.
+`isProtectedTodoPath` is true for the stub and for `.heio/sessions/<id>/TODO.md`. Resolution matches builtin write and edit: unicode spaces, a leading `@`, home, and `file://`. Existing aliases are compared after `realpath` when that succeeds. Other `.heio/` files are not protected.
 
-On `tool_call`, the factory returns a block only for builtin `write` and `edit` against those paths. `read` is left alone.
+On `tool_call`, the factory blocks builtin `write` and `edit` against those paths, and bash that would redirect, tee, rm, mv, or cp them. `read` and read-only bash are left alone.
 
 ```ts
 // packages/heio-todo/src/index.ts tool_call
+if (event.toolName === "bash") {
+  // block redirect, tee, rm, mv, cp of protected paths
+}
 if (event.toolName !== "write" && event.toolName !== "edit") return;
-const path = toolPath(event.input);
-if (!path) return;
-if (!isProtectedTodoPath(ctx.cwd, path)) return;
-return {
-  block: true,
-  reason: "Use heio_todo. That path is a session checklist.",
-};
 ```
 
 ## Trade-offs
@@ -89,6 +85,6 @@ It refuses a sibling lib and refuses using builtin `write` for the live checklis
 
 ## Consequences
 
-Install copies this package through the vendor path in [[spec-installer]]. Agents call `heio_todo`. They do not edit `.heio/TODO.md` or `.heio/sessions/*/TODO.md` with `write` or `edit`.
+Install copies this package through the vendor path in [[spec-installer]]. Agents call `heio_todo`. They do not mutate `.heio/TODO.md` or `.heio/sessions/*/TODO.md` with `write`, `edit`, or bash.
 
 Terms live in [[glossary]].

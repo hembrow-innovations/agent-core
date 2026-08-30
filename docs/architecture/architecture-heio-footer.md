@@ -7,7 +7,7 @@ domain: pack
 area: architecture
 tags: [architecture, footer]
 created_at: "2026-08-26"
-updated_at: "2026-08-26"
+updated_at: "2026-08-30"
 ---
 
 # One-line TUI footer
@@ -28,11 +28,12 @@ Print mode does not get a footer. The hook returns before `setFooter` when `ctx.
 
 ### Hook
 
-The factory listens for `session_start`. It calls `ctx.ui.setFooter`. The renderer reads live usage, team status, cost, autocompact, model, and thinking level, then clips the line to the terminal width.
+The factory listens for `session_start`. It calls `ctx.ui.setFooter`. The renderer reads live usage, team status, cost, cached autocompact, model, and thinking level, then clips the line to the terminal visible width.
 
 ```ts
 // packages/heio-footer/src/index.ts session_start
 if (ctx.mode !== "tui") return;
+const autoCompact = autoCompactEnabled(ctx.cwd);
 ctx.ui.setFooter((_tui, theme, footerData) => ({
   invalidate() {},
   render(width: number): string[] {
@@ -42,8 +43,8 @@ ctx.ui.setFooter((_tui, theme, footerData) => ({
       teamStatus: footerData.getExtensionStatuses().get("team"),
       tokens: usage?.tokens ?? null,
       contextWindow: usage?.contextWindow ?? ctx.model?.contextWindow ?? 0,
-      cost: assistantCost(ctx),
-      autoCompact: autoCompactEnabled(ctx.cwd),
+      cost: sessionCost(ctx),
+      autoCompact,
       model: ctx.model?.id ?? "no-model",
       effort: ctx.thinkingLevel,
     });
@@ -82,9 +83,11 @@ const parts = [
 
 ### Autocompact and cost
 
-`autoCompactEnabled` reads `compaction.enabled` from project settings first, then from `getAgentDir()/settings.json`. Project path is `join(cwd, CONFIG_DIR_NAME, "settings.json")`. A missing or unreadable file falls through. If neither file sets a boolean, the default is `true`.
+`autoCompactEnabled` reads `compaction.enabled` from project settings first, then from `getAgentDir()/settings.json`. Project path is `join(cwd, CONFIG_DIR_NAME, "settings.json")`. A missing file falls through. A file that exists but is corrupt or has a non-boolean `enabled` does not paint `(auto)`. If neither file sets a boolean, the default is `true`. The value is read once on `session_start`.
 
-`assistantCost` sums `usage.cost.total` on assistant messages in the current session.
+`sessionCost` matches Pi's footer totaling: assistant messages, toolResult usage when present, compaction usage, and branch_summary usage.
+
+Clip uses visible width, not JavaScript string length. CJK and emoji count as two columns.
 
 ## Trade-offs
 

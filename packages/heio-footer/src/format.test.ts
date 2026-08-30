@@ -3,7 +3,12 @@ import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { formatCwdFromRoot, formatFooterLine } from "./format.ts";
+import {
+	clipToVisibleWidth,
+	formatCwdFromRoot,
+	formatFooterLine,
+	visibleWidth,
+} from "./format.ts";
 
 test("cwd at the git root is the root folder name", () => {
 	const root = mkdtempSync(join(tmpdir(), "footer-root-"));
@@ -91,4 +96,12 @@ test("unknown tokens render as a question mark", () => {
 		}),
 		"agentic-core ?/200k $1.500 opus off",
 	);
+});
+
+test("clip uses visible width not string length", () => {
+	const cjk = "完整";
+	assert.equal(cjk.length, 2);
+	assert.equal(visibleWidth(cjk), 4);
+	assert.equal(clipToVisibleWidth(cjk, 2), "完");
+	assert.equal(visibleWidth(clipToVisibleWidth(cjk, 3)), 2);
 });

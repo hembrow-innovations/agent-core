@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { StringEnum } from "@earendil-works/pi-ai";
 import {
@@ -14,6 +15,9 @@ import {
 	writeSessionChecklist,
 } from "./store.ts";
 
+const SIBLING_LIST_CAP = 5;
+const BLOCK_REASON = "Use heio_todo. That path is a session checklist.";
+
 function toolPath(input: unknown): string | undefined {
 	if (!input || typeof input !== "object" || !("path" in input)) {
 		return undefined;
@@ -22,15 +26,102 @@ function toolPath(input: unknown): string | undefined {
 	return typeof path === "string" ? path : undefined;
 }
 
+function toolCommand(input: unknown): string | undefined {
+	if (!input || typeof input !== "object" || !("command" in input)) {
+		return undefined;
+	}
+	const command = input.command;
+	return typeof command === "string" ? command : undefined;
+}
+
+function stripQuotes(token: string): string {
+	if (
+		(token.startsWith('"') && token.endsWith('"') && token.length >= 2) ||
+		(token.startsWith("'") && token.endsWith("'") && token.length >= 2)
+	) {
+		return token.slice(1, -1);
+	}
+	return token;
+}
+
+function bashMutatesProtected(cwd: string, command: string): boolean {
+	const redirect = /(?:>>|>)\s*([^\s;|&]+)/g;
+	for (const match of command.matchAll(redirect)) {
+		const target = stripQuotes(match[1] ?? "");
+		if (target && isProtectedTodoPath(cwd, target)) return true;
+	}
+	if (!/\b(?:tee|rm|mv|cp)\b/.test(command)) return false;
+	for (const raw of command.split(/[\s;|&]+/)) {
+		const token = stripQuotes(raw);
+		if (
+			!token ||
+			token === "tee" ||
+			token === "rm" ||
+			token === "mv" ||
+			token === "cp"
+		) {
+			continue;
+		}
+		if (isProtectedTodoPath(cwd, token)) return true;
+	}
+	return false;
+}
+
+function currentSessionId(raw: string): SessionId | undefined {
+	try {
+		return parseSessionId(raw);
+	} catch {
+		return undefined;
+	}
+}
+
+function formatList(input: {
+	cwd: string;
+	sessionId: SessionId | undefined;
+}): string {
+	const items = listSessionChecklists(input.cwd);
+	const current = input.sessionId
+		? items.find((item) => item.sessionId === input.sessionId)
+		: undefined;
+	const siblings = items.filter((item) => item.sessionId !== input.sessionId);
+	const lines: string[] = [];
+	if (current) {
+		const body = readFileSync(current.path, "utf8").trimEnd();
+		lines.push("This session:");
+		lines.push(body);
+	} else {
+		lines.push("No checklist for this session.");
+	}
+	if (siblings.length > 0) {
+		lines.push("");
+		lines.push("Other sessions:");
+		const shown = siblings.slice(0, SIBLING_LIST_CAP);
+		for (const sibling of shown) {
+			lines.push(`- **${sibling.sessionId}**: ${sibling.title}`);
+		}
+		const extra = siblings.length - shown.length;
+		if (extra > 0) {
+			lines.push(`- … ${extra} more`);
+		}
+	}
+	return lines.join("\n");
+}
+
 export default function (pi: ExtensionAPI) {
 	pi.on("tool_call", (event, ctx) => {
+		if (event.toolName === "bash") {
+			const command = toolCommand(event.input);
+			if (!command) return;
+			if (!bashMutatesProtected(ctx.cwd, command)) return;
+			return { block: true, reason: BLOCK_REASON };
+		}
 		if (event.toolName !== "write" && event.toolName !== "edit") return;
 		const path = toolPath(event.input);
 		if (!path) return;
 		if (!isProtectedTodoPath(ctx.cwd, path)) return;
 		return {
 			block: true,
-			reason: "Use heio_todo. That path is a session checklist.",
+			reason: BLOCK_REASON,
 		};
 	});
 
@@ -38,7 +129,7 @@ export default function (pi: ExtensionAPI) {
 		name: "heio_todo",
 		label: "Heio todo",
 		description:
-			"Write or list this session's heio checklist. First item on a multi-step task must be reading heio-mode principles. Keep skipped items as `- [ ] skip: reason`.",
+			"Write or list this session's heio checklist. Keep skipped items as `- [ ] skip: reason`.",
 		promptSnippet: "Write or list this session's heio checklist",
 		promptGuidelines: [
 			"Use heio_todo to write the session checklist. Do not write or edit `.heio/TODO.md` or `.heio/sessions/*/TODO.md` with write or edit.",
@@ -91,16 +182,12 @@ export default function (pi: ExtensionAPI) {
 					});
 				}
 				case "list": {
+					const sessionId = currentSessionId(ctx.sessionManager.getSessionId());
+					const text = formatList({ cwd: ctx.cwd, sessionId });
 					const items = listSessionChecklists(ctx.cwd);
-					const text =
-						items.length === 0
-							? "No session checklists."
-							: items
-									.map((item) => `- **${item.sessionId}**: ${item.path} (${item.title})`)
-									.join("\n");
 					return {
 						content: [{ type: "text" as const, text }],
-						details: { items },
+						details: { items, currentSessionId: sessionId },
 					};
 				}
 				default: {

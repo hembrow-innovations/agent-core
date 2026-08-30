@@ -1,7 +1,17 @@
-import { describe, expect, it } from "bun:test";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import assert from "node:assert/strict";
+import {
+	mkdirSync,
+	mkdtempSync,
+	readFileSync,
+	statSync,
+	symlinkSync,
+	utimesSync,
+	writeFileSync,
+} from "node:fs";
+import { homedir, tmpdir } from "node:os";
+import { join, relative } from "node:path";
+import { describe, it } from "node:test";
+import { pathToFileURL } from "node:url";
 import {
 	isProtectedTodoPath,
 	listSessionChecklists,
@@ -21,14 +31,14 @@ function tempCwd(): string {
 
 describe("parseSessionId", () => {
 	it("accepts a uuid-like id", () => {
-		expect(parseSessionId(uuidA)).toBe(uuidA);
+		assert.equal(parseSessionId(uuidA), uuidA);
 	});
 
 	it("rejects path traversal, slashes, empty, and spaces", () => {
-		expect(() => parseSessionId("../x")).toThrow();
-		expect(() => parseSessionId("a/b")).toThrow();
-		expect(() => parseSessionId("")).toThrow();
-		expect(() => parseSessionId("a b")).toThrow();
+		assert.throws(() => parseSessionId("../x"));
+		assert.throws(() => parseSessionId("a/b"));
+		assert.throws(() => parseSessionId(""));
+		assert.throws(() => parseSessionId("a b"));
 	});
 });
 
@@ -39,12 +49,13 @@ describe("writeSessionChecklist", () => {
 		const markdown = "# Feature\n\n- [ ] read principles";
 		const result = writeSessionChecklist({ cwd, sessionId, markdown });
 
-		expect(result.sessionPath).toBe(sessionTodoPath(cwd, sessionId));
-		expect(result.stubPath).toBe(stubTodoPath(cwd));
-		expect(readFileSync(result.sessionPath, "utf8")).toBe(
+		assert.equal(result.sessionPath, sessionTodoPath(cwd, sessionId));
+		assert.equal(result.stubPath, stubTodoPath(cwd));
+		assert.equal(
+			readFileSync(result.sessionPath, "utf8"),
 			"# Feature\n\n- [ ] read principles\n",
 		);
-		expect(readFileSync(result.stubPath, "utf8")).toBe(STUB_TODO_MARKDOWN);
+		assert.equal(readFileSync(result.stubPath, "utf8"), STUB_TODO_MARKDOWN);
 	});
 
 	it("keeps two session files and replaces only the writer", () => {
@@ -55,9 +66,31 @@ describe("writeSessionChecklist", () => {
 		writeSessionChecklist({ cwd, sessionId: b, markdown: "bravo" });
 		writeSessionChecklist({ cwd, sessionId: a, markdown: "alpha-two" });
 
-		expect(readFileSync(sessionTodoPath(cwd, a), "utf8")).toBe("alpha-two\n");
-		expect(readFileSync(sessionTodoPath(cwd, b), "utf8")).toBe("bravo\n");
-		expect(readFileSync(stubTodoPath(cwd), "utf8")).toBe(STUB_TODO_MARKDOWN);
+		assert.equal(readFileSync(sessionTodoPath(cwd, a), "utf8"), "alpha-two\n");
+		assert.equal(readFileSync(sessionTodoPath(cwd, b), "utf8"), "bravo\n");
+		assert.equal(readFileSync(stubTodoPath(cwd), "utf8"), STUB_TODO_MARKDOWN);
+	});
+
+	it("does not rewrite an already-correct stub", () => {
+		const cwd = tempCwd();
+		const a = parseSessionId(uuidA);
+		const b = parseSessionId(uuidB);
+		writeSessionChecklist({ cwd, sessionId: a, markdown: "alpha" });
+		const stub = stubTodoPath(cwd);
+		const past = new Date("2020-01-01T00:00:00Z");
+		utimesSync(stub, past, past);
+		writeSessionChecklist({ cwd, sessionId: b, markdown: "bravo" });
+		assert.equal(statSync(stub).mtimeMs, past.getTime());
+		assert.equal(readFileSync(stub, "utf8"), STUB_TODO_MARKDOWN);
+	});
+
+	it("restores a corrupted stub", () => {
+		const cwd = tempCwd();
+		const sessionId = parseSessionId(uuidA);
+		writeSessionChecklist({ cwd, sessionId, markdown: "alpha" });
+		writeFileSync(stubTodoPath(cwd), "wrong\n");
+		writeSessionChecklist({ cwd, sessionId, markdown: "alpha-two" });
+		assert.equal(readFileSync(stubTodoPath(cwd), "utf8"), STUB_TODO_MARKDOWN);
 	});
 });
 
@@ -78,7 +111,7 @@ describe("listSessionChecklists", () => {
 		writeFileSync(join(cwd, ".heio", "sessions", "not-a-session.txt"), "nope");
 		mkdirSync(join(cwd, ".heio", "sessions", "a/b"), { recursive: true });
 
-		expect(listSessionChecklists(cwd)).toEqual([
+		assert.deepEqual(listSessionChecklists(cwd), [
 			{
 				sessionId: uuidA,
 				path: sessionTodoPath(cwd, parseSessionId(uuidA)),
@@ -97,11 +130,30 @@ describe("isProtectedTodoPath", () => {
 	it("protects the stub and session checklist paths", () => {
 		const cwd = tempCwd();
 		const sessionPath = sessionTodoPath(cwd, parseSessionId(uuidA));
-		expect(isProtectedTodoPath(cwd, ".heio/TODO.md")).toBe(true);
-		expect(isProtectedTodoPath(cwd, "@.heio/TODO.md")).toBe(true);
-		expect(isProtectedTodoPath(cwd, stubTodoPath(cwd))).toBe(true);
-		expect(isProtectedTodoPath(cwd, sessionPath)).toBe(true);
-		expect(isProtectedTodoPath(cwd, ".heio/decisions.tsv")).toBe(false);
-		expect(isProtectedTodoPath(cwd, "src/foo.ts")).toBe(false);
+		assert.equal(isProtectedTodoPath(cwd, ".heio/TODO.md"), true);
+		assert.equal(isProtectedTodoPath(cwd, "@.heio/TODO.md"), true);
+		assert.equal(isProtectedTodoPath(cwd, stubTodoPath(cwd)), true);
+		assert.equal(isProtectedTodoPath(cwd, sessionPath), true);
+		assert.equal(isProtectedTodoPath(cwd, ".heio/decisions.tsv"), false);
+		assert.equal(isProtectedTodoPath(cwd, "src/foo.ts"), false);
+	});
+
+	it("protects home file-url and symlink aliases", () => {
+		const cwd = tempCwd();
+		const sessionId = parseSessionId(uuidA);
+		writeSessionChecklist({ cwd, sessionId, markdown: "# Alpha" });
+		const stub = stubTodoPath(cwd);
+		const sessionPath = sessionTodoPath(cwd, sessionId);
+		const homeRel = `~/${relative(homedir(), stub)}`;
+		assert.equal(isProtectedTodoPath(cwd, homeRel), true);
+		assert.equal(isProtectedTodoPath(cwd, pathToFileURL(stub).href), true);
+		assert.equal(isProtectedTodoPath(cwd, pathToFileURL(sessionPath).href), true);
+		const alias = join(cwd, "alias-todo");
+		symlinkSync(stub, alias);
+		assert.equal(isProtectedTodoPath(cwd, alias), true);
+		assert.equal(
+			isProtectedTodoPath(cwd, `.heio/sessions/${uuidA}/TODO.md`),
+			true,
+		);
 	});
 });

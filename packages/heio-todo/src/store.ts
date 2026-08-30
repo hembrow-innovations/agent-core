@@ -3,14 +3,18 @@ import {
 	mkdirSync,
 	readdirSync,
 	readFileSync,
+	realpathSync,
 	statSync,
 	writeFileSync,
 } from "node:fs";
+import { homedir } from "node:os";
 import { join, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export type SessionId = string & { readonly __brand: "SessionId" };
 
 const SESSION_ID_PATTERN = /^[A-Za-z0-9._-]+$/;
+const UNICODE_SPACES = /[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g;
 
 export const STUB_TODO_MARKDOWN = `# Session checklists
 
@@ -38,6 +42,17 @@ function withTrailingNewline(markdown: string): string {
 	return markdown.endsWith("\n") ? markdown : `${markdown}\n`;
 }
 
+function writeStubIfNeeded(stubPath: string): void {
+	if (existsSync(stubPath)) {
+		try {
+			if (readFileSync(stubPath, "utf8") === STUB_TODO_MARKDOWN) return;
+		} catch {
+			// restore below
+		}
+	}
+	writeFileSync(stubPath, STUB_TODO_MARKDOWN, "utf8");
+}
+
 export function writeSessionChecklist(input: {
 	cwd: string;
 	sessionId: SessionId;
@@ -49,7 +64,7 @@ export function writeSessionChecklist(input: {
 		recursive: true,
 	});
 	writeFileSync(sessionPath, withTrailingNewline(input.markdown), "utf8");
-	writeFileSync(stubPath, STUB_TODO_MARKDOWN, "utf8");
+	writeStubIfNeeded(stubPath);
 	return { sessionPath, stubPath };
 }
 
@@ -87,15 +102,34 @@ export function listSessionChecklists(cwd: string): Array<{
 	return listed.sort((a, b) => a.sessionId.localeCompare(b.sessionId));
 }
 
-export function isProtectedTodoPath(cwd: string, rawPath: string): boolean {
-	const trimmed = rawPath.replace(/^@/, "");
-	if (!trimmed) return false;
-	const absolute = resolve(cwd, trimmed);
-	if (absolute === resolve(stubTodoPath(cwd))) return true;
-	const sessionsRoot = resolve(cwd, ".heio", "sessions");
-	const prefix = sessionsRoot.endsWith(sep)
-		? sessionsRoot
-		: `${sessionsRoot}${sep}`;
+function resolveTodoToolPath(cwd: string, rawPath: string): string {
+	let normalized = rawPath.replace(UNICODE_SPACES, " ");
+	if (normalized.startsWith("@")) normalized = normalized.slice(1);
+	if (normalized === "~") normalized = homedir();
+	else if (normalized.startsWith("~/")) {
+		normalized = join(homedir(), normalized.slice(2));
+	}
+	if (/^file:\/\//.test(normalized)) {
+		normalized = fileURLToPath(normalized);
+	}
+	return resolve(cwd, normalized);
+}
+
+function existingCanonical(path: string): string | undefined {
+	try {
+		return realpathSync(path);
+	} catch {
+		return undefined;
+	}
+}
+
+function withExistingCanonical(path: string): string[] {
+	const canonical = existingCanonical(path);
+	return canonical && canonical !== path ? [path, canonical] : [path];
+}
+
+function isSessionTodoUnder(root: string, absolute: string): boolean {
+	const prefix = root.endsWith(sep) ? root : `${root}${sep}`;
 	if (!absolute.startsWith(prefix)) return false;
 	const rel = absolute.slice(prefix.length);
 	const parts = rel.split(sep);
@@ -106,4 +140,21 @@ export function isProtectedTodoPath(cwd: string, rawPath: string): boolean {
 	} catch {
 		return false;
 	}
+}
+
+function matchesProtectedShape(cwd: string, absolute: string): boolean {
+	const stubPaths = withExistingCanonical(resolve(stubTodoPath(cwd)));
+	const sessionRoots = withExistingCanonical(resolve(cwd, ".heio", "sessions"));
+	for (const candidate of withExistingCanonical(absolute)) {
+		if (stubPaths.includes(candidate)) return true;
+		for (const root of sessionRoots) {
+			if (isSessionTodoUnder(root, candidate)) return true;
+		}
+	}
+	return false;
+}
+
+export function isProtectedTodoPath(cwd: string, rawPath: string): boolean {
+	if (!rawPath) return false;
+	return matchesProtectedShape(cwd, resolveTodoToolPath(cwd, rawPath));
 }

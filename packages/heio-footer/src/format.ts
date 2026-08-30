@@ -44,6 +44,53 @@ export function formatTokens(count: number): string {
 	return `${Math.round(count / 1000000)}M`;
 }
 
+function isWideCodePoint(code: number): boolean {
+	if (code >= 0x1100 && code <= 0x115f) return true;
+	if (code === 0x2329 || code === 0x232a) return true;
+	if (code >= 0x2e80 && code <= 0xa4cf) return true;
+	if (code >= 0xac00 && code <= 0xd7a3) return true;
+	if (code >= 0xf900 && code <= 0xfaff) return true;
+	if (code >= 0xfe10 && code <= 0xfe19) return true;
+	if (code >= 0xfe30 && code <= 0xfe6f) return true;
+	if (code >= 0xff00 && code <= 0xff60) return true;
+	if (code >= 0xffe0 && code <= 0xffe6) return true;
+	if (code >= 0x1f300 && code <= 0x1f64f) return true;
+	if (code >= 0x1f900 && code <= 0x1f9ff) return true;
+	if (code >= 0x20000 && code <= 0x3fffd) return true;
+	return false;
+}
+
+function charVisibleWidth(char: string): number {
+	const code = char.codePointAt(0);
+	if (code === undefined) return 0;
+	if (code <= 31 || code === 127) return 0;
+	if (code >= 0x300 && code <= 0x36f) return 0;
+	if (isWideCodePoint(code)) return 2;
+	return 1;
+}
+
+export function visibleWidth(text: string): number {
+	let width = 0;
+	for (const char of text) {
+		width += charVisibleWidth(char);
+	}
+	return width;
+}
+
+export function clipToVisibleWidth(text: string, width: number): string {
+	if (width <= 0) return "";
+	if (visibleWidth(text) <= width) return text;
+	let out = "";
+	let used = 0;
+	for (const char of text) {
+		const next = charVisibleWidth(char);
+		if (used + next > width) break;
+		out += char;
+		used += next;
+	}
+	return out;
+}
+
 export function formatFooterLine(fields: FooterFields): string {
 	const tokens = fields.tokens === null ? "?" : formatTokens(fields.tokens);
 	const parts = [
