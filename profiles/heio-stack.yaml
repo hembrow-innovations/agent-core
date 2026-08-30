@@ -1,0 +1,35 @@
+# Heio-stack: intent, roadmap, sprint, slice, ticket, task.
+agents:
+  - heio-triage
+  - heio-tasker
+  - heio-builder
+  - heio-verifier
+prompts:
+  - heio-wayfinder
+  - heio-planning
+  - heio-slice
+packages:
+  - npm:pi-lens
+  - npm:pi-subagents
+  - local:@agentic-core/heio-todo
+  - local:@agentic-core/heio-boot
+  - local:@agentic-core/heio-footer
+settings:
+  toolDescriptionMode: compact
+  defaultTools:
+    - read
+    - bash
+    - edit
+    - write
+    - ls
+skills:
+  - heio-stack
+  - heio-wayfinder
+  - heio-planning
+  - heio-slice
+  - docs
+  - domain-modeling
+  - tdd
+  - behaviour-contracts
+  - diagnose
+  - oracle
