@@ -18,6 +18,8 @@ Read the brief first: task id, done line, `fits:` oracle, frozen `EXPECT:` text,
 
 You work the named task. You follow **tdd**: red, then green, one seam at a time.
 
+You do not git commit.
+
 You may refine `CHECK:` on the slice `oracles.md` when the command must change to stay runnable.
 
 You leave `EXPECT:` as the brief quoted it.
