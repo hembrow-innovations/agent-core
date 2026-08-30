@@ -45,7 +45,7 @@ Children do not spawn children.
 
 1. If `tasks.md` is missing, spawn **heio-tasker**. Brief includes the spec path, oracles path, and “write `tasks.md` only.”
 2. Next unchecked task → **heio-builder**. Brief stands alone: task id, done line, `fits:` oracle, frozen `EXPECT:` text, paths, how to verify. Builder may refine `CHECK:`, not `EXPECT:`.
-3. After the builder returns `VERDICT: TASK`, git commit only the product paths that task touched. Unrelated dirty files stay unstaged. `worktree: true` stays off.
+3. After the builder returns `VERDICT: TASK`, git commit only the product paths that task touched. Unrelated dirty files stay unstaged. Never stage .heio/. `worktree: true` stays off.
 4. After the builder returns, spawn **heio-verifier** only when the brief asked for VERIFY or the task claimed to meet an oracle. Otherwise take the next task.
 5. Inbound work during the loop → **heio-triage**. TASK appends to `tasks.md`. TICKET files and continues. ESCALATE stops the loop.
 6. After the last task, spawn **heio-verifier** with `--reverify`.
