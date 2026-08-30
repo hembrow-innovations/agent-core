@@ -124,6 +124,10 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
     existsSync(join(npmRoot, "heio-coord", "src", "index.ts")),
     true,
   );
+  assert.equal(
+    existsSync(join(npmRoot, "heio-onic", "src", "index.ts")),
+    true,
+  );
   assert.equal(existsSync(join(npmRoot, "lib")), false);
   assert.equal(
     existsSync(
@@ -247,7 +251,7 @@ test("install --profile agentic-core writes .pi/skills and does not wire this ch
   if (after) {
     assert.doesNotMatch(
       after,
-      /packages\/(?:lib|heio-todo|heio-coms|heio-boot|heio-teams|heio-footer|heio-coord)/,
+      /packages\/(?:lib|heio-todo|heio-coms|heio-boot|heio-teams|heio-footer|heio-coord|heio-onic)/,
     );
   }
 });
@@ -535,6 +539,13 @@ test("parseProfilePackage accepts local:@agentic-core/heio-coord", () => {
   assert.deepEqual(parseProfilePackage("local:@agentic-core/heio-coord"), {
     kind: "local",
     name: "heio-coord",
+  });
+});
+
+test("parseProfilePackage accepts local:@agentic-core/heio-onic", () => {
+  assert.deepEqual(parseProfilePackage("local:@agentic-core/heio-onic"), {
+    kind: "local",
+    name: "heio-onic",
   });
 });
 

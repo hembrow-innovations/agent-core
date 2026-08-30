@@ -7,6 +7,7 @@ export const FIRST_PARTY_EXTENSIONS = [
   "heio-boot",
   "heio-footer",
   "heio-coord",
+  "heio-onic",
 ] as const;
 
 export type FirstPartyExtension = (typeof FIRST_PARTY_EXTENSIONS)[number];

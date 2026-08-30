@@ -10,6 +10,7 @@ packages:
   - local:@agentic-core/heio-boot
   - local:@agentic-core/heio-footer
   - local:@agentic-core/heio-coord
+  - local:@agentic-core/heio-onic
 settings:
   toolDescriptionMode: compact
   defaultTools:
