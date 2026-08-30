@@ -9,6 +9,7 @@ packages:
   - local:@agentic-core/heio-todo
   - local:@agentic-core/heio-boot
   - local:@agentic-core/heio-footer
+  - local:@agentic-core/heio-coord
 settings:
   toolDescriptionMode: compact
   defaultTools:
