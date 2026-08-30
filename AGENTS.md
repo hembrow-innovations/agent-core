@@ -32,6 +32,14 @@ pnpm exec agentic-core install . --profile agentic-core
 
 When you write or edit a skill, read `ai/skills/engineering/create-skill/SKILL.md`.
 
+## Tracker
+
+This checkout runs **heio-stack**. Live work lives under `.heio/planning/` (intent, roadmap, sprints, slices) and `.heio/tickets/`. Git ignores `.heio/`. `docs/` stays the committed source of truth.
+
+Session checklists stay on `heio_todo` at `.heio/sessions/<id>/TODO.md`. Do not treat `.heio/TODO.md`, `.heio/inbox/`, or `.heio/planning/plans/` as the tracker.
+
+Chart intent and sprints with **heio-wayfinder**. Plan a slice or ticket with **heio-planning**. Execute a frozen slice with **heio-slice**. Every output ends `VERDICT: TASK | TICKET | ESCALATE | VERIFY`.
+
 ## Verify
 
 Repo checks live under `tests/checks/`. Repo tests live under `tests/<area>/`. `scripts/test.mjs` and `scripts/typecheck.mjs` are the only npm entrypoints.
@@ -43,6 +51,6 @@ pnpm run typecheck
 
 ## Pi
 
-The local profile is `profiles/agentic-core.yaml`. It is the skill list for developing this pack, not an export profile.
+The local profile is `profiles/agentic-core.yaml`. It is the skill list for developing this pack, not an export profile. It also installs the heio-stack skills so this checkout can run the loop.
 
 Run `pi` in this directory. Trust the folder.

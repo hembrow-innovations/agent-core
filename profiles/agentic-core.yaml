@@ -19,12 +19,17 @@ settings:
     - ls
 skills:
   - architect
+  - behaviour-contracts
   - codebase-design
   - create-verification-skill
   - diagnose
   - docs
   - domain-modeling
   - handoff
+  - heio-planning
+  - heio-slice
+  - heio-stack
+  - heio-wayfinder
   - improve-codebase-architecture
   - management
   - oracle
