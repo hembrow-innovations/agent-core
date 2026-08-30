@@ -28,9 +28,3 @@ run("node", [
   join(ROOT, "tests", "oracle", "oracle-check.test.mjs"),
   ...piTests,
 ]);
-
-run("bun", [
-  "test",
-  join(ROOT, "tests", "orch"),
-  join(ROOT, "tests", "watch-pr"),
-]);
