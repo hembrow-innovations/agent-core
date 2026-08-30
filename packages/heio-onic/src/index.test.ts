@@ -50,13 +50,9 @@ describe("heio-onic factory", () => {
 		const previous = process.env.PATH;
 		process.env.PATH = mkdtempSync(join(tmpdir(), "no-onic-"));
 		try {
-			const result = await tool.execute(
-				"id",
-				{},
-				undefined,
-				undefined,
-				{ cwd: process.cwd() } as ExtensionContext,
-			);
+			const result = await tool.execute("id", {}, undefined, undefined, {
+				cwd: process.cwd(),
+			} as ExtensionContext);
 			assert.deepEqual(result.content, [
 				{ type: "text", text: "onic is not installed" },
 			]);
@@ -68,17 +64,11 @@ describe("heio-onic factory", () => {
 	it("schema shells to onic schema", async () => {
 		const { tool } = loadFactory();
 		const result = await withPath(fakeOnicDir(), () =>
-			tool.execute(
-				"id",
-				{ action: "schema" },
-				undefined,
-				undefined,
-				{ cwd: process.cwd() } as ExtensionContext,
-			),
+			tool.execute("id", { action: "schema" }, undefined, undefined, {
+				cwd: process.cwd(),
+			} as ExtensionContext),
 		);
-		assert.deepEqual(result.content, [
-			{ type: "text", text: '["schema"]' },
-		]);
+		assert.deepEqual(result.content, [{ type: "text", text: '["schema"]' }]);
 	});
 
 	it("compact shells to onic compact with the query", async () => {

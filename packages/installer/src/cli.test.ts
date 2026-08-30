@@ -124,10 +124,7 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
     existsSync(join(npmRoot, "heio-coord", "src", "index.ts")),
     true,
   );
-  assert.equal(
-    existsSync(join(npmRoot, "heio-onic", "src", "index.ts")),
-    true,
-  );
+  assert.equal(existsSync(join(npmRoot, "heio-onic", "src", "index.ts")), true);
   assert.equal(existsSync(join(npmRoot, "lib")), false);
   assert.equal(
     existsSync(

@@ -39,9 +39,7 @@ export default function (pi: ExtensionAPI) {
 					details: { error: MISSING },
 				};
 			}
-			const args = params.query
-				? [params.action, params.query]
-				: [params.action];
+			const args = params.query ? [params.action, params.query] : [params.action];
 			const result = spawnSync(binary, args, {
 				cwd: ctx.cwd,
 				encoding: "utf8",
