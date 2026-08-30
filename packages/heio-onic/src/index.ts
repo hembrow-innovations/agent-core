@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { delimiter, join } from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -22,13 +23,33 @@ export default function (pi: ExtensionAPI) {
 		description:
 			"Query a code neighborhood via onic. Missing binary fails closed with a reason.",
 		promptSnippet: "Query a code neighborhood with heio_onic",
-		parameters: Type.Object({}),
-		async execute() {
-			const missing = resolveOnicBinary(process.env) === undefined;
-			const text = missing ? MISSING : "onic is installed";
+		parameters: Type.Object({
+			action: Type.Union([
+				Type.Literal("schema"),
+				Type.Literal("compact"),
+				Type.Literal("search"),
+			]),
+			query: Type.Optional(Type.String()),
+		}),
+		async execute(_toolCallId, params, _signal, _onUpdate, ctx) {
+			const binary = resolveOnicBinary(process.env);
+			if (!binary) {
+				return {
+					content: [{ type: "text" as const, text: MISSING }],
+					details: { error: MISSING },
+				};
+			}
+			const args = params.query
+				? [params.action, params.query]
+				: [params.action];
+			const result = spawnSync(binary, args, {
+				cwd: ctx.cwd,
+				encoding: "utf8",
+			});
+			const text = result.stdout;
 			return {
 				content: [{ type: "text" as const, text }],
-				details: { error: missing ? MISSING : "" },
+				details: { error: result.status === 0 ? "" : MISSING },
 			};
 		},
 	});
