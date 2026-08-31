@@ -50,7 +50,10 @@ export default function (pi: ExtensionAPI) {
 	let announcedInert = false;
 
 	pi.on("tool_call", (event, ctx) => {
-		return blockIllegalWrite(event, ctx);
+		return blockIllegalWrite(event, {
+			cwd: ctx.cwd,
+			builder: builderFrom(pi, ctx),
+		});
 	});
 
 	pi.on("session_start", (_event, ctx) => {
@@ -64,14 +67,14 @@ export default function (pi: ExtensionAPI) {
 		name: "heio_stack",
 		label: "Heio stack",
 		description:
-			"Heio-stack lens and rails. action status reports active sprint, slice, freeze, and open tickets. claim and release bind a slice task or ticket to this session. oracle runs oracle-check.mjs --status or --reverify on the slice ledger. verdict records TASK, TICKET, ESCALATE, or VERIFY plus one-line evidence. advance is the only status flip (frozen → active → met / abandoned) and refuses a builder-shaped session. Same as /heio for status.",
+			"Heio-stack lens and rails. action status reports live sprints, slices, and open tickets. claim and release bind a slice task or ticket to this session. oracle runs oracle-check.mjs --status or --reverify on the slice ledger. verdict records TASK, TICKET, ESCALATE, or VERIFY plus one-line evidence. advance is the only status flip (frozen → active → met / abandoned) and refuses a builder-shaped session. Same as /heio for status.",
 		promptSnippet: "Read heio-stack status with heio_stack action status",
 		promptGuidelines: [
 			"Use heio_stack action status instead of opening the planning tree.",
 			"Use heio_stack claim and release for slice tasks and tickets.",
 			"Use heio_stack action oracle with target status or reverify instead of running oracle-check.mjs.",
 			"Use heio_stack action verdict with target TASK, TICKET, ESCALATE, or VERIFY and one-line evidence.",
-			"Use heio_stack action advance with target active, met, or abandoned. Builder-shaped sessions cannot mark a slice met.",
+			"Use heio_stack action advance with target active, met, or abandoned. Name the slice as s-slug:met when more than one is in flight. Builder-shaped sessions cannot mark a slice met.",
 			"This tool does not write intent, roadmap, or sprint shape.md.",
 			"If AGENTS.md or WORKSPACE.md names another tracker, the coordinator stays inert and says so once.",
 		],

@@ -12,7 +12,6 @@ import type {
 import coordExtension from "./index.ts";
 
 const TASKS_REASON = "Use heio_stack. Slice must be frozen or active.";
-const ACTIVE_REASON = "Use heio_stack. Only one slice may be active.";
 
 function tempCwd(): string {
 	return mkdtempSync(join(tmpdir(), "heio-coord-slice-"));
@@ -136,7 +135,7 @@ describe("heio-coord slice fence", () => {
 		}
 	});
 
-	it("blocks a second slice flipping to active", () => {
+	it("allows a second slice flipping to active", () => {
 		const cwd = tempCwd();
 		seedSlice(cwd, "active");
 		writeNote(
@@ -153,7 +152,7 @@ describe("heio-coord slice fence", () => {
 			{ id: "s-verify", status: "frozen" },
 		);
 		const { toolCall } = loadFactory();
-		assert.deepEqual(
+		assert.equal(
 			toolCall(
 				{
 					type: "tool_call",
@@ -167,7 +166,7 @@ describe("heio-coord slice fence", () => {
 				},
 				toolCtx(cwd),
 			),
-			{ block: true, reason: ACTIVE_REASON },
+			undefined,
 		);
 	});
 

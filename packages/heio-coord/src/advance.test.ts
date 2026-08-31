@@ -152,6 +152,50 @@ describe("heio-coord advance", () => {
 		assert.match(readFileSync(specPath, "utf8"), /status: "abandoned"/);
 	});
 
+	it("asks for a slice name when two frozen slices could become active", async () => {
+		const cwd = tempCwd();
+		const first = seedSlice(cwd, "frozen");
+		writeNote(
+			join(
+				cwd,
+				".heio",
+				"planning",
+				"sprints",
+				"coord",
+				"slices",
+				"s-rails",
+				"spec.md",
+			),
+			{ id: "s-rails", status: "frozen" },
+		);
+		const tool = loadFactory();
+		const result = await tool.execute(
+			"a1",
+			{ action: "advance", target: "active" },
+			undefined,
+			undefined,
+			parentCtx(cwd),
+		);
+		assert.deepEqual(result.content, [
+			{
+				type: "text",
+				text: "Use heio_stack. Name the slice: s-lens:active or s-rails:active.",
+			},
+		]);
+		assert.match(readFileSync(first, "utf8"), /status: "frozen"/);
+		const named = await tool.execute(
+			"a2",
+			{ action: "advance", target: "s-lens:active" },
+			undefined,
+			undefined,
+			parentCtx(cwd),
+		);
+		assert.deepEqual(named.content, [
+			{ type: "text", text: "advanced s-lens to active" },
+		]);
+		assert.match(readFileSync(first, "utf8"), /status: "active"/);
+	});
+
 	it("refuses skipping frozen to met", async () => {
 		const cwd = tempCwd();
 		const specPath = seedSlice(cwd, "frozen");

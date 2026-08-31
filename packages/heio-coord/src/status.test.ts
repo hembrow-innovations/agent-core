@@ -70,18 +70,17 @@ function seedTree(cwd: string): void {
 }
 
 describe("readStackStatus", () => {
-	it("reports active sprint, current slice freeze, and open tickets", () => {
+	it("reports live sprints, slices, and open tickets", () => {
 		const cwd = tempCwd();
 		seedTree(cwd);
 		assert.deepEqual(readStackStatus(cwd), {
-			sprintId: "coord",
-			sliceId: "s-lens",
-			freeze: "frozen",
+			sprints: ["coord"],
+			slices: [{ sprintId: "coord", sliceId: "s-lens", status: "frozen" }],
 			tickets: ["ticket-01-x"],
 		});
 	});
 
-	it("prefers an active slice over a frozen sibling", () => {
+	it("lists an active slice beside a frozen sibling", () => {
 		const cwd = tempCwd();
 		seedTree(cwd);
 		writeNote(
@@ -102,9 +101,11 @@ describe("readStackStatus", () => {
 			},
 		);
 		assert.deepEqual(readStackStatus(cwd), {
-			sprintId: "coord",
-			sliceId: "s-rails",
-			freeze: "active",
+			sprints: ["coord"],
+			slices: [
+				{ sprintId: "coord", sliceId: "s-lens", status: "frozen" },
+				{ sprintId: "coord", sliceId: "s-rails", status: "active" },
+			],
 			tickets: ["ticket-01-x"],
 		});
 	});
@@ -123,15 +124,13 @@ describe("formatStackStatus", () => {
 	it("renders a one-screen lens", () => {
 		assert.equal(
 			formatStackStatus({
-				sprintId: "coord",
-				sliceId: "s-lens",
-				freeze: "frozen",
+				sprints: ["coord"],
+				slices: [{ sprintId: "coord", sliceId: "s-lens", status: "frozen" }],
 				tickets: ["ticket-01-x"],
 			}),
 			[
-				"sprint: coord",
-				"slice: s-lens",
-				"freeze: frozen",
+				"sprints: coord",
+				"slices: coord/s-lens:frozen",
 				"tickets: ticket-01-x",
 			].join("\n"),
 		);

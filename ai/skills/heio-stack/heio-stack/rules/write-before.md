@@ -6,7 +6,7 @@ tags: [write]
 
 # Before writing
 
-Search `.heio/` first. Update in place over near-dupes. A second intent, a second roadmap, or a second `tasks.md` on an inactive slice is a miss.
+Search `.heio/` first, including `archive/`. Update in place over near-dupes. A second intent, a second roadmap, or a second `tasks.md` on a shaping slice is a miss. Do not recreate archived work as live without saying so.
 
 1. Pick the kind. Copy the matching file from `templates/`.
 2. Place and name per `layout.md`.

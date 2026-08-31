@@ -1,14 +1,22 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+export type SliceRef = {
+	sprintId: string;
+	sliceId: string;
+	status: string;
+};
+
 export type StackStatus = {
-	sprintId: string | null;
-	sliceId: string | null;
-	freeze: string;
+	sprints: string[];
+	slices: SliceRef[];
 	tickets: string[];
 };
 
 type Note = { id: string; status: string };
+
+const LIVE_SPRINT = new Set(["shaping", "active", "review"]);
+const LIVE_SLICE = new Set(["shaping", "frozen", "active"]);
 
 function unquote(value: string): string {
 	if (
@@ -98,34 +106,52 @@ function readOpenTickets(cwd: string): string[] {
 	return ids;
 }
 
-function pickSlice(slices: Note[]): Note | undefined {
-	return (
-		slices.find((slice) => slice.status === "active") ??
-		slices.find((slice) => slice.status === "frozen")
+export function sliceDir(cwd: string, slice: SliceRef): string {
+	return join(
+		cwd,
+		".heio",
+		"planning",
+		"sprints",
+		slice.sprintId,
+		"slices",
+		slice.sliceId,
 	);
 }
 
 export function readStackStatus(cwd: string): StackStatus {
-	const sprint = readSprints(cwd).find((note) => note.status === "active");
-	const slice = sprint ? pickSlice(readSlices(cwd, sprint.id)) : undefined;
+	const sprints = readSprints(cwd).filter((note) =>
+		LIVE_SPRINT.has(note.status),
+	);
+	const slices: SliceRef[] = [];
+	for (const sprint of sprints) {
+		for (const slice of readSlices(cwd, sprint.id)) {
+			if (!LIVE_SLICE.has(slice.status)) continue;
+			slices.push({
+				sprintId: sprint.id,
+				sliceId: slice.id,
+				status: slice.status,
+			});
+		}
+	}
 	return {
-		sprintId: sprint?.id ?? null,
-		sliceId: slice?.id ?? null,
-		freeze: slice?.status ?? "none",
+		sprints: sprints.map((note) => note.id),
+		slices,
 		tickets: readOpenTickets(cwd),
 	};
 }
 
-function display(value: string | null): string {
-	return value && value.length > 0 ? value : "none";
-}
-
 export function formatStackStatus(status: StackStatus): string {
+	const sprints = status.sprints.length > 0 ? status.sprints.join(", ") : "none";
+	const slices =
+		status.slices.length > 0
+			? status.slices
+					.map((slice) => `${slice.sprintId}/${slice.sliceId}:${slice.status}`)
+					.join(", ")
+			: "none";
 	const tickets = status.tickets.length > 0 ? status.tickets.join(", ") : "none";
 	return [
-		`sprint: ${display(status.sprintId)}`,
-		`slice: ${display(status.sliceId)}`,
-		`freeze: ${display(status.freeze)}`,
+		`sprints: ${sprints}`,
+		`slices: ${slices}`,
 		`tickets: ${tickets}`,
 	].join("\n");
 }

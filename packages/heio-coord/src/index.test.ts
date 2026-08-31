@@ -156,9 +156,8 @@ describe("heio-coord factory", () => {
 			{
 				type: "text",
 				text: [
-					"sprint: coord",
-					"slice: s-lens",
-					"freeze: frozen",
+					"sprints: coord",
+					"slices: coord/s-lens:frozen",
 					"tickets: ticket-01-x",
 				].join("\n"),
 			},

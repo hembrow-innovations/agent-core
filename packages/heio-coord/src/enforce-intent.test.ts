@@ -62,8 +62,16 @@ function toolCtx(cwd: string): ExtensionContext {
 	return { cwd } as ExtensionContext;
 }
 
+function builderCtx(cwd: string): ExtensionContext {
+	return {
+		cwd,
+		getSystemPrompt: () =>
+			"You are `heio-builder`. You implement one named task from the brief.",
+	} as ExtensionContext;
+}
+
 describe("heio-coord sticky planning fence", () => {
-	it("blocks write of intent.md", () => {
+	it("blocks a builder write of intent.md", () => {
 		const cwd = tempCwd();
 		seedTree(cwd);
 		const { toolCall } = loadFactory();
@@ -75,13 +83,31 @@ describe("heio-coord sticky planning fence", () => {
 					toolName: "write",
 					input: { path: ".heio/planning/intent.md", content: "nope" },
 				},
-				toolCtx(cwd),
+				builderCtx(cwd),
 			),
 			{ block: true, reason: STICKY_REASON },
 		);
 	});
 
-	it("blocks edit of intent.md", () => {
+	it("lets a general agent write intent.md", () => {
+		const cwd = tempCwd();
+		seedTree(cwd);
+		const { toolCall } = loadFactory();
+		assert.equal(
+			toolCall(
+				{
+					type: "tool_call",
+					toolCallId: "1b",
+					toolName: "write",
+					input: { path: ".heio/planning/intent.md", content: "ok" },
+				},
+				toolCtx(cwd),
+			),
+			undefined,
+		);
+	});
+
+	it("blocks a builder edit of intent.md", () => {
 		const cwd = tempCwd();
 		seedTree(cwd);
 		const { toolCall } = loadFactory();
@@ -97,13 +123,13 @@ describe("heio-coord sticky planning fence", () => {
 						newText: "b",
 					},
 				},
-				toolCtx(cwd),
+				builderCtx(cwd),
 			),
 			{ block: true, reason: STICKY_REASON },
 		);
 	});
 
-	it("blocks bash redirect of intent.md", () => {
+	it("blocks a builder bash redirect of intent.md", () => {
 		const cwd = tempCwd();
 		seedTree(cwd);
 		const { toolCall } = loadFactory();
@@ -115,17 +141,17 @@ describe("heio-coord sticky planning fence", () => {
 					toolName: "bash",
 					input: { command: "echo x > .heio/planning/intent.md" },
 				},
-				toolCtx(cwd),
+				builderCtx(cwd),
 			),
 			{ block: true, reason: STICKY_REASON },
 		);
 	});
 
-	it("blocks write of roadmap.md and sprint shape.md", () => {
+	it("blocks a builder write of roadmap.md and sprint shape.md", () => {
 		const cwd = tempCwd();
 		seedTree(cwd);
 		const { toolCall } = loadFactory();
-		const ctx = toolCtx(cwd);
+		const ctx = builderCtx(cwd);
 		assert.deepEqual(
 			toolCall(
 				{

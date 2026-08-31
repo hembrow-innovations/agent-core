@@ -14,13 +14,14 @@ If `AGENTS.md` or `WORKSPACE.md` already names a tracker, that file wins.
 
 ## Gate
 
-Read intent, roadmap, sprint `shape.md`, and the named slice.
+Read intent, roadmap, any location file, sprint `shape.md`, and the named slice.
 
 - Slice missing or still `shaping` → stop. Hand to **heio-planning**.
 - `EXPECT:` missing → stop. Hand to **heio-planning**.
-- Intent or roadmap would have to change → **ESCALATE**. Stop.
+- Intent or a location destination would have to change → **ESCALATE**. Stop.
+- Slice names `blocked-by` a slice that is not `met` → stop. Work an unblocked slice instead.
 
-Then set the slice `active`. Only one slice is active. Copy `templates/slice-tasks.md` only via **heio-tasker**.
+Then set the slice `active`. Other unblocked slices may already be `active`. Copy `templates/slice-tasks.md` only via **heio-tasker**.
 
 Done with this gate when the slice is `frozen` or `active`, oracles parse (`--status` exit 0 or 1, not 2), and you have named the children you will spawn.
 
@@ -29,11 +30,11 @@ Done with this gate when the slice is `frozen` or `active`, oracles parse (`--st
 Spawn with `subagent`. `async: true`. `context: "fresh"`. One `workflowScript`. Helpers stay plain functions or Promise chains. Inline each brief. The sandbox has no parent variables.
 
 - **heio-tasker** — writes `tasks.md` from the frozen spec + oracles. Parent cwd. No worktree.
-- **heio-builder** — one task, TDD. Parent cwd. One builder at a time. No worktree (`.heio/` is gitignored; a worktree would hide the slice).
+- **heio-builder** — one task, TDD. Parent cwd. One builder at a time in this workflow. No worktree (`.heio/` is gitignored; a worktree would hide the slice).
 - **heio-verifier** — `--reverify` on the slice ledger. Parent cwd.
 - **heio-triage** — inbound signal → TASK / TICKET / ESCALATE. Parent cwd.
 
-Two writers never share a cwd. These children take turns on the parent cwd, so run them **sequentially**. `worktree: true` stays off.
+Two writers never share a cwd. These children take turns on the parent cwd, so run them **sequentially in this workflow**. `worktree: true` stays off. Another session may hold another unblocked slice.
 
 Omit `model` when `.pi/heio-models.md` says `inherit-parent` or the file is missing.
 

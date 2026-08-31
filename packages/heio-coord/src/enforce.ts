@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -11,7 +11,6 @@ import type {
 export const STICKY_REASON = "Use heio_stack. That path is sticky planning.";
 export const EXPECT_REASON = "Use heio_stack. EXPECT is frozen.";
 export const TASKS_REASON = "Use heio_stack. Slice must be frozen or active.";
-export const ACTIVE_REASON = "Use heio_stack. Only one slice may be active.";
 
 const UNICODE_SPACES = /[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g;
 
@@ -210,85 +209,14 @@ function tasksWriteBlocked(cwd: string, rawPath: string): boolean {
 	return status !== "frozen" && status !== "active";
 }
 
-function listDirs(path: string): string[] {
-	if (!existsSync(path)) return [];
-	return readdirSync(path, { withFileTypes: true })
-		.filter((ent) => ent.isDirectory())
-		.map((ent) => ent.name);
-}
-
-function isSliceSpecPath(cwd: string, rawPath: string): boolean {
-	const absolute = resolveToolPath(cwd, rawPath);
-	if (absolute.split(sep).pop() !== "spec.md") return false;
-	const rel = relative(resolve(cwd, ".heio", "planning", "sprints"), absolute);
-	if (!rel || rel.startsWith("..")) return false;
-	const parts = rel.split(sep);
-	return parts.length === 4 && parts[1] === "slices";
-}
-
-function statusIn(text: string): string | undefined {
-	for (const line of text.split("\n")) {
-		const trimmed = line.trim();
-		if (!trimmed.startsWith("status:")) continue;
-		let value = trimmed.slice("status:".length).trim();
-		if (
-			(value.startsWith('"') && value.endsWith('"') && value.length >= 2) ||
-			(value.startsWith("'") && value.endsWith("'") && value.length >= 2)
-		) {
-			value = value.slice(1, -1);
-		}
-		return value;
-	}
-	return undefined;
-}
-
-function setsActive(event: ToolCallEvent): boolean {
-	if (event.toolName === "edit") {
-		for (const snippet of editSnippets(event.input)) {
-			if (statusIn(snippet.newText) === "active") return true;
-		}
-		return false;
-	}
-	if (event.toolName === "write") {
-		const content = toolContent(event.input);
-		return content !== undefined && statusIn(content) === "active";
-	}
-	return false;
-}
-
-function anotherSliceIsActive(cwd: string, thisSpec: string): boolean {
-	const sprintsRoot = resolve(cwd, ".heio", "planning", "sprints");
-	for (const sprint of listDirs(sprintsRoot)) {
-		const slicesRoot = join(sprintsRoot, sprint, "slices");
-		for (const slug of listDirs(slicesRoot)) {
-			const spec = join(slicesRoot, slug, "spec.md");
-			if (resolve(spec) === resolve(thisSpec)) continue;
-			if (readStatus(spec) === "active") return true;
-		}
-	}
-	return false;
-}
-
-function secondActiveBlocked(
-	cwd: string,
-	event: ToolCallEvent,
-	rawPath: string,
-): boolean {
-	if (!isSliceSpecPath(cwd, rawPath)) return false;
-	if (!setsActive(event)) return false;
-	const absolute = resolveToolPath(cwd, rawPath);
-	if (readStatus(absolute) === "active") return false;
-	return anotherSliceIsActive(cwd, absolute);
-}
-
 export function blockIllegalWrite(
 	event: ToolCallEvent,
-	ctx: Pick<ExtensionContext, "cwd">,
+	ctx: Pick<ExtensionContext, "cwd"> & { builder: boolean },
 ): ToolCallEventResult | undefined {
 	if (event.toolName === "bash") {
 		const command = toolCommand(event.input);
 		if (!command) return undefined;
-		if (bashMutatesPath(ctx.cwd, command, isStickyPlanningPath)) {
+		if (ctx.builder && bashMutatesPath(ctx.cwd, command, isStickyPlanningPath)) {
 			return { block: true, reason: STICKY_REASON };
 		}
 		if (bashMutatesPath(ctx.cwd, command, isOraclePath)) {
@@ -302,14 +230,11 @@ export function blockIllegalWrite(
 	if (event.toolName !== "write" && event.toolName !== "edit") return undefined;
 	const path = toolPath(event.input);
 	if (!path) return undefined;
-	if (isStickyPlanningPath(ctx.cwd, path)) {
+	if (ctx.builder && isStickyPlanningPath(ctx.cwd, path)) {
 		return { block: true, reason: STICKY_REASON };
 	}
 	if (tasksWriteBlocked(ctx.cwd, path)) {
 		return { block: true, reason: TASKS_REASON };
-	}
-	if (secondActiveBlocked(ctx.cwd, event, path)) {
-		return { block: true, reason: ACTIVE_REASON };
 	}
 	if (
 		event.toolName === "edit" &&

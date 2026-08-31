@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { readStackStatus } from "./status.ts";
+import { readStackStatus, sliceDir, type SliceRef } from "./status.ts";
 
 export type AdvanceResult = { ok: boolean; text: string };
 
@@ -9,6 +9,8 @@ const ALLOWED: Record<string, readonly string[]> = {
 	frozen: ["active"],
 	active: ["met", "abandoned"],
 };
+
+const QUALIFIED = /^(s-[a-z0-9-]+):(active|met|abandoned)$/;
 
 export function isBuilderShaped(input: {
 	prompt?: string;
@@ -19,21 +21,6 @@ export function isBuilderShaped(input: {
 		.filter((value): value is string => typeof value === "string")
 		.join("\n");
 	return /\bheio-builder\b/.test(haystack);
-}
-
-function specPath(cwd: string): string | undefined {
-	const status = readStackStatus(cwd);
-	if (!status.sprintId || !status.sliceId) return undefined;
-	return join(
-		cwd,
-		".heio",
-		"planning",
-		"sprints",
-		status.sprintId,
-		"slices",
-		status.sliceId,
-		"spec.md",
-	);
 }
 
 function unquote(value: string): string {
@@ -77,6 +64,54 @@ function setStatus(raw: string, status: string): string {
 	return `${head}\nstatus: "${status}"${rest}`;
 }
 
+function specPathFor(cwd: string, slice: SliceRef): string {
+	return join(sliceDir(cwd, slice), "spec.md");
+}
+
+function parseTarget(target: string): {
+	sliceId?: string;
+	status: string;
+} | null {
+	const qualified = target.match(QUALIFIED);
+	if (qualified?.[1] && qualified[2]) {
+		return { sliceId: qualified[1], status: qualified[2] };
+	}
+	if (TARGETS.includes(target as (typeof TARGETS)[number])) {
+		return { status: target };
+	}
+	return null;
+}
+
+function pickSlice(
+	cwd: string,
+	sliceId: string | undefined,
+	status: string,
+): AdvanceResult | SliceRef {
+	const live = readStackStatus(cwd).slices;
+	const named = sliceId
+		? live.filter((slice) => slice.sliceId === sliceId)
+		: live;
+	const eligible = named.filter((slice) => {
+		const allowed = ALLOWED[slice.status];
+		return Boolean(allowed?.includes(status));
+	});
+	if (eligible.length === 1 && eligible[0]) return eligible[0];
+	if (eligible.length > 1) {
+		const names = eligible
+			.map((slice) => `${slice.sliceId}:${status}`)
+			.join(" or ");
+		return {
+			ok: false,
+			text: `Use heio_stack. Name the slice: ${names}.`,
+		};
+	}
+	if (named.length === 1 && named[0]) return named[0];
+	if (sliceId) {
+		return { ok: false, text: `Use heio_stack. No slice ${sliceId} to advance.` };
+	}
+	return { ok: false, text: "Use heio_stack. No slice to advance." };
+}
+
 export function advanceSlice(input: {
 	cwd: string;
 	target: string;
@@ -88,22 +123,25 @@ export function advanceSlice(input: {
 			text: "Use heio_stack. Builder cannot mark the slice met.",
 		};
 	}
-	if (!TARGETS.includes(input.target as (typeof TARGETS)[number])) {
+	const parsed = parseTarget(input.target);
+	if (!parsed) {
 		return {
 			ok: false,
 			text: "target must be active, met, or abandoned",
 		};
 	}
-	const path = specPath(input.cwd);
-	if (!path || !existsSync(path)) {
+	const picked = pickSlice(input.cwd, parsed.sliceId, parsed.status);
+	if ("ok" in picked) return picked;
+	const path = specPathFor(input.cwd, picked);
+	if (!existsSync(path)) {
 		return { ok: false, text: "Use heio_stack. No slice to advance." };
 	}
 	const current = readStatus(path);
 	const allowed = current ? ALLOWED[current] : undefined;
-	if (!current || !allowed || !allowed.includes(input.target)) {
+	if (!current || !allowed || !allowed.includes(parsed.status)) {
 		return {
 			ok: false,
-			text: `Use heio_stack. Cannot advance ${current ?? "none"} to ${input.target}.`,
+			text: `Use heio_stack. Cannot advance ${current ?? "none"} to ${parsed.status}.`,
 		};
 	}
 	let raw: string;
@@ -112,10 +150,9 @@ export function advanceSlice(input: {
 	} catch {
 		return { ok: false, text: "Use heio_stack. No slice to advance." };
 	}
-	const status = readStackStatus(input.cwd);
-	writeFileSync(path, setStatus(raw, input.target), "utf8");
+	writeFileSync(path, setStatus(raw, parsed.status), "utf8");
 	return {
 		ok: true,
-		text: `advanced ${status.sliceId} to ${input.target}`,
+		text: `advanced ${picked.sliceId} to ${parsed.status}`,
 	};
 }

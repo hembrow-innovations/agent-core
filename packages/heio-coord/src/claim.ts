@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { readStackStatus } from "./status.ts";
+import { readStackStatus, sliceDir } from "./status.ts";
 
 export const CLAIM_TTL_MS = 30 * 60 * 1000;
 
@@ -13,23 +13,6 @@ type TaskBlock = {
 	claim?: string;
 	claimedAt?: string;
 };
-
-function activeTasksPath(cwd: string): string | undefined {
-	const status = readStackStatus(cwd);
-	if (status.freeze !== "active" || !status.sprintId || !status.sliceId) {
-		return undefined;
-	}
-	return join(
-		cwd,
-		".heio",
-		"planning",
-		"sprints",
-		status.sprintId,
-		"slices",
-		status.sliceId,
-		"tasks.md",
-	);
-}
 
 function parseTaskBlocks(markdown: string): TaskBlock[] {
 	const lines = markdown.split("\n");
@@ -260,32 +243,70 @@ function releaseTicket(input: {
 	return { ok: true, text: `released ${input.target}` };
 }
 
+function activeTasksHits(
+	cwd: string,
+	target: string,
+): Array<{ path: string; block: TaskBlock; markdown: string }> {
+	const hits: Array<{ path: string; block: TaskBlock; markdown: string }> = [];
+	for (const slice of readStackStatus(cwd).slices) {
+		if (slice.status !== "active") continue;
+		const path = join(sliceDir(cwd, slice), "tasks.md");
+		if (!existsSync(path)) continue;
+		let markdown: string;
+		try {
+			markdown = readFileSync(path, "utf8");
+		} catch {
+			continue;
+		}
+		const block = parseTaskBlocks(markdown).find((item) => item.id === target);
+		if (block) hits.push({ path, block, markdown });
+	}
+	return hits;
+}
+
+function uniqueActiveTask(
+	cwd: string,
+	target: string,
+): ClaimResult | { path: string; block: TaskBlock; markdown: string } {
+	const active = readStackStatus(cwd).slices.filter(
+		(slice) => slice.status === "active",
+	);
+	const withTasks = active.filter((slice) =>
+		existsSync(join(sliceDir(cwd, slice), "tasks.md")),
+	);
+	if (withTasks.length === 0) {
+		return { ok: false, text: "Use heio_stack. Slice must be active." };
+	}
+	const hits = activeTasksHits(cwd, target);
+	if (hits.length === 0) {
+		return {
+			ok: false,
+			text: `Use heio_stack. ${target} is not a slice task.`,
+		};
+	}
+	if (hits.length > 1) {
+		return {
+			ok: false,
+			text: `Use heio_stack. ${target} is on more than one active slice.`,
+		};
+	}
+	const hit = hits[0];
+	if (!hit) {
+		return { ok: false, text: "Use heio_stack. Slice must be active." };
+	}
+	return hit;
+}
+
 function claimSliceTask(input: {
 	cwd: string;
 	sessionId: string;
 	target: string;
 	now?: number;
 }): ClaimResult {
-	const tasksPath = activeTasksPath(input.cwd);
-	if (!tasksPath || !existsSync(tasksPath)) {
-		return { ok: false, text: "Use heio_stack. Slice must be active." };
-	}
+	const found = uniqueActiveTask(input.cwd, input.target);
+	if ("ok" in found) return found;
 	const now = input.now ?? Date.now();
-	let markdown: string;
-	try {
-		markdown = readFileSync(tasksPath, "utf8");
-	} catch {
-		return { ok: false, text: "Use heio_stack. Slice must be active." };
-	}
-	const blocks = parseTaskBlocks(markdown);
-	const block = blocks.find((item) => item.id === input.target);
-	if (!block) {
-		return {
-			ok: false,
-			text: `Use heio_stack. ${input.target} is not a slice task.`,
-		};
-	}
-	const holder = isLiveClaim(block, now);
+	const holder = isLiveClaim(found.block, now);
 	if (holder && holder !== input.sessionId) {
 		return {
 			ok: false,
@@ -293,11 +314,11 @@ function claimSliceTask(input: {
 		};
 	}
 	const at = new Date(now).toISOString();
-	const lines = markdown.endsWith("\n")
-		? markdown.slice(0, -1).split("\n")
-		: markdown.split("\n");
-	const next = upsertClaimLines(lines, block, input.sessionId, at);
-	writeFileSync(tasksPath, `${next.join("\n")}\n`, "utf8");
+	const lines = found.markdown.endsWith("\n")
+		? found.markdown.slice(0, -1).split("\n")
+		: found.markdown.split("\n");
+	const next = upsertClaimLines(lines, found.block, input.sessionId, at);
+	writeFileSync(found.path, `${next.join("\n")}\n`, "utf8");
 	return { ok: true, text: `claimed ${input.target}` };
 }
 
@@ -319,37 +340,21 @@ function releaseSliceTask(input: {
 	target: string;
 	now?: number;
 }): ClaimResult {
-	const tasksPath = activeTasksPath(input.cwd);
-	if (!tasksPath || !existsSync(tasksPath)) {
-		return { ok: false, text: "Use heio_stack. Slice must be active." };
-	}
-	let markdown: string;
-	try {
-		markdown = readFileSync(tasksPath, "utf8");
-	} catch {
-		return { ok: false, text: "Use heio_stack. Slice must be active." };
-	}
+	const found = uniqueActiveTask(input.cwd, input.target);
+	if ("ok" in found) return found;
 	const now = input.now ?? Date.now();
-	const blocks = parseTaskBlocks(markdown);
-	const block = blocks.find((item) => item.id === input.target);
-	if (!block) {
-		return {
-			ok: false,
-			text: `Use heio_stack. ${input.target} is not a slice task.`,
-		};
-	}
-	const holder = isLiveClaim(block, now);
+	const holder = isLiveClaim(found.block, now);
 	if (holder && holder !== input.sessionId) {
 		return {
 			ok: false,
 			text: `Use heio_stack. ${input.target} is claimed by ${holder}.`,
 		};
 	}
-	const lines = markdown.endsWith("\n")
-		? markdown.slice(0, -1).split("\n")
-		: markdown.split("\n");
-	const next = stripClaimLines(lines, block);
-	writeFileSync(tasksPath, `${next.join("\n")}\n`, "utf8");
+	const lines = found.markdown.endsWith("\n")
+		? found.markdown.slice(0, -1).split("\n")
+		: found.markdown.split("\n");
+	const next = stripClaimLines(lines, found.block);
+	writeFileSync(found.path, `${next.join("\n")}\n`, "utf8");
 	return { ok: true, text: `released ${input.target}` };
 }
 

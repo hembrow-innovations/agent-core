@@ -7,7 +7,7 @@ domain: system
 area: overview
 tags: [glossary]
 created_at: "2026-08-23"
-updated_at: "2026-08-30"
+updated_at: "2026-09-01"
 ---
 
 # Glossary
@@ -109,3 +109,21 @@ _Avoid_: skill load
 **Skill load**:
 Reading a skill's `SKILL.md` into the transcript.
 _Avoid_: catalog
+
+## Heio-stack
+
+**Location**:
+A destination on the roadmap. A bullet: this is working when. A file under `planning/locations/` only when it needs depth.
+_Avoid_: bet (as the roadmap grain), milestone, epic
+
+**Bet**:
+An optional pivot under a location. Try X; pivot if Y. If it wins, it becomes a location or a sprint grouping.
+_Avoid_: roadmap item, sprint goal
+
+**Sprint**:
+A grouping of slices and tasks. Named after a location or a timebox (`week-1`).
+_Avoid_: ordered bet, force-function destination
+
+**Archive**:
+`.heio/archive/`, mirroring `planning/` and `tickets/`. Finished work moves here. `index.md` lists what landed.
+_Avoid_: Done section on the live roadmap
