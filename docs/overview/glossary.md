@@ -7,7 +7,7 @@ domain: system
 area: overview
 tags: [glossary]
 created_at: "2026-08-23"
-updated_at: "2026-09-01"
+updated_at: "2026-08-31"
 ---
 
 # Glossary
@@ -55,6 +55,10 @@ _Avoid_: second mailbox, PI_* project flags
 **Session checklist**:
 The `todo` tool from pinned `@inobit/pi-todo`. State lives on the session branch. `.heio/TODO.md` is a leftover stub if it exists, not the live list. Architecture: [[architecture-heio-todo]].
 _Avoid_: playbook checklist in `.heio/TODO.md`
+
+**Questionnaire**:
+The `ask_user_question` tool from pinned `@juicesharp/rpiv-ask-user-question`. Structured options instead of a free-form guess. Decision: [[0014-rpiv-ask-user-question]].
+_Avoid_: unpinned `rpiv-*`, first-party questionnaire
 
 **TUI footer**:
 The one-line status `heio-footer` paints in TUI mode. Architecture: [[architecture-heio-footer]].

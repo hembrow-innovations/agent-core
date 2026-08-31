@@ -7,7 +7,7 @@ domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-08-30"
+updated_at: "2026-08-31"
 ---
 
 # Pack and packages
@@ -65,7 +65,7 @@ The folders are:
 
 `heio-coms`, `heio-teams`, and `heio-todo` live under `deprecated/packages/`. They are not workspace packages and no profile installs them. See [[architecture-heio-coms]], [[spec-tmux-agent-teams]], and [[architecture-heio-todo]].
 
-Session checklists are pinned `@inobit/pi-todo`. There is no `packages/lib`. See [[0012-inobit-pi-todo]].
+Session checklists are pinned `@inobit/pi-todo`. The questionnaire tool is pinned `@juicesharp/rpiv-ask-user-question`. There is no `packages/lib`. See [[0012-inobit-pi-todo]] and [[0014-rpiv-ask-user-question]].
 
 The TUI paints one footer line from the footer package. See [[architecture-heio-footer]].
 
@@ -120,7 +120,7 @@ pnpm exec agentic-core install <target> --extension heio-boot
 
 `--extension` can repeat. Dest is always `.pi/`.
 
-A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the third-party `npm:` sources plus `local:@agentic-core/` packages for boot, footer, coord, and onic, and pinned `npm:@inobit/pi-todo@0.1.1`. They do not install coms, teams, or todo.
+A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the third-party `npm:` sources plus `local:@agentic-core/` packages for boot, footer, coord, and onic, pinned `npm:@inobit/pi-todo@0.1.1`, and pinned `npm:@juicesharp/rpiv-ask-user-question@2.8.0`. They do not install coms, teams, todo, or the rest of `rpiv-*`. See [[0012-inobit-pi-todo]] and [[0014-rpiv-ask-user-question]].
 
 A leftover `playbooks:` or `mode:` key is an error. Install does not write `.pi/playbooks/`.
 

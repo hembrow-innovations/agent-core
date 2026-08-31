@@ -215,6 +215,9 @@ test("install --profile agentic-core removes parked heio-coms and heio-teams des
     false,
   );
   assert.ok(settings.packages.includes("npm:@inobit/pi-todo@0.1.1"));
+  assert.ok(
+    settings.packages.includes("npm:@juicesharp/rpiv-ask-user-question@2.8.0"),
+  );
 });
 
 test("install --profile agentic-core writes .pi/skills and does not wire this checkout", () => {

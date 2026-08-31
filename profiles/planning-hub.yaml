@@ -8,6 +8,7 @@ packages:
   - npm:pi-subagents
   - npm:@ff-labs/pi-fff
   - npm:@inobit/pi-todo@0.1.1
+  - npm:@juicesharp/rpiv-ask-user-question@2.8.0
   - local:@agentic-core/heio-boot
   - local:@agentic-core/heio-footer
 skills:
