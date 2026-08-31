@@ -1,5 +1,14 @@
-agents: all
-prompts: all
+agents:
+  - heio-builder
+  - heio-tasker
+  - heio-triage
+  - heio-verifier
+prompts:
+  - bro
+  - heio-planning
+  - heio-slice
+  - heio-wayfinder
+  - swarm
 packages:
   - npm:pi-lens
   - npm:pi-web-access
@@ -13,6 +22,7 @@ skills:
   - architect
   - behaviour-contracts
   - create-skill
+  - design-tree
   - diagnose
   - docs
   - domain-modeling
