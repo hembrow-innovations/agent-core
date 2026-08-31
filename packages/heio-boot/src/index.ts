@@ -44,7 +44,7 @@ function notify(ctx: Pick<ExtensionContext, "ui">, message: string): void {
 
 const DEST_LOADER_NAME = "dest_activate_tools";
 const LENS_LOADER_NAME = "pi_lens_activate_tools";
-const FIRST_PARTY_NAMES = new Set(["heio_todo", DEST_LOADER_NAME]);
+const FIRST_PARTY_NAMES = new Set([DEST_LOADER_NAME]);
 const FIRST_PARTY_PREFIXES = ["coms_", "team_", "task_"] as const;
 const PARKED_NAMES = new Set([
   "web_search",

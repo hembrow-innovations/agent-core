@@ -11,7 +11,7 @@ prompts:
 packages:
   - npm:pi-lens
   - npm:pi-subagents
-  - local:@agentic-core/heio-todo
+  - npm:@inobit/pi-todo@0.1.1
   - local:@agentic-core/heio-boot
   - local:@agentic-core/heio-footer
   - local:@agentic-core/heio-coord

@@ -50,7 +50,6 @@ function destCatalog(): { active: string[]; all: ToolSource[] } {
 		active: [
 			"read",
 			"bash",
-			"heio_todo",
 			"coms_send",
 			"team_status",
 			"task_list",
@@ -63,7 +62,6 @@ function destCatalog(): { active: string[]; all: ToolSource[] } {
 		all: [
 			{ name: "read", sourceInfo: { source: "builtin" } },
 			{ name: "bash", sourceInfo: { source: "builtin" } },
-			{ name: "heio_todo", sourceInfo: { source: "extension" } },
 			{ name: "coms_send", sourceInfo: { source: "extension" } },
 			{ name: "team_status", sourceInfo: { source: "extension" } },
 			{ name: "task_list", sourceInfo: { source: "extension" } },
@@ -388,7 +386,6 @@ test("session_start parks third-party tools and keeps first-party tools active",
 		"bash",
 		"coms_send",
 		"dest_activate_tools",
-		"heio_todo",
 		"pi_lens_activate_tools",
 		"read",
 		"task_list",
@@ -448,7 +445,6 @@ test("tools allowlist after park keeps first-party tools and dest loader", async
 	assert.deepEqual(boot.getActive().sort(), [
 		"coms_send",
 		"dest_activate_tools",
-		"heio_todo",
 		"pi_lens_activate_tools",
 		"read",
 		"task_list",

@@ -57,14 +57,15 @@ Product code lives under `packages/`. Folder names stay unscoped. Package names 
 
 The folders are:
 
-- `packages/heio-todo` is `@agentic-core/heio-todo`.
 - `packages/heio-boot` is `@agentic-core/heio-boot`.
 - `packages/heio-footer` is `@agentic-core/heio-footer`.
+- `packages/heio-coord` is `@agentic-core/heio-coord`.
+- `packages/heio-onic` is `@agentic-core/heio-onic`.
 - `packages/installer` is the install CLI.
 
-`heio-coms` and `heio-teams` live under `deprecated/packages/`. They are not workspace packages and no profile installs them. See [[architecture-heio-coms]] and [[spec-tmux-agent-teams]].
+`heio-coms`, `heio-teams`, and `heio-todo` live under `deprecated/packages/`. They are not workspace packages and no profile installs them. See [[architecture-heio-coms]], [[spec-tmux-agent-teams]], and [[architecture-heio-todo]].
 
-Session checklist persistence lives in the todo package. There is no `packages/lib`. See [[architecture-heio-todo]].
+Session checklists are pinned `@inobit/pi-todo`. There is no `packages/lib`. See [[0012-inobit-pi-todo]].
 
 The TUI paints one footer line from the footer package. See [[architecture-heio-footer]].
 
@@ -114,12 +115,12 @@ walkSkillDirs(skillsRoot, (dir) => {
 
 ```bash
 pnpm exec agentic-core install <target> --profile agentic-core
-pnpm exec agentic-core install <target> --extension heio-todo
+pnpm exec agentic-core install <target> --extension heio-boot
 ```
 
 `--extension` can repeat. Dest is always `.pi/`.
 
-A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the third-party `npm:` sources plus `local:@agentic-core/` packages for todo, boot, and footer. They do not install coms or teams.
+A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the third-party `npm:` sources plus `local:@agentic-core/` packages for boot, footer, coord, and onic, and pinned `npm:@inobit/pi-todo@0.1.1`. They do not install coms, teams, or todo.
 
 A leftover `playbooks:` or `mode:` key is an error. Install does not write `.pi/playbooks/`.
 

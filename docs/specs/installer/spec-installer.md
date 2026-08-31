@@ -117,7 +117,7 @@ copyTsSources(join(srcPkg, "src"), dest, join(destRel, "src"));
 
 `copyTsSources` copies `.ts` files and skips `*.test.ts`. Re-run deletes the dest folder first, so leftover files go away.
 
-The package `@agentic-core/heio-todo` lands at `.pi/npm/local/@agentic-core/heio-todo`. The same shape holds for `heio-boot` and `heio-footer`. Parked `heio-coms` and `heio-teams` dest copies are removed on profile install. Leftover `.pi/npm/node_modules/@agentic-core/<name>` copies for names the installer writes also go away.
+The package `@agentic-core/heio-boot` lands at `.pi/npm/local/@agentic-core/heio-boot`. The same shape holds for `heio-footer`, `heio-coord`, and `heio-onic`. Parked `heio-coms`, `heio-teams`, and `heio-todo` dest copies are removed on profile install. Leftover `.pi/npm/node_modules/@agentic-core/<name>` copies for names the installer writes also go away.
 
 `dest.mergePackages` writes `.pi/settings.json`. Sources are dest-relative. `canonicalizePackageSource` rewrites `vendor/@agentic-core/<name>`, `.pi/vendor/@agentic-core/<name>`, and `npm/node_modules/@agentic-core/<name>` to `npm/local/@agentic-core/<name>`. Leftover vendor settings drop when that local path is present. No path back to this checkout.
 

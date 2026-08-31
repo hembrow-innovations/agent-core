@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { type Destination, openDestination } from "./dest.ts";
 
 export const FIRST_PARTY_EXTENSIONS = [
-  "heio-todo",
   "heio-boot",
   "heio-footer",
   "heio-coord",

@@ -14,7 +14,7 @@ prompts:
   - arena
 packages:
   - npm:pi-lens
-  - local:@agentic-core/heio-todo
+  - npm:@inobit/pi-todo@0.1.1
 settings:
   toolDescriptionMode: compact
   defaultTools:

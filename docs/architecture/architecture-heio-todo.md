@@ -2,89 +2,42 @@
 id: "architecture-heio-todo"
 title: "Todo checklist store"
 kind: architecture
-description: "Session checklists live in the todo package. write, edit, and bash mutation of those paths are blocked."
+description: "This pack does not ship a todo store. Session todos are pinned @inobit/pi-todo. First-party heio-todo is parked."
 domain: pack
 area: architecture
 tags: [architecture, todo]
 created_at: "2026-08-26"
-updated_at: "2026-08-30"
+updated_at: "2026-08-31"
 ---
 
 # Todo checklist store
 
 ## Overview
 
-`@agentic-core/heio-todo` owns session checklist files. The live list is `.heio/sessions/<sessionId>/TODO.md`. The tool `heio_todo` writes and lists those files. Builtin `write`, `edit`, and bash mutation of those paths are blocked.
+Parked under `deprecated/packages/heio-todo`. Not in the workspace. Not installed by any profile.
 
-There is no `packages/lib`. Dest receives a vendor copy of this package as it is. See [[0008-todo-owns-checklist-store]] and [[architecture-pack-and-packages]].
+Session checklists are `@inobit/pi-todo@0.1.1`. The tool is `todo`. The command is `/todos`. State lives in tool-result `details` on the session branch. There is no project file.
+
+`.heio/TODO.md` is a leftover stub if it exists. It is not the live list. Do not write a playbook checklist there. See [[0012-inobit-pi-todo]].
 
 ## Context
 
-A shared lib package used to hold the store so the installer could copy helpers into each vendor tree. Todo was the only consumer. Dest still needed a self-contained copy with no path back to this checkout.
-
-The store moved into `packages/heio-todo`. Agents must not treat `.heio/TODO.md` as a playbook checklist. That file is a stub that points at the session files.
+`@agentic-core/heio-todo` used to own `.heio/sessions/<sessionId>/TODO.md` and block builtin writes to those paths. That cluttered the tracker. The store had moved into the todo package so dest copies stayed self-contained and `packages/lib` could die. See [[0008-todo-owns-checklist-store]].
 
 ## Design
 
-### Paths
+Profiles list `npm:@inobit/pi-todo@0.1.1`. Install does not copy a first-party todo tree. Profile install removes leftover `.pi/npm/local/@agentic-core/heio-todo` and `.pi/npm/node_modules/@agentic-core/heio-todo` the same way it removes parked `heio-coms` and `heio-teams`.
 
-`parseSessionId` brands a session id. It accepts `[A-Za-z0-9._-]+`. It rejects `.`, `..`, slashes, spaces, and empty strings.
+Agents must not keep both `todo` and `heio_todo`.
 
-```ts
-// packages/heio-todo/src/store.ts parseSessionId
-export function parseSessionId(raw: string): SessionId {
-  if (raw === "." || raw === ".." || !SESSION_ID_PATTERN.test(raw)) {
-    throw new Error(`invalid session id: ${raw}`);
-  }
-  return raw as SessionId;
-}
-```
-
-- **stubTodoPath**: `.heio/TODO.md`
-- **sessionTodoPath**: `.heio/sessions/<sessionId>/TODO.md`
-
-### Write
-
-`writeSessionChecklist` creates the session directory and writes the markdown with a trailing newline. It writes the stub only when the file is missing or differs from `STUB_TODO_MARKDOWN`. A second session keeps its own file. Only the writer session is replaced.
-
-```ts
-// packages/heio-todo/src/store.ts writeSessionChecklist
-writeFileSync(sessionPath, withTrailingNewline(input.markdown), "utf8");
-writeStubIfNeeded(stubPath);
-```
-
-The factory queues that write with `withFileMutationQueue` on the session path.
-
-`action: "write"` requires `markdown`. A missing body returns `markdown is required for action write`. An invalid Pi session id returns `invalid session id: ...`.
-
-### List
-
-`listSessionChecklists` walks `.heio/sessions/`. It skips names that fail `parseSessionId` and skips entries that are not a `TODO.md` file. Title is the first non-empty line. Results sort by session id.
-
-List text leads with this session's items, or `No checklist for this session.` Sibling rows are titles only and capped.
-
-### Write block
-
-`isProtectedTodoPath` is true for the stub and for `.heio/sessions/<id>/TODO.md`. Resolution matches builtin write and edit: unicode spaces, a leading `@`, home, and `file://`. Existing aliases are compared after `realpath` when that succeeds. Other `.heio/` files are not protected.
-
-On `tool_call`, the factory blocks builtin `write` and `edit` against those paths, and bash that would redirect, tee, rm, mv, or cp them. `read` and read-only bash are left alone.
-
-```ts
-// packages/heio-todo/src/index.ts tool_call
-if (event.toolName === "bash") {
-  // block redirect, tee, rm, mv, cp of protected paths
-}
-if (event.toolName !== "write" && event.toolName !== "edit") return;
-```
+There is still no `packages/lib`.
 
 ## Trade-offs
 
-The package is both the store and the Pi extension. Dest vendor `src/` matches the source package. Tests sit next to the store.
-
-It refuses a sibling lib and refuses using builtin `write` for the live checklist. Shared work units stay under `.heio/inbox` and `.heio/planning`. Those paths are not this store.
+We do not maintain a todo extension. Version bumps of `@inobit/pi-todo` need a tarball re-read. Path protection of `.heio/TODO.md` is gone; prompts still forbid writing a playbook list there.
 
 ## Consequences
 
-Install copies this package through the vendor path in [[spec-installer]]. Agents call `heio_todo`. They do not mutate `.heio/TODO.md` or `.heio/sessions/*/TODO.md` with `write`, `edit`, or bash.
+`--extension heio-todo` is an unknown extension. First-party `--extension` names are `heio-boot`, `heio-footer`, `heio-coord`, and `heio-onic`.
 
 Terms live in [[glossary]].

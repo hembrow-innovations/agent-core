@@ -7,7 +7,7 @@ packages:
   - npm:pi-web-access
   - npm:pi-subagents
   - npm:@ff-labs/pi-fff
-  - local:@agentic-core/heio-todo
+  - npm:@inobit/pi-todo@0.1.1
   - local:@agentic-core/heio-boot
   - local:@agentic-core/heio-footer
 skills:

@@ -3,15 +3,17 @@ id: "adr-8"
 title: "ADR-0008: checklist store lives in the todo package"
 kind: adr
 description: "Session checklist persistence belongs to @agentic-core/heio-todo. There is no packages/lib."
-status: accepted
+status: superseded
 domain: packages
 area: decisions
 tags: [packages, installer]
 created_at: "2026-08-25"
-updated_at: "2026-08-26"
+updated_at: "2026-08-31"
 ---
 
 # ADR-0008: checklist store lives in the todo package
+
+Superseded by [[0012-inobit-pi-todo]]. First-party `heio-todo` is parked. Session todos are pinned `@inobit/pi-todo`. There is still no `packages/lib`.
 
 ## Context
 

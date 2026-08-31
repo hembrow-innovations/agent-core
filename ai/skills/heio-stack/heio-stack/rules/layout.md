@@ -31,7 +31,7 @@ Parked tickets live in `.heio/tickets/`, never in a slice. `tasks.md` exists onl
 
 Reserved at the root, owned by other skills. Leave them in place.
 
-- **TODO.md**: session stub. Call `heio_todo`.
+- **TODO.md**: leftover stub. Not the live list. Live todos are the `todo` tool. Do not write a playbook checklist here.
 - **decisions.tsv**: long-run decision trail
 - **oracles.md**: root ledger owned by the **oracle** skill. Slice ledgers live on the slice.
 - **worktrees/**, **sessions/**, **teams/**: runtime

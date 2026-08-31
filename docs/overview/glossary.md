@@ -32,10 +32,10 @@ _Avoid_: live path
 A named install set in `profiles/`. Selected with `--profile`. Skills, agents, prompts, packages, and optional settings. Dest is always `.pi/`. Schema: [[schema-profile]].
 
 **Workspace package**:
-A TypeScript package under `packages/`. Folders are `heio-todo`, `heio-boot`, `heio-footer`, and `installer`. Parked packages live under `deprecated/packages/`.
+A TypeScript package under `packages/`. Folders are `heio-boot`, `heio-footer`, `heio-coord`, `heio-onic`, and `installer`. Parked packages live under `deprecated/packages/`.
 
 **First-party extension**:
-A product extension among the workspace packages. The three are `@agentic-core/heio-todo`, `@agentic-core/heio-boot`, and `@agentic-core/heio-footer`.
+A product extension among the workspace packages. The four are `@agentic-core/heio-boot`, `@agentic-core/heio-footer`, `@agentic-core/heio-coord`, and `@agentic-core/heio-onic`.
 _Avoid_: loose extension file
 
 **Local first-party copy**:
@@ -53,7 +53,7 @@ The living-session mailbox formerly in `@agentic-core/heio-coms`. Bind, stamp, s
 _Avoid_: second mailbox, PI_* project flags
 
 **Session checklist**:
-The per-session file at `.heio/sessions/<sessionId>/TODO.md`. `heio_todo` writes it. The stub `.heio/TODO.md` is not the live list. Architecture: [[architecture-heio-todo]].
+The `todo` tool from pinned `@inobit/pi-todo`. State lives on the session branch. `.heio/TODO.md` is a leftover stub if it exists, not the live list. Architecture: [[architecture-heio-todo]].
 _Avoid_: playbook checklist in `.heio/TODO.md`
 
 **TUI footer**:

@@ -25,6 +25,7 @@ const PREVIOUS_FIRST_PARTY = [
   "draconic-footer",
   "heio-coms",
   "heio-teams",
+  "heio-todo",
 ] as const;
 
 export type DestEntry = {

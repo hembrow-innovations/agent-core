@@ -116,11 +116,11 @@ test("parseProfileYaml: quoted numbers stay strings; leading zeros stay strings"
 test("parseProfileYaml: colon without space stays a scalar list item", () => {
 	const got = parseProfileYaml(`packages:
   - npm:pi-lens
-  - local:@agentic-core/heio-todo
+  - local:@agentic-core/heio-boot
 `);
 	assert.deepEqual(got.packages, [
 		"npm:pi-lens",
-		"local:@agentic-core/heio-todo",
+		"local:@agentic-core/heio-boot",
 	]);
 });
 
@@ -221,7 +221,7 @@ test("loadProfile: packages, agents, and prompts shapes", () => {
 		"listed",
 		`packages:
   - npm:pi-lens
-  - local:@agentic-core/heio-todo
+  - local:@agentic-core/heio-boot
 agents:
   - architect
   - coder
@@ -235,7 +235,7 @@ prompts:
 	assert.deepEqual(loadProfile(root, "bare").packages, []);
 	assert.deepEqual(loadProfile(root, "listed").packages, [
 		{ kind: "npm", source: "npm:pi-lens" },
-		{ kind: "local", name: "heio-todo" },
+		{ kind: "local", name: "heio-boot" },
 	]);
 	assert.deepEqual(loadProfile(root, "listed").agents, {
 		kind: "list",

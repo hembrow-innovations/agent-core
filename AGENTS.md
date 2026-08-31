@@ -36,7 +36,7 @@ When you write or edit a skill, read `ai/skills/engineering/create-skill/SKILL.m
 
 This checkout runs **heio-stack**. Live work lives under `.heio/planning/` (intent, roadmap, sprints, slices) and `.heio/tickets/`. Git ignores `.heio/`. `docs/` stays the committed source of truth.
 
-Session checklists stay on `heio_todo` at `.heio/sessions/<id>/TODO.md`. Do not treat `.heio/TODO.md`, `.heio/inbox/`, or `.heio/planning/plans/` as the tracker.
+Session checklists stay on the `todo` tool (`@inobit/pi-todo`, session branch). Do not write `.heio/TODO.md` or `.heio/sessions/*/TODO.md`. Do not treat those files, `.heio/inbox/`, or `.heio/planning/plans/` as the tracker.
 
 Chart intent and sprints with **heio-wayfinder**. Plan a slice or ticket with **heio-planning**. Execute a frozen slice with **heio-slice**. Every output ends `VERDICT: TASK | TICKET | ESCALATE | VERIFY`.
 

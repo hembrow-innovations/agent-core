@@ -31,7 +31,7 @@ Create a folder when the first file needs it. The tree is optional until then.
 
 Reserved at the root, owned by other skills. Do not relocate them.
 
-- **TODO.md**: stub that points at session files. Call `heio_todo`. Not the live list. Do not relocate.
+- **TODO.md**: leftover stub. Not the live list. Live todos are the `todo` tool. Do not write a playbook checklist here. Do not relocate.
 - **decisions.tsv**: long-run decision trail
 - **oracles.md**: completion ledger owned by the oracle skill
 - **worktrees/**: isolated child work
