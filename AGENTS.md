@@ -46,7 +46,7 @@ One git repo. Products stay separate by folder, profile, and nouns. Do not mix t
 
 ## Tracker
 
-This checkout runs **heio-stack**. Live work lives under `.heio/planning/` (intent, locations, sprints, slices), `.heio/tickets/`, and `.heio/archive/`. Git ignores `.heio/`. `docs/` stays the committed source of truth.
+This checkout runs **heio-stack**. Live work lives under `.heio/planning/` (intent, locations, sprints, slices, task-pool), `.heio/tickets/`, and `.heio/archive/`. Git ignores `.heio/`. `docs/` stays the committed source of truth.
 
 Session checklists stay on the `todo` tool (`@inobit/pi-todo`, session branch). Do not write `.heio/TODO.md` or `.heio/sessions/*/TODO.md`. Do not treat those files, `.heio/inbox/`, or `.heio/planning/plans/` as the tracker.
 

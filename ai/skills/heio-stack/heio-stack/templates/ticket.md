@@ -25,4 +25,4 @@ Unknown until triage. Then one of:
 
 ## Notes
 
-Facts only. The solution lives on a slice spec, not here.
+Facts only. The solution lives on a slice, not here.

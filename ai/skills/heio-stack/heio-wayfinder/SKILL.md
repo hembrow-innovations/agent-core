@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Interview the destination. Chart intent, the roadmap of locations, and the current sprint's shape. Do not generate the map. Do not dump the questions. Do not build.
 
-This skill plans at the **intent** and **map** layers. Slice specs, oracles, and tasks are **heio-planning** and **heio-slice**.
+This skill is **intent** and **map**. Slice files and task-pool files are **heio-planning** and **heio-slice**.
 
 Load **heio-stack** before any write under `.heio/`. Load **docs** only when a settled decision should survive a clone. Load **domain-modeling** when a term or ADR belongs in the vault.
 
@@ -46,11 +46,11 @@ Copy templates from **heio-stack**.
 - `.heio/planning/intent.md` when intent is new or the user is changing it on purpose
 - `.heio/planning/roadmap.md` with the location bullets
 - `.heio/planning/locations/<slug>.md` only when a bullet needs depth
-- `.heio/planning/sprints/<id>/shape.md` for the current sprint. Status `shaping`. Slice folders wait for **heio-planning**.
+- `.heio/planning/sprints/<id>/shape.md` for the current sprint. Status `shaping`. Slice files wait for **heio-planning**.
 
-Leave `spec.md`, `oracles.md`, and `tasks.md` unwritten. Builder agents will read these files. They must not have been written by a builder.
+Do not write slice files or task-pool files.
 
-Done when intent, roadmap, and current sprint shape exist on disk, every in-slice has a one-line why, and no tasks exist.
+Done when intent, roadmap, and current sprint shape exist on disk, every in-slice has a one-line why, and no task-pool files were written by this pass.
 
 ## Loop
 

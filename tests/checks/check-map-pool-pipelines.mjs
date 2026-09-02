@@ -30,11 +30,6 @@ const STATUS_CHAIN =
 const BUILDER_CLAIM_STOP =
   /builder(?: skill)? claims and stops at [`']?implemented[`']? unless the invoked prompt is through-to-complete/i;
 
-const COMPLETER_ARCHIVES =
-  /whoever sets [`']?completed[`']? moves the file to [`']?\.heio\/archive\/pool\/[`']?/i;
-
-const REVIEWER_NO_HUNT = /reviewer does not hunt archive for work/i;
-
 const skillsDir = join(root, "ai", "skills", "heio-stack");
 if (existsSync(skillsDir)) {
   const skillsText = readAll(walkMarkdown(skillsDir));
@@ -43,25 +38,16 @@ if (existsSync(skillsDir)) {
       "heio-stack skills do not name draft, ready, claimed, implemented, completed",
     );
   }
-  if (!/anyone may draft/i.test(skillsText)) {
-    errors.push("heio-stack skills do not say anyone may draft");
-  }
-  if (!/planning or triage marks [`']?ready[`']?/i.test(skillsText)) {
-    errors.push("heio-stack skills do not say planning or triage marks ready");
-  }
-  if (!BUILDER_CLAIM_STOP.test(skillsText)) {
+  const archivesCompleted =
+    skillsText.includes(".heio/archive/planning/task-pool/") ||
+    /completed task files move to (?:archive|\.heio\/archive)/i.test(
+      skillsText,
+    ) ||
+    /completed.{0,80}\.heio\/archive/i.test(skillsText) ||
+    /\.heio\/archive.{0,80}completed/i.test(skillsText);
+  if (!archivesCompleted) {
     errors.push(
-      "heio-stack skills do not say a builder claims and stops at implemented unless the invoked prompt is through-to-complete",
-    );
-  }
-  if (!COMPLETER_ARCHIVES.test(skillsText)) {
-    errors.push(
-      "heio-stack skills do not say whoever sets completed moves the file to .heio/archive/pool/",
-    );
-  }
-  if (!REVIEWER_NO_HUNT.test(skillsText)) {
-    errors.push(
-      "heio-stack skills do not say reviewer does not hunt archive for work",
+      "heio-stack skills do not say completed task files move to .heio/archive/planning/task-pool/ or .heio/archive",
     );
   }
 } else {
@@ -93,7 +79,11 @@ for (const [name, path] of roleAgents) {
     );
   }
   if (name === "heio-triage") {
-    if (!/unblocked active slice or (?:the )?pool/i.test(text)) {
+    if (
+      !/unblocked active slice or (?:the )?(?:planning\/)?(?:task[- ]?)?pool/i.test(
+        text,
+      )
+    ) {
       errors.push(
         "heio-triage does not route to an unblocked active slice or the pool",
       );

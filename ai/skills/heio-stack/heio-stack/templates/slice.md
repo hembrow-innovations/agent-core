@@ -36,7 +36,7 @@ What this slice will not absorb. Incoming product work that lands here is a tick
 
 ## Pool
 
-Durable links to pool ids. Never drop them.
+Durable links to task-pool ids. Never drop them.
 
 - `[[task-id]]`
 

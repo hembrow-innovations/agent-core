@@ -26,4 +26,4 @@ scope: <paths this task may touch>
 
 ## Links
 
-Optional links. `[[s-slug]]` or related pool ids.
+Optional links. `[[s-slug]]` or related task-pool ids.

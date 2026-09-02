@@ -15,23 +15,35 @@ const layoutPath = join(
 );
 const errors = [];
 
+const DURABLE_TASK_POOL_LINKS =
+  /durable (?:(?:task-)?pool-id links|links to (?:task-)?pool ids)/i;
+
 if (existsSync(layoutPath)) {
   const text = readFileSync(layoutPath, "utf8");
 
-  if (!text.includes(".heio/pool/")) {
-    errors.push("layout.md does not name .heio/pool/");
+  if (text.includes(".heio/pool/")) {
+    errors.push("layout.md still names .heio/pool/ as the live task directory");
+  }
+  if (!text.includes(".heio/planning/task-pool/")) {
+    errors.push("layout.md does not name .heio/planning/task-pool/");
   }
   if (!/one markdown file per task/i.test(text)) {
     errors.push(
-      "layout.md does not name .heio/pool/ as one markdown file per task",
+      "layout.md does not name .heio/planning/task-pool/ as one markdown file per task",
     );
   }
-  if (!text.includes(".heio/archive/pool/")) {
-    errors.push("layout.md does not name .heio/archive/pool/");
-  }
-  if (!/moved on [`']?completed[`']?/i.test(text)) {
+  const namesArchiveTaskPool = text.includes(
+    ".heio/archive/planning/task-pool/",
+  );
+  const completedMoveUnderArchive =
+    /completed.{0,80}\.heio\/archive/i.test(text) ||
+    /\.heio\/archive.{0,80}completed/i.test(text) ||
+    /completed task files move (?:to|under) (?:archive|\.heio\/archive)/i.test(
+      text,
+    );
+  if (!namesArchiveTaskPool && !completedMoveUnderArchive) {
     errors.push(
-      "layout.md does not say .heio/archive/pool/ is moved on completed",
+      "layout.md does not name .heio/archive/planning/task-pool/ or completed task files moving under .heio/archive",
     );
   }
   if (!/a slice is one markdown file/i.test(text)) {
@@ -42,17 +54,21 @@ if (existsSync(layoutPath)) {
       "layout.md does not say the slice file has status, oracle checklist",
     );
   }
-  if (!/durable (?:pool-id links|links to pool ids)/i.test(text)) {
+  if (!DURABLE_TASK_POOL_LINKS.test(text)) {
     errors.push(
-      "layout.md does not name durable pool-id links on the slice file",
+      "layout.md does not name durable links to task-pool ids on the slice file",
     );
   }
   if (!/shape\.md[`']? stays the grouping/i.test(text)) {
     errors.push("layout.md does not say sprint shape.md stays the grouping");
   }
-  if (!/met[`']? means linked pool ids are [`']?completed[`']?/i.test(text)) {
+  if (
+    !/met[`']? means linked (?:task-)?pool ids are [`']?completed[`']?/i.test(
+      text,
+    )
+  ) {
     errors.push(
-      "layout.md does not say slice met means linked pool ids are completed",
+      "layout.md does not say slice met means linked task-pool ids are completed",
     );
   }
   if (!/oracles hold/i.test(text)) {
@@ -91,9 +107,9 @@ if (sliceText !== null) {
   if (!/oracle checklist/i.test(sliceText)) {
     errors.push("one-file slice template does not include oracle checklist");
   }
-  if (!/durable links to pool ids/i.test(sliceText)) {
+  if (!/durable links to (?:task-)?pool ids/i.test(sliceText)) {
     errors.push(
-      "one-file slice template does not include durable links to pool ids",
+      "one-file slice template does not include durable links to task-pool ids",
     );
   }
 }
@@ -143,9 +159,6 @@ if (existsSync(kindsPath)) {
     "templates/roadmap.md",
     "templates/location.md",
     "templates/sprint-shape.md",
-    "templates/slice-spec.md",
-    "templates/slice-oracles.md",
-    "templates/slice-tasks.md",
     "templates/ticket.md",
     "templates/archive-index.md",
   ];
@@ -175,9 +188,9 @@ if (existsSync(kindsPath)) {
     errors.push(
       "template-kinds.md does not point at the pool-task template templates/pool-task.md",
     );
-  } else if (!poolLine.includes(".heio/pool/")) {
+  } else if (!poolLine.includes(".heio/planning/task-pool/")) {
     errors.push(
-      "template-kinds.md does not map the pool-task template to .heio/pool/",
+      "template-kinds.md does not map the pool-task template to .heio/planning/task-pool/",
     );
   }
 } else {

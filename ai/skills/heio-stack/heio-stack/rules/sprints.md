@@ -12,15 +12,13 @@ Locations. Not a schedule. Each bullet is a destination: this is working when. A
 
 A **bet** is an optional sub-bullet under a location: `bet: try X; pivot if Y`. If it wins, it becomes a location or a sprint grouping.
 
-Human or **heio-wayfinder** writes `.heio/planning/roadmap.md`. A general agent the human is talking to may grow it. A builder in a workflow loop does not rewrite location destination sentences.
-
 When a location needs depth, copy `templates/location.md` to `planning/locations/<slug>.md`. That file is the same shape: short why, nested location bullets, optional bets, enough links. No nested folders.
 
 ## Sprint
 
-A grouping of slices and tasks. Named after a **location** or a **timebox** (`week-1`).
+A grouping of slices. Named after a **location** or a **timebox** (`week-1`).
 
-`.heio/planning/sprints/<id>/shape.md` lists slices in, slices out, and what this grouping is. Planner pass. Status `shaping` until the slice specs and `EXPECT:` lines exist, then `active`.
+`.heio/planning/sprints/<id>/shape.md` lists slices in, slices out, and what this grouping is. Status `shaping` until the slice files have Done and `EXPECT:` lines, then `active`.
 
 A sprint holds 2–4+ vertical slices. Many slices may be `active`. A slice that must wait names `blocked-by`.
 
