@@ -1,11 +1,11 @@
 ---
 name: heio-stack
-description: Heio-stack operating loop under `.heio/planning`, `.heio/tickets`, and `.heio/archive`. Intent, locations, sprints, slices, tickets, tasks, and oracles. Use when finding or writing those notes, triaging inbound work as TASK/TICKET/ESCALATE/VERIFY, or when another skill needs the stack.
+description: Heio-stack operating loop under `.heio/planning`, `.heio/tickets`, `.heio/pool/`, and `.heio/archive`. Intent, locations, sprints, slices, tickets, pool tasks, tasks, and oracles. Use when finding or writing those notes, triaging inbound work as TASK/TICKET/ESCALATE/VERIFY, or when another skill needs the stack.
 ---
 
 # Heio-stack. Local operating loop
 
-`.heio/planning/`, `.heio/tickets/`, and `.heio/archive/` are the working tree. Git ignores `.heio/`. `docs/` is the committed source of truth. Load **docs** for that vault. Load **domain-modeling** when a term or ADR belongs there.
+`.heio/planning/`, `.heio/tickets/`, `.heio/pool/`, and `.heio/archive/` are the working tree. Git ignores `.heio/`. `docs/` is the committed source of truth. Load **docs** for that vault. Load **domain-modeling** when a term or ADR belongs there.
 
 This tree is the tracker. If `AGENTS.md` or `WORKSPACE.md` already names a tracker, that file wins. Do not start a second tree.
 
@@ -22,7 +22,7 @@ Full steps: `rules/write-before.md`.
 
 ## When to apply
 
-- Finding or writing intent, roadmap, location detail, sprint shape, slice spec, slice oracles, slice tasks, a ticket, or an archive entry
+- Finding or writing intent, roadmap, location detail, sprint shape, slice spec, slice oracles, slice tasks, a ticket, a pool task, or an archive entry
 - Triaging inbound work as TASK, TICKET, ESCALATE, or VERIFY
 - Deciding whether a note belongs in `.heio/` or `docs/`
 - Closing a slice or a sprint, or moving finished work to archive
@@ -35,6 +35,7 @@ Full steps: `rules/write-before.md`.
 - **layout** for path and naming
 - **layers** for intent vs map vs work
 - **loop** for every output
+- **pool** for pool statuses
 - **template-kinds** plus `templates/` for the skeleton
 
 ### Careful
@@ -58,7 +59,7 @@ Full steps: `rules/write-before.md`.
 - **3 CRITICAL** - Layers (`layers`)
 - **4 CRITICAL** - Loop (`loop`)
 - **5 HIGH** - Templates (`template-`)
-- **6 HIGH** - Tickets, sprints, slices, oracles, tasks, change
+- **6 HIGH** - Tickets, sprints, slices, oracles, tasks, change, pool
 
 ## Quick reference
 
@@ -66,6 +67,7 @@ Full steps: `rules/write-before.md`.
 - `layout` - Tree, naming, status, links, archive
 - `layers` - Intent sticky, map editable outside a workflow, work fluid
 - `loop` - TASK / TICKET / ESCALATE / VERIFY
+- `pool` - Statuses draft → ready → claimed → implemented → completed; anyone may draft; planning or triage marks ready
 - `template-kinds` - Kind to template to destination
 - `tickets` - Inbound signal, triage, rot at sprint close
 - `sprints` - Grouping of slices, location or timebox
@@ -81,6 +83,7 @@ rules/write-before.md
 rules/layout.md
 rules/layers.md
 rules/loop.md
+rules/pool.md
 rules/template-kinds.md
 rules/tickets.md
 rules/sprints.md

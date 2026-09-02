@@ -65,6 +65,7 @@ Reserved at the root, owned by other skills. Leave them in place.
 - **sprint**: `shaping` / `active` / `review` / `closed`
 - **slice**: `shaping` / `frozen` / `active` / `met` / `abandoned`
 - **ticket**: `open` / `parked` / `promoted` / `dropped` / `closed`
+- **pool**: `draft` / `ready` / `claimed` / `implemented` / `completed`
 
 ## Archive
 
