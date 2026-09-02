@@ -457,17 +457,11 @@ test("always-on text does not dump dest heio-mode", () => {
 		join(REPO, "ai", "pi", "APPEND_SYSTEM.md"),
 		"utf8",
 	);
-	const agent = readFileSync(
-		join(REPO, "ai", "agents", "heio", "heio.md"),
-		"utf8",
+	assert.doesNotMatch(
+		append,
+		/Read `\.pi\/skills\/heio-mode\/SKILL\.md` in full/,
 	);
-	for (const text of [append, agent]) {
-		assert.doesNotMatch(
-			text,
-			/Read `\.pi\/skills\/heio-mode\/SKILL\.md` in full/,
-		);
-		assert.doesNotMatch(text, /running heio-mode on Pi/);
-	}
+	assert.doesNotMatch(append, /running heio-mode on Pi/);
 });
 
 test("repo profiles resolve every listed skill from skills/", () => {
@@ -781,10 +775,7 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 	);
 	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
 	assert.equal(existsSync(join(dest, ".pi", "roles")), false);
-	assert.doesNotMatch(
-		readFileSync(join(dest, ".pi", "agents", "heio.md"), "utf8"),
-		/Skill|Task/,
-	);
+	assert.equal(existsSync(join(dest, ".pi", "agents", "heio.md")), false);
 	const profile = loadProfile(REPO, "agentic-core");
 	const npmRoot = join(dest, ".pi", "npm", "local", "@agentic-core");
 	for (const pkg of profile.packages) {

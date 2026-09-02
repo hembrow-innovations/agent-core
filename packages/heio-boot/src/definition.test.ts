@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -49,27 +49,18 @@ name: empty
 	);
 });
 
-test("pack file parses and omits Skill or Task wording", () => {
-	const text = readFileSync(
-		join(REPO, "ai", "agents", "heio", "heio.md"),
-		"utf8",
-	);
-	const def = parseAgentDefinition(text);
-	assert.equal(def.name, "heio");
-	assert.match(def.body, /You are heio on Pi/);
-	assert.doesNotMatch(def.body, /Skill|Task/);
-	assert.equal(def.tools, undefined);
-});
-
 test("every non-empty pack agent parses", () => {
 	const root = join(REPO, "ai", "agents");
 	const stems = readdirSync(root, { withFileTypes: true })
 		.filter((ent) => ent.isDirectory())
 		.map((ent) => ent.name)
+		.filter((name) => !name.startsWith("heio-"))
 		.sort();
 	const parsed: string[] = [];
 	for (const stem of stems) {
-		const text = readFileSync(join(root, stem, `${stem}.md`), "utf8");
+		const file = join(root, stem, `${stem}.md`);
+		if (!existsSync(file)) continue;
+		const text = readFileSync(file, "utf8");
 		if (!text.trim()) continue;
 		const def = parseAgentDefinition(text);
 		assert.equal(def.name, stem);
@@ -77,27 +68,24 @@ test("every non-empty pack agent parses", () => {
 		assert.equal(def.tools, undefined);
 		parsed.push(stem);
 	}
-	assert.deepEqual(
-		parsed.filter((name) => name !== "heio"),
-		[
-			"afk-orchestrator",
-			"architect",
-			"coder",
-			"debugger",
-			"designer",
-			"devops",
-			"documenter",
-			"growth",
-			"lead",
-			"orchestrator",
-			"planner",
-			"product",
-			"researcher",
-			"reviewer",
-			"spec",
-			"tester",
-		],
-	);
+	assert.deepEqual(parsed, [
+		"afk-orchestrator",
+		"architect",
+		"coder",
+		"debugger",
+		"designer",
+		"devops",
+		"documenter",
+		"growth",
+		"lead",
+		"orchestrator",
+		"planner",
+		"product",
+		"researcher",
+		"reviewer",
+		"spec",
+		"tester",
+	]);
 });
 
 test("lead carries its recipes and has no dest file hops", () => {

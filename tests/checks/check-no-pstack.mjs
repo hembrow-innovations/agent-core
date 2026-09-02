@@ -81,7 +81,6 @@ if (existsSync(piRoot)) {
   const names = new Set(readdirSync(piRoot).filter((n) => !n.startsWith(".")));
   const allowed = new Set([
     "APPEND_SYSTEM.md",
-    "heio-models.md",
     "prompts",
     "packages.json",
     "settings.json",
@@ -94,7 +93,6 @@ if (existsSync(piRoot)) {
   const extra = [...names].filter((n) => !allowed.has(n)).sort();
   if (extra.length) errors.push(`ai/pi/ unexpected ${extra.join(", ")}`);
   for (const rel of [
-    "ai/agents/heio/heio.md",
     "ai/agents/architect/architect.md",
     "ai/agents/spec/spec.md",
     "ai/agents/planner/planner.md",

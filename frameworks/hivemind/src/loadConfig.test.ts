@@ -43,4 +43,20 @@ test("loadConfig accepts the agentic-core heio-stack template", () => {
   assert.equal(review?.scalars["mint-status"], "ready-for-human");
   const mintLane = cfg.lanes.some((lane) => lane.lane === "mint");
   assert.equal(mintLane && !cfg.disable.includes("mint"), false);
+  assert.equal(cfg.watch, undefined);
+});
+
+test("loadConfig omits watch as folders when the key is absent", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "hivemind-load-watch-omit-"));
+  writeFileSync(join(cwd, "hivemind.yaml"), "folders: []\nlanes: []\n");
+  assert.equal(loadConfig(cwd).watch, undefined);
+});
+
+test("loadConfig stores watch directories and strips glob suffixes", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "hivemind-load-watch-"));
+  writeFileSync(
+    join(cwd, "hivemind.yaml"),
+    "folders: []\nlanes: []\nwatch:\n  - .heio/tickets\n  - .heio/planning/**/*.md\n",
+  );
+  assert.deepEqual(loadConfig(cwd).watch, [".heio/tickets", ".heio/planning"]);
 });

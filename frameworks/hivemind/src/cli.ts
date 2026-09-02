@@ -87,7 +87,9 @@ Commands:
   watch   resident predicate loop
 
 Options:
-  -h, --help    Show help
+  -h, --help              Show help
+  --until-quiet           watch: exit after one quiet scan
+  --until-target PATH     watch: exit when PATH exists
 `);
 }
 

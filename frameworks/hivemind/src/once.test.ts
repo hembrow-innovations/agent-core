@@ -11,6 +11,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { loadConfig } from "./loadConfig.ts";
+import { matchNotes } from "./matcher.ts";
+import { spawnMatches } from "./once.ts";
+import { scan } from "./scan.ts";
 
 const CLI = fileURLToPath(import.meta.url).replace(/once\.test\.ts$/, "cli.ts");
 
@@ -184,6 +188,7 @@ test("cmd with metacharacters in an interpolated path does not invoke a shell", 
             "",
         ].join("\n"),
     );
+    writeFileSync(join(cwd, "foo; echo HACKED"), "x\n");
     writeTicket(cwd, "agent.md", "ready-for-agent");
 
     const proc = once(cwd);
@@ -221,6 +226,7 @@ test("interpolated spaces stay one argv", () => {
             "",
         ].join("\n"),
     );
+    writeFileSync(join(cwd, "hello world"), "x\n");
     writeTicket(cwd, "agent.md", "ready-for-agent");
 
     const proc = once(cwd);
@@ -347,6 +353,74 @@ test("child is one unit; supervisor does not loop tickets inside the child", () 
     );
     assert.equal(active.length, 1);
     assert.equal(ready.length, 1);
+});
+
+test("missing prompt file does not spawn and does not claim", () => {
+    const cwd = mkdtempSync(join(tmpdir(), "hivemind-prompt-"));
+    mkdirSync(join(cwd, "tickets"));
+    mkdirSync(join(cwd, "quarantine"));
+    writeFileSync(
+        join(cwd, "hivemind.yaml"),
+        [
+            "folders:",
+            "  - path: tickets",
+            "    schema: ticket",
+            "    required: [id, status]",
+            "  - path: quarantine",
+            "    schema: quarantine",
+            "    required: [origin-location, quarantined-at, fault]",
+            "lanes:",
+            "  - lane: plan",
+            "    cmd: /bin/echo spawned",
+            "    prompt: missing.md",
+            "    trigger:",
+            "      status: ready-for-agent",
+            "    claim-status: active",
+            "",
+        ].join("\n"),
+    );
+    writeTicket(cwd, "agent.md", "ready-for-agent");
+
+    const proc = once(cwd);
+    assert.equal(proc.status, 0, proc.stderr);
+    assert.equal(proc.stdout.includes("spawned"), false);
+    assert.match(
+        readFileSync(join(cwd, "tickets", "agent.md"), "utf8"),
+        /^status: ready-for-agent$/m,
+    );
+});
+
+test("live claimed-by skip does not re-spawn the same path", () => {
+    const cwd = setupMatchProject("/bin/echo spawned");
+    writeTicket(cwd, "agent.md", "ready-for-agent");
+    const config = loadConfig(cwd);
+    const { notes } = scan({ cwd, config });
+    const matches = matchNotes({ lanes: config.lanes, notes });
+    const spawned: unknown[] = [];
+    const n = spawnMatches({
+        cwd,
+        concurrency: 2,
+        matches,
+        env: process.env,
+        spawnChild: (argv) => {
+            spawned.push(argv);
+        },
+        live: [
+            {
+                exclusive: [],
+                wait: new Promise(() => {}),
+                kill: () => {},
+                done: false,
+                path: "tickets/agent.md",
+            },
+        ],
+    });
+    assert.equal(n, 0);
+    assert.deepEqual(spawned, []);
+    assert.match(
+        readFileSync(join(cwd, "tickets", "agent.md"), "utf8"),
+        /^status: ready-for-agent$/m,
+    );
 });
 
 function onceAsync(cwd: string): Promise<Proc> {

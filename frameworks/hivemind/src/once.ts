@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { claim } from "./claim.ts";
 import { interpolate } from "./interpolator.ts";
@@ -15,6 +16,7 @@ export type LiveRun = {
   wait: Promise<number>;
   kill: () => void;
   done: boolean;
+  path: string;
 };
 
 export async function runOnce(opts: {
@@ -54,6 +56,9 @@ export function spawnMatches(opts: {
   for (const match of opts.matches) {
     const current = opts.live.filter((run) => !run.done);
     if (current.length >= opts.concurrency) break;
+    if (current.some((run) => run.path === match.note.path)) {
+      continue;
+    }
     if (
       current.some((run) =>
         exclusiveSetsOverlap(match.lane.exclusive, run.exclusive),
@@ -77,6 +82,7 @@ export function spawnMatches(opts: {
           exclusive: match.lane.exclusive,
           wait: Promise.resolve(0),
           kill: noop,
+          path: match.note.path,
         }),
       );
       spawned += 1;
@@ -88,6 +94,7 @@ export function spawnMatches(opts: {
         exclusive: match.lane.exclusive,
         wait: handle.wait,
         kill: handle.kill,
+        path: match.note.path,
       }),
     );
     spawned += 1;
@@ -115,6 +122,9 @@ function cmdArgv(opts: {
   cwd: string;
   env: NodeJS.ProcessEnv;
 }): string[] | undefined {
+  if (opts.lane.prompt !== undefined && opts.lane.prompt !== "") {
+    if (!existsSync(join(opts.cwd, opts.lane.prompt))) return undefined;
+  }
   if (typeof opts.lane.cmd !== "string") {
     const argv: string[] = [];
     for (const part of opts.lane.cmd) {

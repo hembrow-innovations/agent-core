@@ -28,6 +28,7 @@ export type HivemindConfig = {
   lanes: Lane[];
   concurrency: number;
   disable: readonly string[];
+  watch: readonly string[] | undefined;
 };
 
 export function loadConfig(cwd: string): HivemindConfig {
@@ -46,7 +47,19 @@ export function loadConfig(cwd: string): HivemindConfig {
     lanes: parseLanes(asList(raw.lanes, "lanes")),
     concurrency: parseConcurrency(raw.concurrency),
     disable: parseStringList(raw.disable, "disable"),
+    watch: parseWatch(raw.watch),
   };
+}
+
+function parseWatch(value: unknown): string[] | undefined {
+  if (value === undefined) return undefined;
+  const list = parseStringList(value, "watch");
+  if (list.length === 0) return undefined;
+  return list.map(normalizeWatchRoot);
+}
+
+function normalizeWatchRoot(path: string): string {
+  return path.replace(/\/\*\*(\/\*\.md)?$/, "").replace(/\/+$/, "");
 }
 
 function asList(value: unknown, key: string): YamlValue[] {

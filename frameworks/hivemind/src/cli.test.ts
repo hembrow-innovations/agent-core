@@ -83,3 +83,14 @@ test("help exits zero", async () => {
   assert.equal(status, 0);
   assert.deepEqual(spawned, []);
 });
+
+test("help lists watch flags", () => {
+  const proc = spawnSync(
+    process.execPath,
+    ["--experimental-strip-types", CLI, "--help"],
+    { encoding: "utf8" },
+  );
+  assert.equal(proc.status, 0);
+  assert.match(proc.stdout, /--until-quiet/);
+  assert.match(proc.stdout, /--until-target/);
+});

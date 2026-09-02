@@ -1,12 +1,15 @@
 import {
   existsSync,
+  mkdirSync,
   readdirSync,
   readFileSync,
   renameSync,
   writeFileSync,
+  type Dirent,
 } from "node:fs";
 import { basename, join, relative, sep } from "node:path";
 import { loadConfig, type HivemindConfig } from "./loadConfig.ts";
+import { namedAllowlist } from "./namedSchema.ts";
 import { parseYaml, type YamlValue } from "./yaml.ts";
 
 export type ScannedNote = {
@@ -44,17 +47,17 @@ export function scan(opts: {
   const notes: ScannedNote[] = [];
   const destDir = join(opts.cwd, quarantine.path);
   const at = now.toISOString();
+  const watch = config.watch;
   for (const folder of folders) {
     if (isQuarantineFolder(folder)) continue;
+    if (!includeFolder(folder.path, watch)) continue;
     const dir = join(opts.cwd, folder.path);
     if (!existsSync(dir)) continue;
-    const names = readdirSync(dir)
-      .filter((name) => name.endsWith(".md"))
-      .sort();
-    for (const name of names) {
-      const abs = join(dir, name);
+    for (const abs of listMarkdownFiles(dir)) {
       const origin = projectRel(opts.cwd, abs);
-      const parsed = readFrontMatter(readFileSync(abs, "utf8"));
+      const raw = readFileSync(abs, "utf8");
+      if (!raw.startsWith("---")) continue;
+      const parsed = readFrontMatter(raw);
       if (parsed.kind === "fault") {
         quarantineFile({ abs, destDir, origin, fault: parsed.fault, at });
         continue;
@@ -148,9 +151,12 @@ function unknownKey(
   map: Record<string, YamlValue>,
   folder: FolderEntry,
 ): string | undefined {
-  if (folder.schema.kind !== "inline") return undefined;
+  const allowed =
+    folder.schema.kind === "inline"
+      ? folder.schema.allowedKeys
+      : namedAllowlist(folder.schema.name);
   for (const key of Object.keys(map)) {
-    if (!folder.schema.allowedKeys.has(key)) return key;
+    if (!allowed.has(key)) return key;
   }
   return undefined;
 }
@@ -176,6 +182,44 @@ function readFrontMatter(
   }
 }
 
+function includeFolder(
+  folderPath: string,
+  watch: readonly string[] | undefined,
+): boolean {
+  if (watch === undefined || watch.length === 0) return true;
+  const folder = normalizePrefix(folderPath);
+  return watch.some((root) => {
+    const watchRoot = normalizePrefix(root);
+    return (
+      folder === watchRoot ||
+      folder.startsWith(`${watchRoot}/`) ||
+      watchRoot.startsWith(`${folder}/`)
+    );
+  });
+}
+
+function listMarkdownFiles(dir: string): string[] {
+  const out: string[] = [];
+  const ents = sortDirents(readdirSync(dir, { withFileTypes: true }));
+  for (const ent of ents) {
+    const abs = join(dir, ent.name);
+    if (ent.isDirectory()) {
+      out.push(...listMarkdownFiles(abs));
+      continue;
+    }
+    if (ent.isFile() && ent.name.endsWith(".md")) out.push(abs);
+  }
+  return out;
+}
+
+function sortDirents(ents: Dirent[]): Dirent[] {
+  return [...ents].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function normalizePrefix(path: string): string {
+  return path.replaceAll("\\", "/").replace(/\/+$/, "");
+}
+
 function quarantineFile(opts: {
   abs: string;
   destDir: string;
@@ -183,6 +227,7 @@ function quarantineFile(opts: {
   fault: string;
   at: string;
 }): void {
+  mkdirSync(opts.destDir, { recursive: true });
   const dest = join(opts.destDir, basename(opts.abs));
   renameSync(opts.abs, dest);
   writeFileSync(

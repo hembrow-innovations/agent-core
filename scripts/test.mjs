@@ -17,6 +17,12 @@ function run(command, args) {
 
 run("pnpm", ["-r", "--filter", "./packages/**", "test"]);
 
+const hivemindTests = readdirSync(join(ROOT, "frameworks", "hivemind", "src"))
+  .filter((name) => name.endsWith(".test.ts"))
+  .sort()
+  .map((name) => join(ROOT, "frameworks", "hivemind", "src", name));
+run("node", ["--experimental-strip-types", "--test", ...hivemindTests]);
+
 const piTests = readdirSync(join(ROOT, "tests", "pi"))
   .filter((name) => name.endsWith(".mjs"))
   .sort()
