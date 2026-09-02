@@ -1,0 +1,218 @@
+# World dest. Full file. No overlay. Dest copy is the runtime contract.
+# Unattended novel loop. No interview. No ready-for-human.
+# cmd list form. pi --print. --approve trusts the folder.
+concurrency: 1
+history: .heio/logs/hivemind.tsv
+folders:
+  - path: .heio/tickets
+    schema: ticket
+    required: [id, status]
+  - path: .heio/planning
+    schema: planning
+    required: [id, kind, status]
+  - path: .heio/archive
+    schema: archive
+    required: [id]
+  - path: .heio/quarantine
+    schema: quarantine
+    required: [origin-location, quarantined-at, fault]
+lanes:
+  - lane: plan
+    cmd:
+      - pi
+      - --print
+      - --no-session
+      - --approve
+      - --exclude-tools
+      - ask_user_question
+      - --agent
+      - "{{agent}}"
+      - "--"
+      - "@{{prompt}}"
+    agent: heio-planner
+    prompt: .pi/prompts/world-plan.md
+    trigger:
+      kind: ticket
+      status: ready-for-agent
+    scope:
+      - .heio/planning
+      - .heio/tickets
+    claim-status: active
+    backoff: 20s
+  - lane: tasker
+    cmd:
+      - pi
+      - --print
+      - --no-session
+      - --approve
+      - --exclude-tools
+      - ask_user_question
+      - --agent
+      - "{{agent}}"
+      - "--"
+      - "@{{prompt}}"
+    agent: world-tasker
+    prompt: .pi/prompts/world-tasker.md
+    trigger:
+      kind: slice
+      status: ready
+    scope:
+      - .heio/planning
+    claim-status: composing
+    backoff: 20s
+  - lane: draft
+    cmd:
+      - pi
+      - --print
+      - --no-session
+      - --approve
+      - --exclude-tools
+      - ask_user_question
+      - --agent
+      - "{{agent}}"
+      - "--"
+      - "@{{prompt}}"
+    agent: world-scribe
+    prompt: .pi/prompts/world-draft.md
+    trigger:
+      kind: slice
+      status: composing
+    scope:
+      - .heio/planning
+      - 50 Book
+    claim-status: composing
+    backoff: 20s
+  - lane: line
+    cmd:
+      - pi
+      - --print
+      - --no-session
+      - --approve
+      - --exclude-tools
+      - ask_user_question
+      - --agent
+      - "{{agent}}"
+      - "--"
+      - "@{{prompt}}"
+    agent: world-line
+    prompt: .pi/prompts/world-line.md
+    trigger:
+      kind: slice
+      status: lining
+    scope:
+      - .heio/planning
+      - 50 Book
+    claim-status: lining
+    backoff: 20s
+  - lane: continuity
+    cmd:
+      - pi
+      - --print
+      - --no-session
+      - --approve
+      - --exclude-tools
+      - ask_user_question
+      - --agent
+      - "{{agent}}"
+      - "--"
+      - "@{{prompt}}"
+    agent: world-continuity
+    prompt: .pi/prompts/world-continuity.md
+    trigger:
+      kind: slice
+      status: checking
+    scope:
+      - .heio/planning
+      - 50 Book
+    claim-status: checking
+    backoff: 20s
+  - lane: critique
+    cmd:
+      - pi
+      - --print
+      - --no-session
+      - --approve
+      - --exclude-tools
+      - ask_user_question
+      - --agent
+      - "{{agent}}"
+      - "--"
+      - "@{{prompt}}"
+    agent: world-critic
+    prompt: .pi/prompts/world-critique.md
+    trigger:
+      kind: slice
+      status: critiquing
+    scope:
+      - .heio/planning
+      - 50 Book
+    claim-status: critiquing
+    backoff: 20s
+  - lane: revise
+    cmd:
+      - pi
+      - --print
+      - --no-session
+      - --approve
+      - --exclude-tools
+      - ask_user_question
+      - --agent
+      - "{{agent}}"
+      - "--"
+      - "@{{prompt}}"
+    agent: world-scribe
+    prompt: .pi/prompts/world-revise.md
+    trigger:
+      kind: slice
+      status: revising
+    scope:
+      - .heio/planning
+      - 50 Book
+    claim-status: revising
+    backoff: 20s
+  - lane: review
+    cmd:
+      - pi
+      - --print
+      - --no-session
+      - --approve
+      - --exclude-tools
+      - ask_user_question
+      - --agent
+      - "{{agent}}"
+      - "--"
+      - "@{{prompt}}"
+    agent: world-verifier
+    prompt: .pi/prompts/world-review.md
+    trigger:
+      kind: slice
+      status: released
+    scope:
+      - .heio/planning
+      - .heio/tickets
+      - 50 Book
+    claim-status: reviewing
+    mint-status: ready-for-agent
+    backoff: 20s
+  - lane: improve
+    cmd:
+      - pi
+      - --print
+      - --no-session
+      - --approve
+      - --exclude-tools
+      - ask_user_question
+      - --agent
+      - "{{agent}}"
+      - "--"
+      - "@{{prompt}}"
+    agent: world-improve
+    prompt: .pi/prompts/world-improve.md
+    trigger:
+      kind: improve
+      status: ready
+    scope:
+      - .heio/planning
+      - .heio/tickets
+    claim-status: scanning
+    backoff: 20s

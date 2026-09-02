@@ -37,3 +37,5 @@ A missing `ai/system-prompts/default.md` is an error when the key is omitted. An
 The installer does not copy playbooks. Dest `.pi/playbooks/` is not pruned. `playbooks:` on a profile is a leftover-key error.
 
 `packages:` is the install list. Install merges those sources into `.pi/settings.json` `packages` and then deep-merges `settings:`. Dest keys the profile omits stay. An existing object-form entry with the same `source` counts as present. Pi then installs any missing project packages on the next trusted startup.
+
+`profiles/world` is the novel vault export. Skills under `ai/skills/writing/`. Install with `--profile world` into the world dest. It is not this checkout.

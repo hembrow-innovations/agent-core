@@ -42,7 +42,8 @@ One git repo. Products stay separate by folder, profile, and nouns. Do not mix t
 - **Heio-stack**: the tracker. Skills under `ai/skills/heio-stack/` and `heio-*` agents. This checkout runs it. A dest only gets it if the profile lists it. The `management` skill is a different `.heio/` convention; it is not this checkout's tracker. `@agentic-core/heio-coord` is parked; do not install or call `heio_stack`.
 - **Hivemind**: out-of-session predicate machine. Source `frameworks/hivemind/`. Dest program `.pi/frameworks/hivemind/`. Config is project-root `hivemind.yaml` (write-if-missing from the profile template). Not a Pi extension and not coord. Core knows typed folders, front matter, lanes, runs, and faults. It does not know ticket, slice, intent, sealed, or ready-for-agent. Those names live only in a profile `hivemind.yaml`.
 - **Session extensions**: `packages/heio-boot`, `heio-footer`, `heio-onic`. In-session Pi plugins. Not hivemind. Parked coord lives under `deprecated/packages/heio-coord`.
-- **Profile**: the product cut. A dest receives only what the profile lists. `profiles/agentic-core` develops this pack; it is not an export. `profiles/heio-stack` is the stack export. Domain extras (gamedev, life-engine) stay off any profile that did not name them.
+- **Profile**: the product cut. A dest receives only what the profile lists. `profiles/agentic-core` develops this pack; it is not an export. `profiles/heio-stack` is the stack export. Domain extras (gamedev, life-engine, writing) stay off any profile that did not name them.
+- **World**: the novel dest. Skills under `ai/skills/writing/`. Profile `profiles/world`. Install into the world vault. Not this checkout.
 
 ## Tracker
 

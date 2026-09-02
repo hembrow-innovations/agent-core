@@ -1,0 +1,59 @@
+# Dest: science fiction novel in the world vault. heio-stack + Hivemind.
+# Install: pnpm exec agentic-core install ../world --profile world
+# Unattended. No ask-user-question. Lanes never interview.
+agents:
+  - heio-planner
+  - world-tasker
+  - world-scribe
+  - world-line
+  - world-continuity
+  - world-critic
+  - world-verifier
+  - world-improve
+prompts:
+  - heio-wayfinder
+  - heio-planning
+  - heio-slice
+  - world-plan
+  - world-tasker
+  - world-draft
+  - world-line
+  - world-continuity
+  - world-critique
+  - world-revise
+  - world-review
+  - world-improve
+  - develop-lore
+  - audit-consistency
+  - write-chapter
+  - create-script
+frameworks:
+  - hivemind
+packages:
+  - npm:pi-lens
+  - npm:pi-web-access
+  - npm:pi-subagents
+  - npm:@inobit/pi-todo@0.1.1
+  - local:@agentic-core/heio-boot
+  - local:@agentic-core/heio-footer
+  - local:@agentic-core/heio-onic
+settings:
+  toolDescriptionMode: compact
+  defaultTools:
+    - read
+    - bash
+    - edit
+    - write
+    - ls
+system-prompt: world
+skills:
+  - heio-stack
+  - heio-wayfinder
+  - heio-planning
+  - heio-slice
+  - unpark
+  - human-prose
+  - novel-craft
+  - world-vault
+  - oracle
+  - diagnose
