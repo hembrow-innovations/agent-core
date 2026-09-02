@@ -18,13 +18,13 @@ Pool statuses: `draft` → `ready` → `claimed` → `implemented` → `complete
 
 ## Seat
 
-Read intent, roadmap, current sprint `shape.md`, and the active slice spec if one exists. The brief names the signal. If no ticket file exists, copy `templates/ticket.md` from the **heio-stack** skill.
+Read intent, roadmap, current sprint `shape.md`, unblocked active slice specs, and the pool. The brief names the signal. If no ticket file exists, copy `templates/ticket.md` from the **heio-stack** skill.
 
 ## Craft
 
 Same rule every time:
 
-- Fits the active slice → **TASK**. Status `promoted`. If that slice already has `tasks.md`, append the task line. If it does not, name the line for **heio-tasker**.
+- Fits an unblocked active slice or the pool → **TASK**. Status `promoted`. If that slice already has `tasks.md`, append the task line. If it does not, name the line for **heio-tasker**.
 - Fits the project, not this slice → **TICKET**. Status `parked`. File stays in `.heio/tickets/`.
 - Changes the bet → **ESCALATE**. Leave status `open`. Stop. The human and **heio-wayfinder** rewrite sprint or roadmap.
 

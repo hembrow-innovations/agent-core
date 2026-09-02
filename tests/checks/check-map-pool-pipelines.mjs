@@ -92,6 +92,16 @@ for (const [name, path] of roleAgents) {
       "heio-builder does not claim and stop at implemented unless the invoked prompt is through-to-complete",
     );
   }
+  if (name === "heio-triage") {
+    if (!/unblocked active slice or (?:the )?pool/i.test(text)) {
+      errors.push(
+        "heio-triage does not route to an unblocked active slice or the pool",
+      );
+    }
+    if (/\bthe active slice\b/i.test(text)) {
+      errors.push("heio-triage still requires a singular the active slice");
+    }
+  }
 }
 
 const ROLE_SKILL_PIPELINE = /role skill(?: is|=) (?:the )?pipeline/i;
