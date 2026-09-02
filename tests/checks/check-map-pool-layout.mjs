@@ -65,6 +65,67 @@ if (existsSync(layoutPath)) {
   errors.push("missing ai/skills/heio-stack/heio-stack/rules/layout.md");
 }
 
+const templatesDir = join(
+  root,
+  "ai",
+  "skills",
+  "heio-stack",
+  "heio-stack",
+  "templates",
+);
+
+function readTemplate(name) {
+  const path = join(templatesDir, name);
+  if (!existsSync(path)) {
+    errors.push(`missing templates/${name}`);
+    return null;
+  }
+  return readFileSync(path, "utf8");
+}
+
+const sliceText = readTemplate("slice.md");
+if (sliceText !== null) {
+  if (!/\bstatus:/i.test(sliceText)) {
+    errors.push("one-file slice template does not include status");
+  }
+  if (!/oracle checklist/i.test(sliceText)) {
+    errors.push("one-file slice template does not include oracle checklist");
+  }
+  if (!/durable links to pool ids/i.test(sliceText)) {
+    errors.push(
+      "one-file slice template does not include durable links to pool ids",
+    );
+  }
+}
+
+const poolText = readTemplate("pool-task.md");
+if (poolText !== null) {
+  if (!/\bid:/i.test(poolText)) {
+    errors.push("pool task template does not include id");
+  }
+  if (!/\btitle:/i.test(poolText)) {
+    errors.push("pool task template does not include title");
+  }
+  if (!/\bstatus:/i.test(poolText)) {
+    errors.push("pool task template does not include status");
+  }
+  if (!/\bdone\b/i.test(poolText)) {
+    errors.push("pool task template does not include done");
+  }
+  if (!/\bcontext\b/i.test(poolText)) {
+    errors.push("pool task template does not include context");
+  }
+  if (!/\bverify\b/i.test(poolText)) {
+    errors.push("pool task template does not include verify");
+  }
+  if (!/optional links/i.test(poolText)) {
+    errors.push("pool task template does not include optional links");
+  }
+  if (!poolText.includes("scope:")) {
+    errors.push("pool task template does not include scope:");
+  }
+}
+
 if (errors.length) {
   console.error(errors.join("\n"));
   process.exit(1);
