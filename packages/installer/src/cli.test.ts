@@ -6,6 +6,7 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
@@ -644,4 +645,23 @@ test("install --profile agentic-core copies hivemind.yaml once and keeps dest ed
     readFileSync(join(dest, "hivemind.yaml"), "utf8"),
     "lanes: [edited]\n",
   );
+});
+
+test("install dies on a missing framework name at plan time", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-missing-fw-"));
+  const profileName = ".tmp-unknown-framework";
+  const profileDir = join(REPO, "profiles", profileName);
+  mkdirSync(profileDir, { recursive: true });
+  writeFileSync(
+    join(profileDir, "profile.yaml"),
+    "frameworks:\n  - not-a-framework\n",
+  );
+  try {
+    const r = runCli(["install", dest, "--profile", profileName]);
+    assert.notEqual(r.status, 0, r.stderr || r.stdout);
+    assert.match(r.stderr, /Unknown framework "not-a-framework"/);
+    assert.equal(existsSync(join(dest, ".pi")), false);
+  } finally {
+    rmSync(profileDir, { recursive: true, force: true });
+  }
 });
