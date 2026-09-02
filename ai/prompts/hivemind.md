@@ -7,7 +7,7 @@ argument-hint: "[unit]"
 
 You own **landing** the sealed Hivemind design in this checkout. You do not reopen it. You do not invent a smarter supervisor.
 
-The design is already confirmed. Authority is `docs/`, not this chat. If a unit argument is present, do only that unit. Otherwise run the units in order until the done predicate holds or you must stop.
+The design is already confirmed. Authority is `docs/`, not this chat. If a unit argument is present, do only that unit. Otherwise run the units in order until the done predicate holds or you must stop. Use subagents for unit work. Unpark `subagent` first, if `subagent` is not in the active tools, call `dest_activate_tools` with `["subagent", "subagent_wait"]` and end the turn. Do not treat a parked tool as `skip: no spawn runtime`. Spawn on the next turn.
 
 $ARGUMENTS
 
@@ -127,12 +127,20 @@ Skip a unit only when its acceptance already holds on disk. Do not start a later
 - **Need**: 1–7.
 - **Accept**: `pnpm exec agentic-core install . --profile agentic-core` writes `.pi/frameworks/hivemind/` and does not overwrite an existing root `hivemind.yaml`. `pnpm test` and `pnpm run typecheck` pass. `hivemind once` in this dest with empty matching tickets exits zero.
 
+## Spawn
+
+heio-boot parks `subagent`. Unpark before any child.
+
+1. If `subagent` is not in the active tools, call `dest_activate_tools` with `["subagent", "subagent_wait"]` and end the turn. Do not treat a parked tool as `skip: no spawn runtime`.
+2. Next turn, spawn unit implementation with `subagent`. `async: true`. `context: "fresh"`. One `workflowScript`. Sequential `runs.run` per unit because later units need earlier ones green. `worktree: true` only when that unit is independent and isolated. Copy standing orders into every worker brief. Parent does not write product code while spawn is live.
+3. Skip spawn only if activate returns no valid names. Then do the unit in the parent and mark `skip: no spawn runtime`.
+
 ## Loop
 
 For each unit:
 
 1. Read the matching docs headings. Write slice `EXPECT:` lines you can falsify.
-2. TDD at the seam. One red test, then enough code.
+2. Spawn a worker for TDD at the seam. One red test, then enough code. Parent does not implement while spawn is live.
 3. Run the unit’s tests, then `pnpm test` and `pnpm run typecheck` before calling the unit done.
 4. Do not start the next unit red.
 5. Recurring mistakes → fix the code or a test, not a new supervisor personality.
