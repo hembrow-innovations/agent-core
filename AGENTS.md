@@ -9,11 +9,13 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
 
 ## Source
 
-- `ai/agents/` is the agent library.
-- `ai/skills/` is the skill library.
-- `ai/playbooks/` is the playbook library.
-- `ai/prompts/` is the prompt/command library.
-- `ai/pi/` is the Pi runtime pack. (prompts,skills,agents,roles, don't live in this directory)
+- `ai/` is the pi agent files.
+  - `ai/agents/` is the agent library.
+  - `ai/skills/` is the skill library.
+  - `ai/playbooks/` is the playbook library.
+  - `ai/prompts/` is the prompt/command library.
+  - `ai/system-prompts/` system prompt library.
+- `frameworks/` frameworks for working with ai harness like the one in this repo. 
 - `deprecated/` is parked code and skills. Not installed. Not in the workspace.
 - `profiles/` is the install profiles.
 - `scripts/` is the npm entrypoints (`test`, `typecheck`). Do not put checks or tests here.
@@ -22,7 +24,7 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
 
 ## Dest
 
-`.pi/` is generated and gitignored. Do not edit copies there. Identity dest is `.pi/agents/`. There is no dest roles tree.
+`.pi/` is generated. Do not edit copies there. Identity dest is `.pi/agents/`. There is no dest roles tree.
 
 After you change a source skill, reinstall:
 
