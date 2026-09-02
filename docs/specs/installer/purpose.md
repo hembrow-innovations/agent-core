@@ -40,7 +40,7 @@ export function localPackageSource(name: FirstPartyExtension): string {
 - Never prune dest extras
 - Merge of third-party `npm:` sources the way they merge today
 - Copy of agents, skills, playbooks, and prompts the way they copy today
-- Optional profile `system-prompt:` stem copied to dest `.pi/APPEND_SYSTEM.md`
+- Optional profile `system-prompt:` stem from `ai/system-prompts/<stem>.md` copied to dest `.pi/APPEND_SYSTEM.md`. Omit copies `default.md`
 
 ## Out of scope
 
@@ -65,7 +65,7 @@ The dest tree is `.pi/` plus dest settings.
 
 - Behaviour: [[spec-installer]]
 - Profile YAML: [[schema-profile]]
-- Decisions: [[0011-local-packages-in-npm-local]], [[0010-local-packages-in-npm]], [[0005-pi-only-dest]], [[0008-todo-owns-checklist-store]], [[0015-hivemind-is-a-framework]], and [[0016-profiles-are-directories]]
+- Decisions: [[0011-local-packages-in-npm-local]], [[0010-local-packages-in-npm]], [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0008-todo-owns-checklist-store]], [[0015-hivemind-is-a-framework]], and [[0016-profiles-are-directories]]
 - Layout: [[architecture-pack-and-packages]]
 
 ## Open product questions

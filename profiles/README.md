@@ -23,7 +23,7 @@ settings:
 # system-prompt: persona   # optional. copies ai/system-prompts/<stem>.md to dest .pi/APPEND_SYSTEM.md
 ```
 
-Install writes `.pi/skills` and the Pi pack into `.pi/`:
+Install writes `.pi/skills` and dest runtime files into `.pi/`:
 
 - first-party local packages from `profile.packages` into `.pi/npm/local/@agentic-core/`
 - every selected `ai/prompts/*.md` except README, into `.pi/prompts/`

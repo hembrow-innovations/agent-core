@@ -99,6 +99,7 @@ settings:
 skills:
   - diagnose
   - tdd
+# system-prompt: persona
 ```
 
 Shipped profiles are directories under `profiles/`: `agentic-core`, `life-engine`, `planning-hub`, and others. Each has `profile.yaml`. Optional sibling `hivemind.yaml` is the write-if-missing dest template. `agentic-core` and `life-engine` use `agents: all` and `prompts: all`. `agentic-core` is the skill list for developing this pack and ships example `settings:`. `life-engine` has no `settings:` key. `planning-hub` is skills-only (`planning`, `wayfinder`).

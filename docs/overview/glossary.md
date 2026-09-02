@@ -32,6 +32,10 @@ _Avoid_: live path
 A named install set. `--profile <name>` loads `profiles/<name>/profile.yaml`. Skills, agents, prompts, packages, optional settings, optional frameworks, optional `system-prompt`. Dest pack is always `.pi/`. Schema: [[schema-profile]]. Decision: [[0016-profiles-are-directories]].
 _Avoid_: flat `profiles/<name>.yaml`
 
+**System prompt**:
+Markdown under `ai/system-prompts/<stem>.md`. Profile `system-prompt:` copies that file to dest `.pi/APPEND_SYSTEM.md`. Omit the key and install copies `default.md`. Dest filename is Pi's append file. It is not a persona.
+_Avoid_: persona, ai/pi, default agent
+
 **Workspace package**:
 A TypeScript package under `packages/`. Folders are `heio-boot`, `heio-footer`, `heio-onic`, and `installer`. Parked packages live under `deprecated/packages/`.
 

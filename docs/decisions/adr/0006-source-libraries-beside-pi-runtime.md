@@ -29,7 +29,7 @@ Honor this source layout:
 - `ai/skills/` is the skill library.
 - `ai/playbooks/` is the playbook library.
 - `ai/prompts/` is the prompt/command library.
-- `ai/system-prompts/` is the system-prompt library. Dest identity is only `.pi/agents/`.
+- `ai/system-prompts/` is the system-prompt library. Dest file is `.pi/APPEND_SYSTEM.md`. There is no `ai/pi/` folder.
 - `profiles/` is the install profiles.
 - `scripts/` is the checks and the profile module.
 - `packages/installer/` is the `agentic-core` CLI.
