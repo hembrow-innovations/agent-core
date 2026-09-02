@@ -623,7 +623,31 @@ test("agentic-core lists frameworks hivemind", () => {
   assert.deepEqual(loadProfile(REPO, "agentic-core").frameworks, ["hivemind"]);
 });
 
-test("install --profile agentic-core copies hivemind.yaml once and keeps dest edits", () => {
+test("profile frameworks: [hivemind] copies the tree; settings packages unchanged by that list", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-fw-tree-"));
+  const r = runCli(["install", dest, "--profile", "agentic-core"]);
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+
+  const copied = join(dest, ".pi", "frameworks", "hivemind");
+  assert.equal(existsSync(join(copied, "package.json")), true);
+  assert.equal(existsSync(join(copied, "src", "cli.ts")), true);
+  assert.equal(existsSync(join(copied, "src", "cli.test.ts")), false);
+  assert.equal(existsSync(join(copied, "tsconfig.json")), false);
+
+  const profile = loadProfile(REPO, "agentic-core");
+  const settings = JSON.parse(
+    readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
+  ) as { packages: string[] };
+  assert.deepEqual(settings.packages, profile.packages.map(packageRefSource));
+  assert.equal(
+    settings.packages.some(
+      (item) => item.includes("hivemind") || item.includes("frameworks"),
+    ),
+    false,
+  );
+});
+
+test("second install does not overwrite an edited dest hivemind.yaml", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-hivemind-yaml-"));
   const first = runCli(["install", dest, "--profile", "agentic-core"]);
   assert.equal(first.status, 0, first.stderr || first.stdout);
