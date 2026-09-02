@@ -11,6 +11,8 @@ import type {
 export const STICKY_REASON = "Use heio_stack. That path is sticky planning.";
 export const EXPECT_REASON = "Use heio_stack. EXPECT is frozen.";
 export const TASKS_REASON = "Use heio_stack. Slice must be frozen or active.";
+export const SCOPE_REASON =
+	"Use heio_stack. Path is outside claimed task scope.";
 
 const UNICODE_SPACES = /[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g;
 
@@ -100,6 +102,18 @@ function isStickyPlanningPath(cwd: string, rawPath: string): boolean {
 	if (rel === "intent.md" || rel === "roadmap.md") return true;
 	const parts = rel.split(sep);
 	return parts.length === 3 && parts[0] === "sprints" && parts[2] === "shape.md";
+}
+
+function isHeioPath(cwd: string, rawPath: string): boolean {
+	const absolute = resolveToolPath(cwd, rawPath);
+	const root = resolve(cwd, ".heio");
+	const rel = relative(root, absolute);
+	if (!rel || rel === ".") return true;
+	return !rel.startsWith("..");
+}
+
+function isProductPath(cwd: string, rawPath: string): boolean {
+	return !isHeioPath(cwd, rawPath);
 }
 
 function isOraclePath(cwd: string, rawPath: string): boolean {
@@ -225,6 +239,9 @@ export function blockIllegalWrite(
 		if (bashMutatesPath(ctx.cwd, command, tasksWriteBlocked)) {
 			return { block: true, reason: TASKS_REASON };
 		}
+		if (ctx.builder && bashMutatesPath(ctx.cwd, command, isProductPath)) {
+			return { block: true, reason: SCOPE_REASON };
+		}
 		return undefined;
 	}
 	if (event.toolName !== "write" && event.toolName !== "edit") return undefined;
@@ -248,6 +265,9 @@ export function blockIllegalWrite(
 		if (content !== undefined && writePatchesExpect(ctx.cwd, path, content)) {
 			return { block: true, reason: EXPECT_REASON };
 		}
+	}
+	if (ctx.builder && isProductPath(ctx.cwd, path)) {
+		return { block: true, reason: SCOPE_REASON };
 	}
 	return undefined;
 }
