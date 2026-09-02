@@ -17,7 +17,7 @@ The language of this checkout. Source pack, dest copy, and the install path betw
 ## Language
 
 **Pack**:
-The source tree in this checkout. Agent, skill, playbook, and prompt libraries live under `ai/`. The Pi runtime pack lives in `ai/pi/`. Profiles stay at the root as directories. Checks and repo tests live in `tests/`. `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`. First-party packages live under `packages/`. Frameworks live under `frameworks/`. It is the only install source.
+The source tree in this checkout. Agent, skill, playbook, prompt, and system-prompt libraries live under `ai/`. Profiles stay at the root as directories. Checks and repo tests live in `tests/`. `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`. First-party packages live under `packages/`. Frameworks live under `frameworks/`. It is the only install source.
 _Avoid_: monorepo-of-skills
 
 **Repo check**:

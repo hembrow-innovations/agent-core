@@ -76,36 +76,35 @@ function resolveSkill(name) {
   return candidates[0] ?? null;
 }
 
-const piRoot = join(root, "ai", "pi");
-if (existsSync(piRoot)) {
-  const names = new Set(readdirSync(piRoot).filter((n) => !n.startsWith(".")));
-  const allowed = new Set([
-    "APPEND_SYSTEM.md",
-    "prompts",
-    "packages.json",
-    "settings.json",
-  ]);
-  const required = new Set(allowed);
-  required.delete("prompts");
-  for (const need of required) {
-    if (!names.has(need)) errors.push(`ai/pi/ missing ${need}`);
+if (existsSync(join(root, "ai", "pi"))) {
+  errors.push("ai/pi/ leftover; system prompts live in ai/system-prompts/");
+}
+const promptRoot = join(root, "ai", "system-prompts");
+if (!existsSync(promptRoot)) {
+  errors.push("ai/system-prompts/ missing");
+} else {
+  const names = readdirSync(promptRoot).filter((n) => !n.startsWith("."));
+  if (!names.includes("default.md")) {
+    errors.push("ai/system-prompts/ missing default.md");
   }
-  const extra = [...names].filter((n) => !allowed.has(n)).sort();
-  if (extra.length) errors.push(`ai/pi/ unexpected ${extra.join(", ")}`);
-  for (const rel of [
-    "ai/agents/architect/architect.md",
-    "ai/agents/spec/spec.md",
-    "ai/agents/planner/planner.md",
-    "ai/agents/coder/coder.md",
-    "ai/agents/reviewer/reviewer.md",
-    "ai/agents/tester/tester.md",
-    "ai/agents/debugger/debugger.md",
-    "ai/agents/documenter/documenter.md",
-    "ai/agents/devops/devops.md",
-    "ai/agents/researcher/researcher.md",
-  ]) {
-    if (!existsSync(join(root, rel))) errors.push(`missing ${rel}`);
+  const extra = names.filter((n) => !n.endsWith(".md")).sort();
+  if (extra.length) {
+    errors.push(`ai/system-prompts/ unexpected ${extra.join(", ")}`);
   }
+}
+for (const rel of [
+  "ai/agents/architect/architect.md",
+  "ai/agents/spec/spec.md",
+  "ai/agents/planner/planner.md",
+  "ai/agents/coder/coder.md",
+  "ai/agents/reviewer/reviewer.md",
+  "ai/agents/tester/tester.md",
+  "ai/agents/debugger/debugger.md",
+  "ai/agents/documenter/documenter.md",
+  "ai/agents/devops/devops.md",
+  "ai/agents/researcher/researcher.md",
+]) {
+  if (!existsSync(join(root, rel))) errors.push(`missing ${rel}`);
 }
 
 for (const name of listProfiles(root)) {

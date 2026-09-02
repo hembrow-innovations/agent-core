@@ -116,17 +116,16 @@ test("planFromProfile rejects unknown system-prompt stems", () => {
         agents: [],
         prompts: [],
         frameworks: [],
-        systemPrompts: ["APPEND_SYSTEM"],
+        systemPrompts: ["default"],
       }),
     /Unknown system-prompt "nope"/,
   );
 });
 
-test("planFromProfile rejects a system-prompt stem with no ai/pi markdown", () => {
+test("planFromProfile rejects a system-prompt stem with no ai/system-prompts markdown", () => {
   const root = tempRoot();
-  mkdirSync(join(root, "ai", "pi"), { recursive: true });
-  writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-  writeFileSync(join(root, "ai", "pi", "packages.json"), "[]\n");
+  mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
+  writeFileSync(join(root, "ai", "system-prompts", "default.md"), "boot\n");
   assert.throws(
     () =>
       planFromProfile(
@@ -154,10 +153,19 @@ test("planFromProfile allows omitting system-prompt", () => {
   );
 });
 
-test("planFromProfile accepts a system-prompt stem that has ai/pi markdown", () => {
+test("listSystemPromptStems lists markdown stems and ignores other files", () => {
   const root = tempRoot();
-  mkdirSync(join(root, "ai", "pi"), { recursive: true });
-  writeFileSync(join(root, "ai", "pi", "persona.md"), "hello\n");
+  writeSystemPrompts(root, {
+    "persona.md": "hello\n",
+    "packages.json": "[]\n",
+  });
+  assert.deepEqual(listSystemPromptStems(root), ["default", "persona"]);
+});
+
+test("planFromProfile accepts a system-prompt stem that has ai/system-prompts markdown", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
+  writeFileSync(join(root, "ai", "system-prompts", "persona.md"), "hello\n");
   const plan = planFromProfile(
     planProfile({ "system-prompt": "persona" }),
     planRequest(),
@@ -181,17 +189,20 @@ test("planFromProfile omits systemPrompt when the profile key is absent", () => 
   assert.equal("systemPrompt" in plan, false);
 });
 
-function writePiPack(root: string, files: Record<string, string> = {}): void {
-  mkdirSync(join(root, "ai", "pi"), { recursive: true });
-  writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
+function writeSystemPrompts(
+  root: string,
+  files: Record<string, string> = {},
+): void {
+  mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
+  writeFileSync(join(root, "ai", "system-prompts", "default.md"), "boot\n");
   for (const [name, body] of Object.entries(files)) {
-    writeFileSync(join(root, "ai", "pi", name), body);
+    writeFileSync(join(root, "ai", "system-prompts", name), body);
   }
 }
 
 test("writeRuntime copies selected system-prompt markdown when dest APPEND_SYSTEM.md is missing", () => {
   const root = tempRoot();
-  writePiPack(root, { "persona.md": "persona body\n" });
+  writeSystemPrompts(root, { "persona.md": "persona body\n" });
   const dest = mkdtempSync(join(tmpdir(), "rt-stem-"));
   writeRuntime(root, openDestination(dest), { systemPrompt: "persona" });
   assert.equal(
@@ -200,9 +211,9 @@ test("writeRuntime copies selected system-prompt markdown when dest APPEND_SYSTE
   );
 });
 
-test("writeRuntime copies APPEND_SYSTEM.md when system-prompt is omitted", () => {
+test("writeRuntime copies default.md when system-prompt is omitted", () => {
   const root = tempRoot();
-  writePiPack(root, { "persona.md": "persona body\n" });
+  writeSystemPrompts(root, { "persona.md": "persona body\n" });
   const dest = mkdtempSync(join(tmpdir(), "rt-default-"));
   writeRuntime(root, openDestination(dest));
   assert.equal(
@@ -213,7 +224,7 @@ test("writeRuntime copies APPEND_SYSTEM.md when system-prompt is omitted", () =>
 
 test("writeRuntime keeps an existing dest APPEND_SYSTEM.md when a stem is selected", () => {
   const root = tempRoot();
-  writePiPack(root, { "persona.md": "persona body\n" });
+  writeSystemPrompts(root, { "persona.md": "persona body\n" });
   const dest = mkdtempSync(join(tmpdir(), "rt-keep-"));
   mkdirSync(join(dest, ".pi"), { recursive: true });
   writeFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "custom persona\n");
@@ -226,7 +237,7 @@ test("writeRuntime keeps an existing dest APPEND_SYSTEM.md when a stem is select
 
 test("writeRuntime replaces a legacy dest stub with the selected stem", () => {
   const root = tempRoot();
-  writePiPack(root, { "persona.md": "persona body\n" });
+  writeSystemPrompts(root, { "persona.md": "persona body\n" });
   const dest = mkdtempSync(join(tmpdir(), "rt-legacy-"));
   mkdirSync(join(dest, ".pi"), { recursive: true });
   writeFileSync(
@@ -242,8 +253,7 @@ test("writeRuntime replaces a legacy dest stub with the selected stem", () => {
 
 test("writeRuntime does not require pack heio-models.md and does not write dest", () => {
   const root = tempRoot();
-  mkdirSync(join(root, "ai", "pi"), { recursive: true });
-  writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
+  writeSystemPrompts(root);
   const dest = mkdtempSync(join(tmpdir(), "rt-no-models-"));
   writeRuntime(root, openDestination(dest));
   assert.equal(
@@ -255,8 +265,7 @@ test("writeRuntime does not require pack heio-models.md and does not write dest"
 
 test("writeRuntime keeps an existing dest heio-models.md", () => {
   const root = tempRoot();
-  mkdirSync(join(root, "ai", "pi"), { recursive: true });
-  writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
+  writeSystemPrompts(root);
   const dest = mkdtempSync(join(tmpdir(), "rt-keep-models-"));
   mkdirSync(join(dest, ".pi"), { recursive: true });
   writeFileSync(join(dest, ".pi", "heio-models.md"), "picked\n");

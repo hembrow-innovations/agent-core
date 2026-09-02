@@ -454,7 +454,7 @@ for (const name of listProfiles(REPO)) {
 
 test("always-on text does not dump dest heio-mode", () => {
 	const append = readFileSync(
-		join(REPO, "ai", "pi", "APPEND_SYSTEM.md"),
+		join(REPO, "ai", "system-prompts", "default.md"),
 		"utf8",
 	);
 	assert.doesNotMatch(
@@ -473,28 +473,22 @@ test("repo profiles resolve every listed skill from skills/", () => {
 			assert.doesNotMatch(dir, /\/pi\/skills\//);
 		}
 	}
-	assert.equal(existsSync(join(REPO, "ai", "pi", "skills")), false);
-	assert.equal(existsSync(join(REPO, "ai", "pi", "install.mjs")), false);
-	assert.equal(existsSync(join(REPO, "ai", "pi", "packages.json")), true);
-	assert.equal(existsSync(join(REPO, "ai", "pi", "APPEND_SYSTEM.md")), true);
-	assert.equal(existsSync(join(REPO, "ai", "pi", "heio-models.md")), false);
-	assert.deepEqual(readPiPackages(join(REPO, "ai", "pi")), [
-		"npm:pi-lens",
-		"npm:pi-web-access",
-		"npm:pi-subagents",
-	]);
+	assert.equal(existsSync(join(REPO, "ai", "pi")), false);
+	assert.equal(
+		existsSync(join(REPO, "ai", "system-prompts", "default.md")),
+		true,
+	);
+	assert.equal(
+		existsSync(join(REPO, "ai", "system-prompts", "heio-models.md")),
+		false,
+	);
+	assert.deepEqual(readPiPackages(join(REPO, "ai", "pi")), []);
 });
 
 test("installPiRuntime writes boot, does not write models, and leaves prompts alone", () => {
 	const root = tempRoot();
-	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
-	mkdirSync(join(root, "ai", "pi", "prompts"), { recursive: true });
-	writeFileSync(
-		join(root, "ai", "pi", "extensions", "boot.ts"),
-		"export default function () {}\n",
-	);
-	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-	writeFileSync(join(root, "ai", "pi", "prompts", "how.md"), "how\n");
+	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
+	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "boot\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-"));
 	installPiRuntime(root, dest, { skills: ["how"], playbooks: ["orchestrate"] });
@@ -523,12 +517,8 @@ test("installPiRuntime writes boot, does not write models, and leaves prompts al
 
 test("installPiRuntime does not write dest heio-models.md from the previous filename", () => {
 	const root = tempRoot();
-	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
-	writeFileSync(
-		join(root, "ai", "pi", "extensions", "boot.ts"),
-		"export default function () {}\n",
-	);
-	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
+	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
+	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "boot\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-models-mig-"));
 	mkdirSync(join(dest, ".pi"), { recursive: true });
@@ -540,14 +530,10 @@ test("installPiRuntime does not write dest heio-models.md from the previous file
 
 test("installPiRuntime does not merge pack packages into settings.json", () => {
 	const root = tempRoot();
-	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
+	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
+	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "boot\n");
 	writeFileSync(
-		join(root, "ai", "pi", "extensions", "boot.ts"),
-		"export default function () {}\n",
-	);
-	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-	writeFileSync(
-		join(root, "ai", "pi", "packages.json"),
+		join(root, "ai", "system-prompts", "packages.json"),
 		JSON.stringify(["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"]),
 	);
 
@@ -632,13 +618,8 @@ test("mergePiSettings creates dest settings and preserves number types", () => {
 
 test("installPiRuntime rewrites a dest APPEND_SYSTEM that still matches the old persona", () => {
 	const root = tempRoot();
-	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
-	mkdirSync(join(root, "ai", "pi", "prompts"), { recursive: true });
-	writeFileSync(
-		join(root, "ai", "pi", "extensions", "boot.ts"),
-		"export default function () {}\n",
-	);
-	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "new stub\n");
+	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
+	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "new stub\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-append-mig-"));
 	mkdirSync(join(dest, ".pi"), { recursive: true });
@@ -662,13 +643,8 @@ test("installPiRuntime rewrites a dest APPEND_SYSTEM that still matches the old 
 
 test("installPiRuntime rewrites a dest APPEND_SYSTEM that still names the dest router", () => {
 	const root = tempRoot();
-	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
-	mkdirSync(join(root, "ai", "pi", "prompts"), { recursive: true });
-	writeFileSync(
-		join(root, "ai", "pi", "extensions", "boot.ts"),
-		"export default function () {}\n",
-	);
-	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "new stub\n");
+	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
+	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "new stub\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-append-variant-"));
 	mkdirSync(join(dest, ".pi"), { recursive: true });
@@ -729,8 +705,8 @@ test("installPrompts writes selected files from ai/prompts", () => {
 
 test("installPiRuntime removes leftover dest roles", () => {
 	const root = tempRoot();
-	mkdirSync(join(root, "ai", "pi"), { recursive: true });
-	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
+	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
+	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "boot\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-roles-"));
 	mkdirSync(join(dest, ".pi", "roles"), { recursive: true });
@@ -742,11 +718,11 @@ test("installPiRuntime removes leftover dest roles", () => {
 
 test("installPiRuntime dies when the pack is incomplete", () => {
 	const root = tempRoot();
-	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
+	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-missing-"));
 	assert.throws(
 		() => installPiRuntime(root, dest),
-		/Pi pack missing: expected ai\/pi\/APPEND_SYSTEM.md/,
+		/Pi pack missing: expected ai\/system-prompts\/default.md/,
 	);
 });
 

@@ -71,7 +71,7 @@ You will see:
 - dest-relative `npm/local/@agentic-core/<name>` paths in `.pi/settings.json`
 - selected skills under `.pi/skills/`
 - agents and prompts from the YAML `all` keys
-- dest `.pi/APPEND_SYSTEM.md` from `ai/pi/APPEND_SYSTEM.md` unless the profile sets `system-prompt:`
+- dest `.pi/APPEND_SYSTEM.md` from `ai/system-prompts/default.md` unless the profile sets `system-prompt:`
 - `toolDescriptionMode` and `defaultTools` from profile `settings:` in `.pi/settings.json`
 
 One-off extension into another dest.

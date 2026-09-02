@@ -33,7 +33,7 @@ Allowed keys are `skills`, `agents`, `prompts`, `packages`, `settings`, `framewo
 
 - **frameworks.** String list of framework folder names under `frameworks/`. Missing or `null` becomes `[]`. A present non-list is an error. Each name must be a directory under `frameworks/<name>/` that holds `package.json`. Unknown names fail at plan time. Install copies `package.json` and non-test `src/` to `.pi/frameworks/<name>/`. Reinstall overwrites that tree. Frameworks are not Pi packages and do not enter `.pi/settings.json` `packages`. If `hivemind` is listed and `profiles/<name>/hivemind.yaml` exists, install copies that file to dest project-root `hivemind.yaml` **only when missing**. Reinstall never overwrites the dest yaml. Runtime of Hivemind fail-closes without that file. See [[0015-hivemind-is-a-framework]] and [[schema-hivemind]].
 
-- **system-prompt.** Optional string stem. Missing or `null` omits the field. A present non-string is `"system-prompt" must be a string`. The stem names `ai/pi/<stem>.md`. Unknown or missing stems fail at plan time, not at parse. Install copies that markdown to dest `.pi/APPEND_SYSTEM.md` with the same write-if-missing / legacy-stub replace as today. Omit the key and install still copies `ai/pi/APPEND_SYSTEM.md`. Dest filename stays `.pi/APPEND_SYSTEM.md`. See [[spec-installer]].
+- **system-prompt.** Optional string stem. Missing or `null` omits the field. A present non-string is `"system-prompt" must be a string`. The stem names `ai/system-prompts/<stem>.md`. Unknown or missing stems fail at plan time, not at parse. Install copies that markdown to dest `.pi/APPEND_SYSTEM.md` with the same write-if-missing / legacy-stub replace as today. Omit the key and install still copies `ai/system-prompts/default.md`. Dest filename stays `.pi/APPEND_SYSTEM.md`. See [[spec-installer]].
 
 ```ts
 // packages/installer/src/profile.ts — loadProfile leftover keys
@@ -59,7 +59,7 @@ Unknown keys fail. These leftovers have their own messages because they used to 
 
 Unknown agent or prompt ids fail when the plan is built, not at parse. Unknown `system-prompt` stems fail when the plan is built, not at parse. Invalid package sources fail at load.
 
-Profile `packages` is the install list. `readPiPackages` can read `ai/pi/packages.json`. `writeRuntime` does not merge that file.
+Profile `packages` is the install list. There is no `ai/pi/` pack folder. `writeRuntime` does not merge a `packages.json`. `readPiPackages` still parses that filename when a caller passes a dir that has one.
 
 CLI replace and add rules, and the default profile name, live in [[spec-installer]].
 

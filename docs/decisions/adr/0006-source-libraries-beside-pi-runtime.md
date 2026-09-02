@@ -2,13 +2,13 @@
 id: "adr-6"
 title: "ADR-0006: Source libraries sit beside the Pi runtime pack"
 kind: adr
-description: "Agents, skills, playbooks, and prompts are sibling libraries under ai/. ai/pi/ is runtime only."
+description: "Agents, skills, playbooks, prompts, and system-prompts are sibling libraries under ai/. Dest runtime file is .pi/APPEND_SYSTEM.md."
 status: accepted
 domain: pack
 area: decisions
 tags: [pack, layout]
 created_at: "2026-08-25"
-updated_at: "2026-08-26"
+updated_at: "2026-09-02"
 ---
 
 # ADR-0006: Source libraries sit beside the Pi runtime pack
@@ -29,7 +29,7 @@ Honor this source layout:
 - `ai/skills/` is the skill library.
 - `ai/playbooks/` is the playbook library.
 - `ai/prompts/` is the prompt/command library.
-- `ai/pi/` is the Pi runtime pack. Prompts, skills, agents, and roles do not live here. Dest identity is only `.pi/agents/`.
+- `ai/system-prompts/` is the system-prompt library. Dest identity is only `.pi/agents/`.
 - `profiles/` is the install profiles.
 - `scripts/` is the checks and the profile module.
 - `packages/installer/` is the `agentic-core` CLI.
@@ -44,7 +44,7 @@ Treat `ai/agents/` and `ai/prompts/` as a second dest. Dest is `.pi/`. Those fol
 
 ## Consequences
 
-Edit agents in `ai/agents/`, prompts in `ai/prompts/`, skills in `ai/skills/`, playbooks in `ai/playbooks/`. `ai/pi/` holds runtime files only.
+Edit agents in `ai/agents/`, prompts in `ai/prompts/`, skills in `ai/skills/`, playbooks in `ai/playbooks/`, system prompts in `ai/system-prompts/`. There is no `ai/pi/` folder. A profile `system-prompt:` stem copies `ai/system-prompts/<stem>.md` to dest `.pi/APPEND_SYSTEM.md`. Omit the key and install copies `ai/system-prompts/default.md`.
 
 The folder list inside [[0004-source-pack-under-ai]] is stale. The claim in [[0005-pi-only-dest]] that source identity lives under `ai/pi/agents/` is superseded.
 

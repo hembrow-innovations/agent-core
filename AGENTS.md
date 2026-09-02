@@ -14,7 +14,7 @@ This repo is the skill and profile pack. Install copies skills into a dest tree.
   - `ai/skills/` is the skill library.
   - `ai/playbooks/` is the playbook library.
   - `ai/prompts/` is the prompt/command library.
-  - `ai/system-prompts/` system prompt library.
+  - `ai/system-prompts/` is the system-prompt library. `system-prompt: <stem>` copies `ai/system-prompts/<stem>.md` to dest `.pi/APPEND_SYSTEM.md`.
 - `frameworks/` frameworks for working with ai harness like the one in this repo.
 - `deprecated/` is parked code and skills. Not installed. Not in the workspace.
 - `profiles/` is the install profiles.

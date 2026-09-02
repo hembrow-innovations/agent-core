@@ -54,7 +54,7 @@ Keep the pack at root. That leaves the original clutter.
 
 Edit `ai/skills/`, then reinstall. Checks and the profile module resolve pack files through `ai/`. Dest projects do not see this path.
 
-The folder list above is stale. [[0006-source-libraries-beside-pi-runtime]] names the libraries and keeps `ai/pi/` as runtime only.
+The folder list above is stale. [[0006-source-libraries-beside-pi-runtime]] names the libraries. System prompts live under `ai/system-prompts/`. There is no `ai/pi/` folder.
 
 ## Relationships
 

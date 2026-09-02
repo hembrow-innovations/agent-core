@@ -16,7 +16,7 @@ updated_at: "2026-09-02"
 
 This repo is a pnpm workspace. It is the only place you install from. A dest project never depends on this checkout at runtime. The installer copies a self-contained tree the dest can commit.
 
-The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus the Pi runtime pack and profiles. `tests/` holds the checks and repo tests. `scripts/` is the npm entrypoints. The installer package owns profile parse and dest writes. Workspace packages are the TypeScript session products under `packages/`. Frameworks are out-of-session TypeScript programs under `frameworks/`. The dest tree is the copied project layout after install. First-party packages land under `.pi/npm/local/@agentic-core/`. Frameworks land under `.pi/frameworks/`.
+The source pack is this checkout's agent, skill, playbook, prompt, and system-prompt libraries, plus profiles. `tests/` holds the checks and repo tests. `scripts/` is the npm entrypoints. The installer package owns profile parse and dest writes. Workspace packages are the TypeScript session products under `packages/`. Frameworks are out-of-session TypeScript programs under `frameworks/`. The dest tree is the copied project layout after install. First-party packages land under `.pi/npm/local/@agentic-core/`. Frameworks land under `.pi/frameworks/`.
 
 See [[glossary]] for the names used here.
 
@@ -42,7 +42,7 @@ The folders are:
 - `ai/skills/` is the skill library.
 - `ai/playbooks/` is the playbook library.
 - `ai/prompts/` is the prompt/command library.
-- `ai/pi/` is the Pi runtime pack. Prompts, skills, agents, and roles do not live here. It has no `extensions/` and no `lib/`. Required pack file is `APPEND_SYSTEM.md`. `heio-models.md` is not in the pack.
+- `ai/system-prompts/` is the system-prompt library. Files are markdown. Required pack file is `default.md`. Other `*.md` stems are profile-selectable. Dest is `.pi/APPEND_SYSTEM.md`. There is no `ai/pi/` folder.
 - `profiles/` is the install profiles. Each profile is `profiles/<name>/profile.yaml`. Optional `hivemind.yaml` in that directory is a write-if-missing dest template. See [[0016-profiles-are-directories]].
 - `frameworks/` is out-of-session programs. `frameworks/hivemind/` is the first. See [[0015-hivemind-is-a-framework]].
 - `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`.
@@ -148,7 +148,7 @@ Install is the only path from workspace packages to a dest. A dest never keeps a
 
 Todo tests and imports stay in the workspace. Dest never sees a sibling lib package.
 
-The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. It also does not keep prompts, skills, agents, or roles under `ai/pi/`. Profiles list skills, agents, prompts, packages, optional settings, optional frameworks, and optional `system-prompt`. They do not name a dest. See [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0015-hivemind-is-a-framework]], [[0016-profiles-are-directories]], and [[schema-profile]].
+The pack does not keep `ai/pi/`. System prompts live under `ai/system-prompts/`. Profiles list skills, agents, prompts, packages, optional settings, optional frameworks, and optional `system-prompt`. They do not name a dest. See [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0015-hivemind-is-a-framework]], [[0016-profiles-are-directories]], and [[schema-profile]].
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.
 

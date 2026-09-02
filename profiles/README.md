@@ -20,19 +20,19 @@ settings:
   defaultTools:
     - read
     - bash
-# system-prompt: persona   # optional. copies ai/pi/<stem>.md to dest .pi/APPEND_SYSTEM.md
+# system-prompt: persona   # optional. copies ai/system-prompts/<stem>.md to dest .pi/APPEND_SYSTEM.md
 ```
 
 Install writes `.pi/skills` and the Pi pack into `.pi/`:
 
 - first-party local packages from `profile.packages` into `.pi/npm/local/@agentic-core/`
 - every selected `ai/prompts/*.md` except README, into `.pi/prompts/`
-- `ai/pi/<stem>.md` to dest `.pi/APPEND_SYSTEM.md` when `system-prompt: <stem>` is set, else `ai/pi/APPEND_SYSTEM.md`, if that dest file is missing or a known legacy stub
+- `ai/system-prompts/<stem>.md` to dest `.pi/APPEND_SYSTEM.md` when `system-prompt: <stem>` is set, else `ai/system-prompts/default.md`, if that dest file is missing or a known legacy stub
 - `.pi/.gitignore` if that file is missing
 - package sources from `profile.packages` into `.pi/settings.json`
 - `profile.settings` deep-merged into `.pi/settings.json`
 
-A missing `ai/pi/APPEND_SYSTEM.md` is an error when the key is omitted. An unknown or missing `system-prompt` stem fails at plan time. `ai/pi/heio-models.md` is not in the pack. Install does not require or write dest `.pi/heio-models.md`. An existing dest file stays. `ai/prompts/` is optional. Identity dest is `.pi/agents/`. Install deletes leftover dest `.pi/roles/`.
+A missing `ai/system-prompts/default.md` is an error when the key is omitted. An unknown or missing `system-prompt` stem fails at plan time. `ai/system-prompts/` is markdown only. There is no `ai/pi/` folder. Install does not require or write dest `.pi/heio-models.md`. An existing dest file stays. `ai/prompts/` is optional. Identity dest is `.pi/agents/`. Install deletes leftover dest `.pi/roles/`.
 
 The installer does not copy playbooks. Dest `.pi/playbooks/` is not pruned. `playbooks:` on a profile is a leftover-key error.
 

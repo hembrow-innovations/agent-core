@@ -11,4 +11,4 @@ pi
 
 Trust the folder.
 
-Edit `ai/skills/`, `ai/playbooks/`, `ai/pi/`, and `profiles/`. `.pi/` is a generated dest.
+Edit `ai/skills/`, `ai/playbooks/`, `ai/system-prompts/`, and `profiles/`. `.pi/` is a generated dest.

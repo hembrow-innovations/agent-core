@@ -40,7 +40,7 @@ test("cold start dest ships the opt-in agent file", () => {
 
 test("pack append and agent files do not dump dest heio-mode", () => {
   const append = readFileSync(
-    join(REPO, "ai", "pi", "APPEND_SYSTEM.md"),
+    join(REPO, "ai", "system-prompts", "default.md"),
     "utf8",
   );
   assert.doesNotMatch(append, FULL_READ);

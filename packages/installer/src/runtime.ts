@@ -7,7 +7,7 @@ const STUB_APPEND_SYSTEM =
   "# Pi runtime\n\nThis file is the required pack stub. Identity is a dest `.pi/agents/` file. Boot appends it only after /agent or --agent.\n";
 
 export function listSystemPromptStems(srcRoot: string): string[] {
-  const dir = join(packRoot(srcRoot), "pi");
+  const dir = join(packRoot(srcRoot), "system-prompts");
   if (!existsSync(dir)) return [];
   return readdirSync(dir, { withFileTypes: true })
     .filter((ent) => ent.isFile() && ent.name.endsWith(".md"))
@@ -34,17 +34,17 @@ export function writeRuntime(
   dest: Destination,
   opts: RuntimeOpts = {},
 ): void {
-  const pack = join(packRoot(srcRoot), "pi");
-  const required = ["APPEND_SYSTEM.md"];
+  const pack = join(packRoot(srcRoot), "system-prompts");
+  const required = ["default.md"];
   for (const name of required) {
     if (!existsSync(join(pack, name))) {
-      throw new Error(`Pi pack missing: expected ai/pi/${name}`);
+      throw new Error(`Pi pack missing: expected ai/system-prompts/${name}`);
     }
   }
 
   dest.removeLeftovers();
 
-  const stem = opts.systemPrompt ?? "APPEND_SYSTEM";
+  const stem = opts.systemPrompt ?? "default";
   writeAppendSystem(
     dest,
     ".pi/APPEND_SYSTEM.md",
