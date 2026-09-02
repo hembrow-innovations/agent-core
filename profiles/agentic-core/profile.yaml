@@ -1,6 +1,13 @@
 # Develop this repo in Pi. Not an export profile.
-agents: all
-prompts: all
+agents:
+  - heio-triage
+  - heio-tasker
+  - heio-builder
+  - heio-verifier
+prompts:
+  - heio-wayfinder
+  - heio-planning
+  - heio-slice
 packages:
   - npm:pi-lens
   - npm:pi-web-access
@@ -12,8 +19,6 @@ packages:
   - local:@agentic-core/heio-footer
   - local:@agentic-core/heio-coord
   - local:@agentic-core/heio-onic
-frameworks:
-  - hivemind
 settings:
   toolDescriptionMode: compact
   defaultTools:
@@ -23,32 +28,17 @@ settings:
     - write
     - ls
 skills:
-  - architect
   - behaviour-contracts
-  - codebase-design
-  - create-verification-skill
   - diagnose
   - docs
   - domain-modeling
-  - handoff
-  - heio-planning
-  - heio-slice
+  - codebase-design
+  - improve-codebase-architecture
   - heio-stack
   - heio-wayfinder
-  - unpark
-  - improve-codebase-architecture
-  - management
+  - heio-planning
+  - heio-slice
   - oracle
-  - planning
-  - planning-with-docs
-  - planning-with-agents
-  - planning-arena
-  - research
   - tdd
-  - thermo-review
-  - to-issues
-  - triage
   - typescript-best-practices
-  - wayfinder
-  - design-tree
-  - create-skill
+  - unpark
