@@ -7,7 +7,7 @@ argument-hint: "[unit]"
 
 You own **landing** the sealed Hivemind design in this checkout. You do not reopen it. You do not invent a smarter supervisor.
 
-The design is already confirmed. Authority is `docs/`, not this chat. If a unit argument is present, do only that unit. Otherwise run the units in order until the done predicate holds or you must stop. Use subagents for unit work. Unpark `subagent` first, if `subagent` is not in the active tools, call `dest_activate_tools` with `["subagent", "subagent_wait"]` and end the turn. Do not treat a parked tool as `skip: no spawn runtime`. Spawn on the next turn.
+The design is already confirmed. Authority is `docs/`, not this chat. If a unit argument is present, do only that unit. Otherwise run the units in order until the done predicate holds or you must stop. Use subagents for unit work. Load **unpark** before spawn.
 
 $ARGUMENTS
 
@@ -129,11 +129,9 @@ Skip a unit only when its acceptance already holds on disk. Do not start a later
 
 ## Spawn
 
-heio-boot parks `subagent`. Unpark before any child.
+Load **unpark** with `subagent` and `subagent_wait` before any child.
 
-1. If `subagent` is not in the active tools, call `dest_activate_tools` with `["subagent", "subagent_wait"]` and end the turn. Do not treat a parked tool as `skip: no spawn runtime`.
-2. Next turn, spawn unit implementation with `subagent`. `async: true`. `context: "fresh"`. One `workflowScript`. Sequential `runs.run` per unit because later units need earlier ones green. `worktree: true` only when that unit is independent and isolated. Copy standing orders into every worker brief. Parent does not write product code while spawn is live.
-3. Skip spawn only if activate returns no valid names. Then do the unit in the parent and mark `skip: no spawn runtime`.
+Then spawn unit implementation with `subagent`. `async: true`. `context: "fresh"`. One `workflowScript`. Sequential `runs.run` per unit because later units need earlier ones green. `worktree: true` only when that unit is independent and isolated. Copy standing orders into every worker brief. Parent does not write product code while spawn is live. If unpark reports the tools are not registered, do the unit in the parent and mark `skip: no spawn runtime`.
 
 ## Loop
 

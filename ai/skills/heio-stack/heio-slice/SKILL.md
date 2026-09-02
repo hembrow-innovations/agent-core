@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 You are the parent orchestrator. You sequence railed children. You do not implement product code. You do not write `EXPECT:`. You do not reopen a locked shape.
 
-Load **heio-stack** before any write under `.heio/`. Load **pi-subagents** before spawn. Load **oracle** for the ledger command.
+Load **heio-stack** before any write under `.heio/`. Load **unpark** then **pi-subagents** before spawn. Load **oracle** for the ledger command.
 
 If `AGENTS.md` or `WORKSPACE.md` already names a tracker, that file wins.
 
@@ -27,6 +27,8 @@ Done with this gate when the slice is `frozen` or `active`, oracles parse (`--st
 
 ## Children
 
+Load **unpark** with `subagent` and `subagent_wait` before any child.
+
 Spawn with `subagent`. `async: true`. `context: "fresh"`. One `workflowScript`. Helpers stay plain functions or Promise chains. Inline each brief. The sandbox has no parent variables.
 
 - **heio-tasker** — writes `tasks.md` from the frozen spec + oracles. Parent cwd. No worktree.
@@ -38,7 +40,7 @@ Two writers never share a cwd. These children take turns on the parent cwd, so r
 
 Omit `model` when `.pi/heio-models.md` says `inherit-parent` or the file is missing.
 
-If `subagent` is missing, play one role at a time in this session. Still switch hats. Builder pass and verifier pass stay separate. Mark `skip: no spawn runtime`.
+If unpark reports the tools are not registered, play one role at a time in this session. Still switch hats. Builder pass and verifier pass stay separate. Mark `skip: no spawn runtime`.
 
 Children do not spawn children.
 

@@ -33,7 +33,7 @@ Every brief stands alone. Include the goal, scope, exact slice or race arm, how 
 
 Done when one workflow has returned N or N-1 child results.
 
-If `subagent` is not in the active tools, call `dest_activate_tools` with `["subagent", "subagent_wait"]` and end the turn. Do not treat a parked tool as `skip: no spawn runtime`. Spawn on the next turn.
+Load **unpark** with `subagent` and `subagent_wait` before spawn.
 
 Spawn every worker in one `subagent` call. `async: true`. `context: "fresh"` on that call so `worker`'s default fork cannot leak. One `workflowScript`. Stable keys. `worktree: true` only on writers. Omit `model` when inheriting the parent. N=1 uses `return runs.run(...)`. N>=2 uses `return runs.all([...])`. `runs.all` returns an ordered array; map it back onto the keys. Helpers stay plain functions or Promise chains. Inline each brief in the script. The sandbox has no parent variables.
 
@@ -58,7 +58,7 @@ subagent({
 
 This prompt's deliverable is one report, so after launch call `subagent_wait({ all: true })`. Do not end the turn empty.
 
-Skip spawn only if activate returns no valid names (tool not registered). Then run the slices in the parent and mark `skip: no spawn runtime`. Do not invent child transcripts.
+If unpark reports the tools are not registered, run the slices in the parent and mark `skip: no spawn runtime`. Do not invent child transcripts.
 
 If a worker drops out, proceed with the returned set and note it.
 

@@ -9,7 +9,7 @@ Fan out N attempts at the same task. Read every candidate end to end. Pick the s
 
 ## Pi runtime
 
-Spawn each candidate with `subagents` and `worktree: true`. Pass `model` from `arena runners` when those slugs are real. If spawn is missing, sketch 2 to 3 shapes yourself, pick one, and write `skip: no spawn runtime` on the unused arms. Do not invent child transcripts.
+Load **unpark** with `subagent` and `subagent_wait` before spawn. Spawn each candidate with `subagents` and `worktree: true`. Pass `model` from `arena runners` when those slugs are real. If unpark reports the tools are not registered, sketch 2 to 3 shapes yourself, pick one, and write `skip: no spawn runtime` on the unused arms. Do not invent child transcripts.
 
 ## Start
 

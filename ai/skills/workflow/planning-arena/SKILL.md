@@ -47,7 +47,7 @@ Done when every round directory has the questions file, one answer file per pane
 
 ## Round
 
-Read `references/round-contracts.md` before spawning **round-orchestrator**.
+Read `references/round-contracts.md` before spawning **round-orchestrator**. Load **unpark** with `subagent` and `subagent_wait` before spawn.
 
 If that name is not executable with write and `subagent`, the parent runs these steps itself.
 
@@ -59,7 +59,7 @@ If that name is not executable with write and `subagent`, the parent runs these 
 
 Done when that round directory matches the contracts and **round-orchestrator** has returned.
 
-If spawn is missing, write the questions file, three answer files, and the selected blocks yourself and mark `skip: no spawn runtime` on the round. Do not invent child transcripts.
+If unpark reports the tools are not registered, write the questions file, three answer files, and the selected blocks yourself and mark `skip: no spawn runtime` on the round. Do not invent child transcripts.
 
 ## When you are done
 
