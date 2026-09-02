@@ -184,7 +184,6 @@ test("planFromProfile omits systemPrompt when the profile key is absent", () => 
 function writePiPack(root: string, files: Record<string, string> = {}): void {
   mkdirSync(join(root, "ai", "pi"), { recursive: true });
   writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-  writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
   for (const [name, body] of Object.entries(files)) {
     writeFileSync(join(root, "ai", "pi", name), body);
   }
@@ -238,5 +237,32 @@ test("writeRuntime replaces a legacy dest stub with the selected stem", () => {
   assert.equal(
     readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
     "persona body\n",
+  );
+});
+
+test("writeRuntime does not require pack heio-models.md and does not write dest", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "ai", "pi"), { recursive: true });
+  writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
+  const dest = mkdtempSync(join(tmpdir(), "rt-no-models-"));
+  writeRuntime(root, openDestination(dest));
+  assert.equal(
+    readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
+    "boot\n",
+  );
+  assert.equal(existsSync(join(dest, ".pi", "heio-models.md")), false);
+});
+
+test("writeRuntime keeps an existing dest heio-models.md", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "ai", "pi"), { recursive: true });
+  writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
+  const dest = mkdtempSync(join(tmpdir(), "rt-keep-models-"));
+  mkdirSync(join(dest, ".pi"), { recursive: true });
+  writeFileSync(join(dest, ".pi", "heio-models.md"), "picked\n");
+  writeRuntime(root, openDestination(dest));
+  assert.equal(
+    readFileSync(join(dest, ".pi", "heio-models.md"), "utf8"),
+    "picked\n",
   );
 });

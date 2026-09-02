@@ -35,18 +35,13 @@ export function writeRuntime(
   opts: RuntimeOpts = {},
 ): void {
   const pack = join(packRoot(srcRoot), "pi");
-  const required = ["APPEND_SYSTEM.md", "heio-models.md"];
+  const required = ["APPEND_SYSTEM.md"];
   for (const name of required) {
     if (!existsSync(join(pack, name))) {
       throw new Error(`Pi pack missing: expected ai/pi/${name}`);
     }
   }
 
-  const previousModels = ".pi/draconic-models.md";
-  const models = ".pi/heio-models.md";
-  if (dest.exists(previousModels) && !dest.exists(models)) {
-    dest.writeText(models, dest.readText(previousModels));
-  }
   dest.removeLeftovers();
 
   const stem = opts.systemPrompt ?? "APPEND_SYSTEM";
@@ -55,9 +50,6 @@ export function writeRuntime(
     ".pi/APPEND_SYSTEM.md",
     readFileSync(join(pack, `${stem}.md`), "utf8"),
   );
-  dest.writeText(models, readFileSync(join(pack, "heio-models.md"), "utf8"), {
-    ifMissing: true,
-  });
   dest.ensureGitignore();
 }
 

@@ -483,7 +483,7 @@ test("repo profiles resolve every listed skill from skills/", () => {
 	assert.equal(existsSync(join(REPO, "ai", "pi", "install.mjs")), false);
 	assert.equal(existsSync(join(REPO, "ai", "pi", "packages.json")), true);
 	assert.equal(existsSync(join(REPO, "ai", "pi", "APPEND_SYSTEM.md")), true);
-	assert.equal(existsSync(join(REPO, "ai", "pi", "heio-models.md")), true);
+	assert.equal(existsSync(join(REPO, "ai", "pi", "heio-models.md")), false);
 	assert.deepEqual(readPiPackages(join(REPO, "ai", "pi")), [
 		"npm:pi-lens",
 		"npm:pi-web-access",
@@ -491,7 +491,7 @@ test("repo profiles resolve every listed skill from skills/", () => {
 	]);
 });
 
-test("installPiRuntime writes boot and models and leaves prompts alone", () => {
+test("installPiRuntime writes boot, does not write models, and leaves prompts alone", () => {
 	const root = tempRoot();
 	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
 	mkdirSync(join(root, "ai", "pi", "prompts"), { recursive: true });
@@ -500,7 +500,6 @@ test("installPiRuntime writes boot and models and leaves prompts alone", () => {
 		"export default function () {}\n",
 	);
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
 	writeFileSync(join(root, "ai", "pi", "prompts", "how.md"), "how\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-"));
@@ -509,10 +508,7 @@ test("installPiRuntime writes boot and models and leaves prompts alone", () => {
 		readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
 		"boot\n",
 	);
-	assert.equal(
-		readFileSync(join(dest, ".pi", "heio-models.md"), "utf8"),
-		"models\n",
-	);
+	assert.equal(existsSync(join(dest, ".pi", "heio-models.md")), false);
 	assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), false);
 
 	writeFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "custom\n");
@@ -531,7 +527,7 @@ test("installPiRuntime writes boot and models and leaves prompts alone", () => {
 	assert.equal(existsSync(join(dest, ".pi", "prompts", "leftover.md")), true);
 });
 
-test("installPiRuntime migrates dest models from the previous filename", () => {
+test("installPiRuntime does not write dest heio-models.md from the previous filename", () => {
 	const root = tempRoot();
 	mkdirSync(join(root, "ai", "pi", "extensions"), { recursive: true });
 	writeFileSync(
@@ -539,17 +535,13 @@ test("installPiRuntime migrates dest models from the previous filename", () => {
 		"export default function () {}\n",
 	);
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-models-mig-"));
 	mkdirSync(join(dest, ".pi"), { recursive: true });
 	writeFileSync(join(dest, ".pi", "draconic-models.md"), "picked\n");
 	installPiRuntime(root, dest);
 	assert.equal(existsSync(join(dest, ".pi", "draconic-models.md")), false);
-	assert.equal(
-		readFileSync(join(dest, ".pi", "heio-models.md"), "utf8"),
-		"picked\n",
-	);
+	assert.equal(existsSync(join(dest, ".pi", "heio-models.md")), false);
 });
 
 test("installPiRuntime does not merge pack packages into settings.json", () => {
@@ -560,7 +552,6 @@ test("installPiRuntime does not merge pack packages into settings.json", () => {
 		"export default function () {}\n",
 	);
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
 	writeFileSync(
 		join(root, "ai", "pi", "packages.json"),
 		JSON.stringify(["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"]),
@@ -654,7 +645,6 @@ test("installPiRuntime rewrites a dest APPEND_SYSTEM that still matches the old 
 		"export default function () {}\n",
 	);
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "new stub\n");
-	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-append-mig-"));
 	mkdirSync(join(dest, ".pi"), { recursive: true });
@@ -685,7 +675,6 @@ test("installPiRuntime rewrites a dest APPEND_SYSTEM that still names the dest r
 		"export default function () {}\n",
 	);
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "new stub\n");
-	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-append-variant-"));
 	mkdirSync(join(dest, ".pi"), { recursive: true });
@@ -748,7 +737,6 @@ test("installPiRuntime removes leftover dest roles", () => {
 	const root = tempRoot();
 	mkdirSync(join(root, "ai", "pi"), { recursive: true });
 	writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
-	writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-rt-roles-"));
 	mkdirSync(join(dest, ".pi", "roles"), { recursive: true });
@@ -816,10 +804,7 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 		append,
 		/Read `\.pi\/skills\/heio-mode\/SKILL\.md` in full/,
 	);
-	assert.match(
-		readFileSync(join(dest, ".pi", "heio-models.md"), "utf8"),
-		/feature, refactoring:/,
-	);
+	assert.equal(existsSync(join(dest, ".pi", "heio-models.md")), false);
 	assert.deepEqual(
 		JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8")),
 		expectedSettings(profile),
