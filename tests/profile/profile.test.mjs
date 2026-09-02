@@ -1001,6 +1001,25 @@ test("hivemind layout keeps profile dirs and frameworks dest", () => {
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 });
 
+test("check-profile-dirs prints directory-profile oracle tokens", () => {
+	const r = spawnSync(
+		process.execPath,
+		[join(REPO, "tests", "checks", "check-profile-dirs.mjs")],
+		{
+			encoding: "utf8",
+		},
+	);
+	assert.equal(r.status, 0, r.stderr || r.stdout);
+	assert.match(
+		r.stdout,
+		/loadProfile\(root, "agentic-core"\) reads profiles\/agentic-core\/profile\.yaml/,
+	);
+	assert.match(
+		r.stdout,
+		/listProfiles sees directory stems; leftover profiles\/foo\.yaml is not a profile/,
+	);
+});
+
 test("root npm scripts call one scripts mjs file each", () => {
 	const pkg = JSON.parse(readFileSync(join(REPO, "package.json"), "utf8"));
 	for (const [name, value] of Object.entries(pkg.scripts)) {
