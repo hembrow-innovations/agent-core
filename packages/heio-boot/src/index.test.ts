@@ -424,7 +424,13 @@ test("dest loader activates a named parked tool", async () => {
 	await boot.handlers.get("session_start")?.({} as never, ctx as never);
 	const loader = boot.tools.find((tool) => tool.name === "dest_activate_tools");
 	assert.equal(typeof loader?.execute, "function");
-	await loader?.execute("call-1", { tools: ["web_search", "missing_tool"] });
+	const result = await loader?.execute("call-1", {
+		tools: ["web_search", "missing_tool"],
+	});
+	assert.equal(
+		result?.content[0]?.text,
+		"Activated: web_search. Callable on the next model request. Continue.",
+	);
 	assert.equal(boot.getActive().includes("web_search"), true);
 	assert.equal(boot.getActive().includes("fetch_content"), false);
 	assert.equal(boot.getActive().includes("subagent"), false);

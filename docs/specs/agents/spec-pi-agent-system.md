@@ -8,7 +8,7 @@ domain: agents
 area: agents
 tags: [spec, pi]
 created_at: "2026-08-24"
-updated_at: "2026-08-26"
+updated_at: "2026-08-27"
 ---
 
 # Pi agent system
@@ -132,7 +132,7 @@ Tests: `valid fixture parses to name, body, and optional lists`, `omitted option
 
 No definition, or a definition with `tools` omitted, restores `toolsSnapshot` when one exists.
 
-When `tools` is present, the first bind snapshots the live set after park. Names that are not builtin are dropped. If no valid builtin remains, `setActiveTools` is not called. Otherwise the live set is the valid builtins, currently active unparked extensions, first-party tools, and `dest_activate_tools`. Parked third-party names stay registered and inactive. `dest_activate_tools` is the only unpark path.
+When `tools` is present, the first bind snapshots the live set after park. Names that are not builtin are dropped. If no valid builtin remains, `setActiveTools` is not called. Otherwise the live set is the valid builtins, currently active unparked extensions, first-party tools, and `dest_activate_tools`. Parked third-party names stay registered and inactive. `dest_activate_tools` is the only unpark path. The loader is additive. Pi applies the new active set before the next model request in the same user turn.
 
 ```ts
 // packages/heio-boot/src/index.ts — bindActiveTools

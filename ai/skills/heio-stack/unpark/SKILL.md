@@ -5,13 +5,13 @@ description: Unpark heio-boot parked tools with dest_activate_tools before using
 
 # Unpark
 
-heio-boot parks fat third-party tools at session start. They stay registered. `dest_activate_tools` is the unpark path. Activated tools are callable on the **next** turn.
+heio-boot parks fat third-party tools at session start. They stay registered. `dest_activate_tools` is the unpark path. Additive activation is live on the next model request in this turn.
 
 ## Steps
 
 1. Name the tools this turn needs.
-2. If any named tool is not in the active tools, call `dest_activate_tools` with those names and end the turn. Done when the loader returns `Activated: …` or `No valid tool names given.`
-3. On the next turn, use the tools.
+2. If any named tool is not in the active tools, call `dest_activate_tools` with those names and nothing else. Newly named tools are not in this batch. Done when the loader returns `Activated: …` or `No valid tool names given.`
+3. After that result, use the tools. Keep going. The user does not need to send another message.
 
 Treat a silent gap in the active list as parked. Play in-session only when activate returns no valid names (not registered). Mark `skip: no spawn runtime` in that case.
 
