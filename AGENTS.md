@@ -42,6 +42,8 @@ Session checklists stay on the `todo` tool (`@inobit/pi-todo`, session branch). 
 
 Chart intent, locations, and sprints with **heio-wayfinder**. Plan a slice or ticket with **heio-planning**. Execute a frozen slice with **heio-slice**. Every output ends `VERDICT: TASK | TICKET | ESCALATE | VERIFY`.
 
+The role skill is the pipeline; plain `pi` is not trapped.
+
 ## Verify
 
 Repo checks live under `tests/checks/`. Repo tests live under `tests/<area>/`. `scripts/test.mjs` and `scripts/typecheck.mjs` are the only npm entrypoints.

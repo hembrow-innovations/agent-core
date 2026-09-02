@@ -94,6 +94,22 @@ for (const [name, path] of roleAgents) {
   }
 }
 
+const ROLE_SKILL_PIPELINE = /role skill(?: is|=) (?:the )?pipeline/i;
+const PLAIN_PI_NOT_TRAPPED = /plain [`']?pi[`']? is not trapped/i;
+
+const agentsPath = join(root, "AGENTS.md");
+if (existsSync(agentsPath)) {
+  const agentsText = readFileSync(agentsPath, "utf8");
+  if (!ROLE_SKILL_PIPELINE.test(agentsText)) {
+    errors.push("AGENTS.md does not say role skill is the pipeline");
+  }
+  if (!PLAIN_PI_NOT_TRAPPED.test(agentsText)) {
+    errors.push("AGENTS.md does not say plain pi is not trapped");
+  }
+} else {
+  errors.push("missing AGENTS.md");
+}
+
 if (errors.length) {
   console.error(errors.join("\n"));
   process.exit(1);
