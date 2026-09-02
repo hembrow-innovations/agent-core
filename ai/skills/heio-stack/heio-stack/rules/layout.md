@@ -12,9 +12,12 @@ tags: [layout]
 .heio/
 ├─ tickets/
 │  └─ ticket-01-<slug>.md
+├─ pool/
+│  └─ <task>.md
 ├─ archive/
 │  ├─ index.md
 │  ├─ tickets/
+│  ├─ pool/
 │  └─ planning/
 │     ├─ locations/
 │     └─ sprints/
@@ -34,6 +37,8 @@ tags: [layout]
 ```
 
 Create a folder when the first file needs it. `planning/locations/` exists only when a location needs a file. `archive/` exists on the first move.
+
+`.heio/pool/` is one markdown file per task. Completed pool files are moved on completed to `.heio/archive/pool/`.
 
 Parked tickets live in `.heio/tickets/`, never in a slice. `tasks.md` exists on frozen or active slices.
 
