@@ -67,7 +67,7 @@ Full steps: `rules/write-before.md`.
 - `layout` - Tree, naming, status, links, archive
 - `layers` - Intent sticky, map editable outside a workflow, work fluid
 - `loop` - TASK / TICKET / ESCALATE / VERIFY
-- `pool` - Statuses draft → ready → claimed → implemented → completed; anyone may draft; planning or triage marks ready; a builder skill claims and stops at implemented unless the invoked prompt is through-to-complete
+- `pool` - Statuses draft → ready → claimed → implemented → completed; anyone may draft; planning or triage marks ready; a builder skill claims and stops at implemented unless the invoked prompt is through-to-complete; whoever sets completed moves the file to `.heio/archive/pool/`; reviewer does not hunt archive for work
 - `template-kinds` - Kind to template to destination
 - `tickets` - Inbound signal, triage, rot at sprint close
 - `sprints` - Grouping of slices, location or timebox

@@ -30,6 +30,11 @@ const STATUS_CHAIN =
 const BUILDER_CLAIM_STOP =
   /builder(?: skill)? claims and stops at [`']?implemented[`']? unless the invoked prompt is through-to-complete/i;
 
+const COMPLETER_ARCHIVES =
+  /whoever sets [`']?completed[`']? moves the file to [`']?\.heio\/archive\/pool\/[`']?/i;
+
+const REVIEWER_NO_HUNT = /reviewer does not hunt archive for work/i;
+
 const skillsDir = join(root, "ai", "skills", "heio-stack");
 if (existsSync(skillsDir)) {
   const skillsText = readAll(walkMarkdown(skillsDir));
@@ -47,6 +52,16 @@ if (existsSync(skillsDir)) {
   if (!BUILDER_CLAIM_STOP.test(skillsText)) {
     errors.push(
       "heio-stack skills do not say a builder claims and stops at implemented unless the invoked prompt is through-to-complete",
+    );
+  }
+  if (!COMPLETER_ARCHIVES.test(skillsText)) {
+    errors.push(
+      "heio-stack skills do not say whoever sets completed moves the file to .heio/archive/pool/",
+    );
+  }
+  if (!REVIEWER_NO_HUNT.test(skillsText)) {
+    errors.push(
+      "heio-stack skills do not say reviewer does not hunt archive for work",
     );
   }
 } else {
