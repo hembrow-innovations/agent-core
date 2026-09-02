@@ -187,7 +187,7 @@ function run(argv: string[]): void {
       writePrompts(srcRoot, dest, plan.promptIds);
       console.log(`  prompts (${plan.promptIds.length}) → ${PROMPT_DEST}`);
     }
-    writeRuntime(srcRoot, dest);
+    writeRuntime(srcRoot, dest, { systemPrompt: plan.systemPrompt });
     console.log("  pi runtime → .pi");
     const localNames: FirstPartyExtension[] = [];
     for (const pkg of plan.packages) {

@@ -15,15 +15,25 @@ export function listSystemPromptStems(srcRoot: string): string[] {
     .sort();
 }
 
+export type RuntimeOpts = {
+  systemPrompt?: string;
+};
+
 export function installPiRuntime(
   srcRoot: string,
   target: string,
-  _opts: { skills?: string[]; playbooks?: string[] } = {},
+  opts: { skills?: string[]; playbooks?: string[]; systemPrompt?: string } = {},
 ): void {
-  writeRuntime(srcRoot, openDestination(target));
+  writeRuntime(srcRoot, openDestination(target), {
+    systemPrompt: opts.systemPrompt,
+  });
 }
 
-export function writeRuntime(srcRoot: string, dest: Destination): void {
+export function writeRuntime(
+  srcRoot: string,
+  dest: Destination,
+  opts: RuntimeOpts = {},
+): void {
   const pack = join(packRoot(srcRoot), "pi");
   const required = ["APPEND_SYSTEM.md", "heio-models.md"];
   for (const name of required) {
@@ -39,10 +49,11 @@ export function writeRuntime(srcRoot: string, dest: Destination): void {
   }
   dest.removeLeftovers();
 
+  const stem = opts.systemPrompt ?? "APPEND_SYSTEM";
   writeAppendSystem(
     dest,
     ".pi/APPEND_SYSTEM.md",
-    readFileSync(join(pack, "APPEND_SYSTEM.md"), "utf8"),
+    readFileSync(join(pack, `${stem}.md`), "utf8"),
   );
   dest.writeText(models, readFileSync(join(pack, "heio-models.md"), "utf8"), {
     ifMissing: true,

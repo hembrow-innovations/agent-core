@@ -1,11 +1,18 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
+import { openDestination } from "./dest.ts";
 import { planFromProfile, type InstallRequest } from "./plan.ts";
 import { listProfiles, loadProfile, type Profile } from "./profile.ts";
-import { listSystemPromptStems } from "./runtime.ts";
+import { listSystemPromptStems, writeRuntime } from "./runtime.ts";
 
 function tempRoot(): string {
   const root = mkdtempSync(join(tmpdir(), "profile-dirs-"));
@@ -151,16 +158,85 @@ test("planFromProfile accepts a system-prompt stem that has ai/pi markdown", () 
   const root = tempRoot();
   mkdirSync(join(root, "ai", "pi"), { recursive: true });
   writeFileSync(join(root, "ai", "pi", "persona.md"), "hello\n");
-  assert.doesNotThrow(() =>
-    planFromProfile(
-      planProfile({ "system-prompt": "persona" }),
-      planRequest(),
-      {
-        agents: [],
-        prompts: [],
-        frameworks: [],
-        systemPrompts: listSystemPromptStems(root),
-      },
-    ),
+  const plan = planFromProfile(
+    planProfile({ "system-prompt": "persona" }),
+    planRequest(),
+    {
+      agents: [],
+      prompts: [],
+      frameworks: [],
+      systemPrompts: listSystemPromptStems(root),
+    },
+  );
+  assert.equal(plan.systemPrompt, "persona");
+});
+
+test("planFromProfile omits systemPrompt when the profile key is absent", () => {
+  const plan = planFromProfile(planProfile(), planRequest(), {
+    agents: [],
+    prompts: [],
+    frameworks: [],
+    systemPrompts: [],
+  });
+  assert.equal("systemPrompt" in plan, false);
+});
+
+function writePiPack(root: string, files: Record<string, string> = {}): void {
+  mkdirSync(join(root, "ai", "pi"), { recursive: true });
+  writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
+  writeFileSync(join(root, "ai", "pi", "heio-models.md"), "models\n");
+  for (const [name, body] of Object.entries(files)) {
+    writeFileSync(join(root, "ai", "pi", name), body);
+  }
+}
+
+test("writeRuntime copies selected system-prompt markdown when dest APPEND_SYSTEM.md is missing", () => {
+  const root = tempRoot();
+  writePiPack(root, { "persona.md": "persona body\n" });
+  const dest = mkdtempSync(join(tmpdir(), "rt-stem-"));
+  writeRuntime(root, openDestination(dest), { systemPrompt: "persona" });
+  assert.equal(
+    readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
+    "persona body\n",
+  );
+});
+
+test("writeRuntime copies APPEND_SYSTEM.md when system-prompt is omitted", () => {
+  const root = tempRoot();
+  writePiPack(root, { "persona.md": "persona body\n" });
+  const dest = mkdtempSync(join(tmpdir(), "rt-default-"));
+  writeRuntime(root, openDestination(dest));
+  assert.equal(
+    readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
+    "boot\n",
+  );
+});
+
+test("writeRuntime keeps an existing dest APPEND_SYSTEM.md when a stem is selected", () => {
+  const root = tempRoot();
+  writePiPack(root, { "persona.md": "persona body\n" });
+  const dest = mkdtempSync(join(tmpdir(), "rt-keep-"));
+  mkdirSync(join(dest, ".pi"), { recursive: true });
+  writeFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "custom persona\n");
+  writeRuntime(root, openDestination(dest), { systemPrompt: "persona" });
+  assert.equal(
+    readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
+    "custom persona\n",
+  );
+});
+
+test("writeRuntime replaces a legacy dest stub with the selected stem", () => {
+  const root = tempRoot();
+  writePiPack(root, { "persona.md": "persona body\n" });
+  const dest = mkdtempSync(join(tmpdir(), "rt-legacy-"));
+  mkdirSync(join(dest, ".pi"), { recursive: true });
+  writeFileSync(
+    join(dest, ".pi", "APPEND_SYSTEM.md"),
+    "# Draconic\n\nYou are running draconic-mode on Pi for this project.\n",
+  );
+  writeRuntime(root, openDestination(dest), { systemPrompt: "persona" });
+  assert.equal(
+    readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
+    "persona body\n",
   );
 });

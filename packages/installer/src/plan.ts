@@ -34,6 +34,7 @@ export type InstallPlan = {
   packages: ProfilePackage[];
   settings: Record<string, unknown> | null;
   frameworks: string[];
+  systemPrompt?: string;
 };
 
 const NO_SELECTION_OPTS: SelectionResolveOpts = {
@@ -95,6 +96,7 @@ export function planFromProfile(
     packages: resolvePackages(profile.packages, opts.extensions),
     settings: profile.settings,
     frameworks: resolveFrameworks(profile.frameworks, available.frameworks),
+    ...(systemPrompt !== undefined ? { systemPrompt } : {}),
   };
 }
 
