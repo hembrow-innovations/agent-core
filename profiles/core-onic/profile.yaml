@@ -1,0 +1,51 @@
+# Dest: heio-stack + Hivemind for onic.
+# Install: pnpm exec agentic-core install ../core-onic --profile core-onic
+agents:
+  - heio-triage
+  - heio-planner
+  - heio-tasker
+  - heio-builder
+  - heio-verifier
+prompts:
+  - heio-wayfinder
+  - heio-planning
+  - heio-slice
+  - hivemind-plan
+  - hivemind-tasker
+  - hivemind-build
+  - hivemind-review
+  - hivemind-improve
+frameworks:
+  - hivemind
+packages:
+  - npm:pi-lens
+  - npm:pi-subagents
+  - npm:@inobit/pi-todo@0.1.1
+  - npm:@juicesharp/rpiv-ask-user-question@2.8.0
+  - local:@agentic-core/heio-boot
+  - local:@agentic-core/heio-footer
+  - local:@agentic-core/heio-onic
+settings:
+  toolDescriptionMode: compact
+  defaultTools:
+    - read
+    - bash
+    - edit
+    - write
+    - ls
+skills:
+  - heio-stack
+  - heio-wayfinder
+  - heio-planning
+  - heio-slice
+  - unpark
+  - docs
+  - domain-modeling
+  - tdd
+  - behaviour-contracts
+  - diagnose
+  - oracle
+  - typescript-best-practices
+  - codebase-design
+  - improve-codebase-architecture
+  - onic-schema
