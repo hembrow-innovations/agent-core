@@ -7,7 +7,7 @@ domain: system
 area: overview
 tags: [glossary]
 created_at: "2026-08-23"
-updated_at: "2026-09-01"
+updated_at: "2026-09-02"
 ---
 
 # Glossary
@@ -29,7 +29,7 @@ A project that holds a committed, self-contained copy of pack output. It has no 
 _Avoid_: live path
 
 **Profile**:
-A named install set. `--profile <name>` loads `profiles/<name>/profile.yaml`. Skills, agents, prompts, packages, optional settings, optional frameworks. Dest pack is always `.pi/`. Schema: [[schema-profile]]. Decision: [[0016-profiles-are-directories]].
+A named install set. `--profile <name>` loads `profiles/<name>/profile.yaml`. Skills, agents, prompts, packages, optional settings, optional frameworks, optional `system-prompt`. Dest pack is always `.pi/`. Schema: [[schema-profile]]. Decision: [[0016-profiles-are-directories]].
 _Avoid_: flat `profiles/<name>.yaml`
 
 **Workspace package**:

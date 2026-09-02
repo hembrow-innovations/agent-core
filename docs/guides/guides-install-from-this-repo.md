@@ -7,7 +7,7 @@ domain: pack
 area: guides
 tags: [guide]
 created_at: "2026-08-23"
-updated_at: "2026-08-30"
+updated_at: "2026-09-02"
 ---
 
 # Install from this repo
@@ -71,6 +71,7 @@ You will see:
 - dest-relative `npm/local/@agentic-core/<name>` paths in `.pi/settings.json`
 - selected skills under `.pi/skills/`
 - agents and prompts from the YAML `all` keys
+- dest `.pi/APPEND_SYSTEM.md` from `ai/pi/APPEND_SYSTEM.md` unless the profile sets `system-prompt:`
 - `toolDescriptionMode` and `defaultTools` from profile `settings:` in `.pi/settings.json`
 
 One-off extension into another dest.

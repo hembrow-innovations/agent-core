@@ -7,7 +7,7 @@ domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-09-01"
+updated_at: "2026-09-02"
 ---
 
 # Pack and packages
@@ -42,7 +42,7 @@ The folders are:
 - `ai/skills/` is the skill library.
 - `ai/playbooks/` is the playbook library.
 - `ai/prompts/` is the prompt/command library.
-- `ai/pi/` is the Pi runtime pack. Prompts, skills, agents, and roles do not live here. It has no `extensions/` and no `lib/`.
+- `ai/pi/` is the Pi runtime pack. Prompts, skills, agents, and roles do not live here. It has no `extensions/` and no `lib/`. Required pack file is `APPEND_SYSTEM.md`. `heio-models.md` is not in the pack.
 - `profiles/` is the install profiles. Each profile is `profiles/<name>/profile.yaml`. Optional `hivemind.yaml` in that directory is a write-if-missing dest template. See [[0016-profiles-are-directories]].
 - `frameworks/` is out-of-session programs. `frameworks/hivemind/` is the first. See [[0015-hivemind-is-a-framework]].
 - `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`.
@@ -149,7 +149,7 @@ Install is the only path from workspace packages to a dest. A dest never keeps a
 
 Todo tests and imports stay in the workspace. Dest never sees a sibling lib package.
 
-The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. It also does not keep prompts, skills, agents, or roles under `ai/pi/`. Profiles list skills, agents, prompts, packages, optional settings, and optional frameworks. They do not name a dest. See [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0015-hivemind-is-a-framework]], and [[0016-profiles-are-directories]].
+The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. It also does not keep prompts, skills, agents, or roles under `ai/pi/`. Profiles list skills, agents, prompts, packages, optional settings, optional frameworks, and optional `system-prompt`. They do not name a dest. See [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0015-hivemind-is-a-framework]], [[0016-profiles-are-directories]], and [[schema-profile]].
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.
 

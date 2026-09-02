@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [purpose]
 created_at: "2026-08-23"
-updated_at: "2026-09-01"
+updated_at: "2026-09-02"
 ---
 
 # Installer purpose
@@ -40,6 +40,7 @@ export function localPackageSource(name: FirstPartyExtension): string {
 - Never prune dest extras
 - Merge of third-party `npm:` sources the way they merge today
 - Copy of agents, skills, playbooks, and prompts the way they copy today
+- Optional profile `system-prompt:` stem copied to dest `.pi/APPEND_SYSTEM.md`
 
 ## Out of scope
 
