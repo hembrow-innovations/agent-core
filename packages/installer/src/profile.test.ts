@@ -67,3 +67,11 @@ test("loadProfile: missing frameworks is empty; list is kept; non-list dies", ()
   assert.deepEqual(loadProfile(root, "listed").frameworks, ["hivemind"]);
   assert.throws(() => loadProfile(root, "bad"), /"frameworks" must be a list/);
 });
+
+test("loadProfile: system-prompt stem is kept; absent key omits the field", () => {
+  const root = tempRoot();
+  writeDirProfile(root, "bare", "skills: []\n");
+  writeDirProfile(root, "named", "system-prompt: persona\n");
+  assert.equal("system-prompt" in loadProfile(root, "bare"), false);
+  assert.equal(loadProfile(root, "named")["system-prompt"], "persona");
+});

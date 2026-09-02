@@ -17,6 +17,7 @@ export type Profile = {
   packages: ProfilePackage[];
   settings: Record<string, unknown> | null;
   frameworks: string[];
+  "system-prompt"?: string;
 };
 
 const PROFILE_KEYS = new Set([
@@ -26,6 +27,7 @@ const PROFILE_KEYS = new Set([
   "packages",
   "settings",
   "frameworks",
+  "system-prompt",
 ]);
 
 const LEFTOVER_KEYS = new Map([
@@ -80,6 +82,7 @@ export function loadProfile(srcRoot: string, name: string): Profile {
       throw new Error(`Unknown profile key "${key}"`);
     }
   }
+  const systemPrompt = asOptionalString(raw["system-prompt"], "system-prompt");
   return {
     name,
     skills: asStringList(raw.skills, "skills"),
@@ -88,6 +91,7 @@ export function loadProfile(srcRoot: string, name: string): Profile {
     packages: asStringList(raw.packages, "packages").map(parseProfilePackage),
     settings: asSettings(raw.settings),
     frameworks: asStringList(raw.frameworks, "frameworks"),
+    ...(systemPrompt !== undefined ? { "system-prompt": systemPrompt } : {}),
   };
 }
 
@@ -150,6 +154,12 @@ function asStringList(value: unknown, key: string): string[] {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) throw new Error(`"${key}" must be a list`);
   return value.map(String);
+}
+
+function asOptionalString(value: unknown, key: string): string | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== "string") throw new Error(`"${key}" must be a string`);
+  return value;
 }
 
 function asSettings(value: unknown): Record<string, unknown> | null {
