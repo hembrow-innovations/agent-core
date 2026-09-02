@@ -8,6 +8,8 @@ prompts:
   - heio-wayfinder
   - heio-planning
   - heio-slice
+frameworks:
+  - hivemind
 packages:
   - npm:pi-lens
   - npm:pi-web-access

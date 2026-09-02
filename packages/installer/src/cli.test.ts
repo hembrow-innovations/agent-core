@@ -154,7 +154,7 @@ test("install --profile agentic-core removes leftover dest extension files", () 
   assert.equal(existsSync(join(dest, ".pi", "extensions")), false);
   assert.equal(existsSync(join(dest, ".pi", "lib")), false);
   assert.equal(existsSync(join(dest, ".pi", "roles")), false);
-  assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
+  assert.equal(existsSync(join(dest, ".pi", "agents", "heio-builder.md")), true);
 });
 
 test("install --profile agentic-core removes parked heio-coms, heio-teams, and heio-coord dest copies", () => {
@@ -261,8 +261,8 @@ test("install --profile agentic-core writes .pi/skills and does not wire this ch
 
   const skillRoot = join(dest, ".pi", "skills");
   const folders = readdirSync(skillRoot);
-  assert.ok(folders.includes("create-skill"), folders.join(", "));
-  assert.equal(existsSync(join(skillRoot, "create-skill", "SKILL.md")), true);
+  assert.ok(folders.includes("heio-stack"), folders.join(", "));
+  assert.equal(existsSync(join(skillRoot, "heio-stack", "SKILL.md")), true);
   assert.equal(folders.includes("how"), false, folders.join(", "));
   assert.equal(folders.includes("unslop"), false, folders.join(", "));
   assert.equal(folders.includes("agent-teams"), false, folders.join(", "));
@@ -322,12 +322,12 @@ test("install --profile agentic-core keeps dest extras and updates listed files"
   settings.defaultTools = ["custom", ...(settings.defaultTools ?? [])];
   writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
 
-  writeFileSync(join(dest, ".pi", "agents", "architect.md"), "STALE AGENT\n");
+  writeFileSync(join(dest, ".pi", "agents", "heio-builder.md"), "STALE AGENT\n");
   writeFileSync(
-    join(dest, ".pi", "skills", "create-skill", "SKILL.md"),
+    join(dest, ".pi", "skills", "heio-stack", "SKILL.md"),
     "STALE SKILL\n",
   );
-  writeFileSync(join(dest, ".pi", "prompts", "arena.md"), "STALE PROMPT\n");
+  writeFileSync(join(dest, ".pi", "prompts", "heio-slice.md"), "STALE PROMPT\n");
 
   const second = runCli(["install", dest, "--profile", "agentic-core"]);
   assert.equal(second.status, 0, second.stderr || second.stdout);
@@ -370,25 +370,25 @@ test("install --profile agentic-core keeps dest extras and updates listed files"
   ]);
 
   assert.equal(
-    readFileSync(join(dest, ".pi", "agents", "architect.md"), "utf8"),
+    readFileSync(join(dest, ".pi", "agents", "heio-builder.md"), "utf8"),
     readFileSync(
-      join(REPO, "ai", "agents", "architect", "architect.md"),
+      join(REPO, "ai", "agents", "heio-builder", "heio-builder.md"),
       "utf8",
     ),
   );
   assert.equal(
     readFileSync(
-      join(dest, ".pi", "skills", "create-skill", "SKILL.md"),
+      join(dest, ".pi", "skills", "heio-stack", "SKILL.md"),
       "utf8",
     ),
     readFileSync(
-      join(REPO, "ai", "skills", "engineering", "create-skill", "SKILL.md"),
+      join(REPO, "ai", "skills", "heio-stack", "heio-stack", "SKILL.md"),
       "utf8",
     ),
   );
   assert.equal(
-    readFileSync(join(dest, ".pi", "prompts", "arena.md"), "utf8"),
-    readFileSync(join(REPO, "ai", "prompts", "arena.md"), "utf8"),
+    readFileSync(join(dest, ".pi", "prompts", "heio-slice.md"), "utf8"),
+    readFileSync(join(REPO, "ai", "prompts", "heio-slice.md"), "utf8"),
   );
 });
 
@@ -642,7 +642,7 @@ test("parseProfilePackage and loadProfile reject unknown local names", () => {
   );
 });
 
-test("agentic-core lists frameworks hivemind", () => {
+test("agentic-core lists frameworks: [hivemind]", () => {
   assert.deepEqual(loadProfile(REPO, "agentic-core").frameworks, ["hivemind"]);
 });
 

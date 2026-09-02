@@ -1,0 +1,10 @@
+{
+	"packages": [
+		"npm:pi-lens",
+		"npm:pi-web-access",
+		"npm:pi-subagents",
+		"npm:@ff-labs/pi-fff"
+	],
+	"toolDescriptionMode": "compact",
+	"defaultTools": ["read", "bash", "edit", "write", "ls"]
+}

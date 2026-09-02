@@ -20,21 +20,10 @@ test("cold start dest ships the opt-in agent file", () => {
   assert.equal(r.status, 0, r.stderr || r.stdout);
   assert.equal(existsSync(join(dest, ".pi", "agents", "heio.md")), false);
   for (const stem of [
-    "architect",
-    "coder",
-    "debugger",
-    "designer",
-    "devops",
-    "documenter",
-    "growth",
-    "lead",
-    "orchestrator",
-    "planner",
-    "product",
-    "researcher",
-    "reviewer",
-    "spec",
-    "tester",
+    "heio-triage",
+    "heio-tasker",
+    "heio-builder",
+    "heio-verifier",
   ]) {
     const path = join(dest, ".pi", "agents", `${stem}.md`);
     assert.equal(existsSync(path), true, path);

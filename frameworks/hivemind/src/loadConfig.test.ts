@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
@@ -27,6 +27,23 @@ test("loadConfig accepts empty lanes: []", () => {
   writeFileSync(join(cwd, "hivemind.yaml"), "folders: []\nlanes: []\n");
   const cfg = loadConfig(cwd);
   assert.deepEqual(cfg.lanes, []);
+});
+
+test("profiles/agentic-core/hivemind.yaml names .heio/ folders, quarantine, sealed/ready, Plan/Tasker/Build/Review; Mint omitted or disable", () => {
+  const text = readFileSync(
+    join(REPO, "profiles", "agentic-core", "hivemind.yaml"),
+    "utf8",
+  );
+  assert.match(text, /\.heio\/tickets/);
+  assert.match(text, /\.heio\/quarantine/);
+  assert.match(text, /sealed/);
+  assert.match(text, /ready/);
+  assert.match(text, /lane: plan/);
+  assert.match(text, /lane: tasker/);
+  assert.match(text, /lane: build/);
+  assert.match(text, /lane: review/);
+  assert.equal(/\nlane: mint\b/.test(text), false);
+  assert.doesNotMatch(text, /^disable:\s*\[\s*\]/m);
 });
 
 test("loadConfig accepts the agentic-core heio-stack template", () => {

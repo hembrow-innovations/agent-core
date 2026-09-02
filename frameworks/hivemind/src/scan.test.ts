@@ -32,7 +32,7 @@ function setup(): string {
   return cwd;
 }
 
-test("parse error moves the file to quarantine with only three keys; scan continues", () => {
+test("fault moves the file to configured quarantine with only origin-location, quarantined-at, fault", () => {
   const cwd = setup();
   writeFileSync(join(cwd, "notes", "bad.md"), "---\n{\n---\n");
   writeFileSync(
@@ -111,7 +111,7 @@ test("missing required key moves the file to quarantine with only three keys; sc
   );
 });
 
-test("supervisor quarantine write does not include status, blocked-by, caused-by, or a body", () => {
+test("no status / blocked-by / caused-by / body written by the supervisor", () => {
   const cwd = setup();
   writeFileSync(
     join(cwd, "notes", "lineage.md"),

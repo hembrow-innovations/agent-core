@@ -89,7 +89,7 @@ test("lane trigger.status ready-for-agent ignores ready-for-human", () => {
     );
 });
 
-test("two once processes cannot both CAS-claim the same matching file", async () => {
+test("two once processes cannot both take the same matching file", async () => {
     const cwd = mkdtempSync(join(tmpdir(), "hivemind-cas-"));
     mkdirSync(join(cwd, "tickets"));
     mkdirSync(join(cwd, "quarantine"));
@@ -141,7 +141,7 @@ test("two once processes cannot both CAS-claim the same matching file", async ()
     assert.equal(flags.length, 1);
 });
 
-test("unset {{env.SECRET}} does not spawn and never logs the value", () => {
+test("unset {{env.SECRET}} does not spawn; interpolated metacharacters do not invoke a shell", () => {
     const cwd = setupMatchProject('/bin/echo "{{env.MISSING}}"');
     writeTicket(cwd, "agent.md", "ready-for-agent");
     const env: NodeJS.ProcessEnv = {

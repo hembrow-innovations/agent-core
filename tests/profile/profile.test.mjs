@@ -918,7 +918,7 @@ test("install --profile agentic-core writes .pi/skills", () => {
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "create-skill", "SKILL.md")),
+		existsSync(join(dest, ".pi", "skills", "heio-stack", "SKILL.md")),
 		true,
 	);
 	assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);

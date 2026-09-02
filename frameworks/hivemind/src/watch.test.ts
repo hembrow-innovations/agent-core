@@ -85,7 +85,7 @@ test("--until-target PATH exits when PATH exists", async () => {
   assert.equal(proc.status, 0, proc.stderr);
 });
 
-test("backoff does not busy-spin", async () => {
+test("backoff does not busy-spin; killing the process stops spawn", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "hivemind-watch-backoff-"));
   mkdirSync(join(cwd, "tickets"));
   mkdirSync(join(cwd, "quarantine"));
