@@ -7,7 +7,7 @@ domain: system
 area: overview
 tags: [glossary]
 created_at: "2026-08-23"
-updated_at: "2026-08-31"
+updated_at: "2026-09-01"
 ---
 
 # Glossary
@@ -17,7 +17,7 @@ The language of this checkout. Source pack, dest copy, and the install path betw
 ## Language
 
 **Pack**:
-The source tree in this checkout. Agent, skill, playbook, and prompt libraries live under `ai/`. The Pi runtime pack lives in `ai/pi/`. Profiles stay at the root. Checks and repo tests live in `tests/`. `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`. First-party packages live under `packages/`. It is the only install source.
+The source tree in this checkout. Agent, skill, playbook, and prompt libraries live under `ai/`. The Pi runtime pack lives in `ai/pi/`. Profiles stay at the root as directories. Checks and repo tests live in `tests/`. `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`. First-party packages live under `packages/`. Frameworks live under `frameworks/`. It is the only install source.
 _Avoid_: monorepo-of-skills
 
 **Repo check**:
@@ -29,7 +29,8 @@ A project that holds a committed, self-contained copy of pack output. It has no 
 _Avoid_: live path
 
 **Profile**:
-A named install set in `profiles/`. Selected with `--profile`. Skills, agents, prompts, packages, and optional settings. Dest is always `.pi/`. Schema: [[schema-profile]].
+A named install set. `--profile <name>` loads `profiles/<name>/profile.yaml`. Skills, agents, prompts, packages, optional settings, optional frameworks. Dest pack is always `.pi/`. Schema: [[schema-profile]]. Decision: [[0016-profiles-are-directories]].
+_Avoid_: flat `profiles/<name>.yaml`
 
 **Workspace package**:
 A TypeScript package under `packages/`. Folders are `heio-boot`, `heio-footer`, `heio-coord`, `heio-onic`, and `installer`. Parked packages live under `deprecated/packages/`.
@@ -47,6 +48,18 @@ _Avoid_: curl install
 
 **This-checkout Pi**:
 The gitignored `.pi/` dest in this repo. It is not auto-wired to `packages/`.
+
+**Framework**:
+An out-of-session TypeScript program under `frameworks/<name>/`. Profile `frameworks:` copies it to `.pi/frameworks/<name>/`. Not a Pi extension. Decision: [[0015-hivemind-is-a-framework]].
+_Avoid_: workspace package, first-party extension
+
+**Hivemind**:
+The first framework. A predicate machine that matches front matter and spawns short-lived lane processes. Purpose: [[purpose-hivemind]].
+_Avoid_: orchestrator, afk-orchestrator, coord, in-session boss
+
+**Lane**:
+A named plugin in project-root `hivemind.yaml`: trigger, cmd template, claim-status. One child life is one unit.
+_Avoid_: agent definition, teammate, adapter module
 
 **Coms**:
 The living-session mailbox formerly in `@agentic-core/heio-coms`. Bind, stamp, send, get, await. Parked under `deprecated/packages/heio-coms`. Architecture: [[architecture-heio-coms]].
@@ -131,3 +144,19 @@ _Avoid_: ordered bet, force-function destination
 **Archive**:
 `.heio/archive/`, mirroring `planning/` and `tickets/`. Finished work moves here. `index.md` lists what landed.
 _Avoid_: Done section on the live roadmap
+
+**Sealed**:
+The Hivemind/heio-stack rule that spec + EXPECT are immutable once written. A miss mints a new ticket. Nothing is unsealed.
+_Avoid_: freeze, frozen, locked, unblocked
+
+**Ready**:
+Slice status meaning schedulable under the Hivemind template. Replaces `frozen` as a status name. Permanence is sealed, not this word.
+_Avoid_: freeze, ready-for-build (as the only name)
+
+**Ready-for-agent**:
+Ticket status a Plan lane may claim. `ready-for-human` is invisible to that trigger until a human promotes it.
+_Avoid_: open (as the only Plan gate)
+
+**Quarantine**:
+Typed folder (template: `.heio/quarantine/`) for notes that failed schema. Supervisor writes `origin-location`, `quarantined-at`, `fault` on the move.
+_Avoid_: Doctor, format-doctor

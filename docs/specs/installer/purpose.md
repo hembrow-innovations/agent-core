@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [purpose]
 created_at: "2026-08-23"
-updated_at: "2026-08-30"
+updated_at: "2026-09-01"
 ---
 
 # Installer purpose
@@ -28,6 +28,8 @@ export function localPackageSource(name: FirstPartyExtension): string {
 
 - Install from this repo only
 - Profile install with that profile's `packages` list
+- Optional `frameworks:` list copied to `.pi/frameworks/<name>/`
+- Write-if-missing dest project-root `hivemind.yaml` from the profile template
 - One extension install with `--extension`
 - Repeatable `--extension`
 - Dest always `.pi/`
@@ -62,7 +64,7 @@ The dest tree is `.pi/` plus dest settings.
 
 - Behaviour: [[spec-installer]]
 - Profile YAML: [[schema-profile]]
-- Decisions: [[0011-local-packages-in-npm-local]], [[0010-local-packages-in-npm]], [[0005-pi-only-dest]], and [[0008-todo-owns-checklist-store]]
+- Decisions: [[0011-local-packages-in-npm-local]], [[0010-local-packages-in-npm]], [[0005-pi-only-dest]], [[0008-todo-owns-checklist-store]], [[0015-hivemind-is-a-framework]], and [[0016-profiles-are-directories]]
 - Layout: [[architecture-pack-and-packages]]
 
 ## Open product questions

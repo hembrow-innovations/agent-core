@@ -2,12 +2,12 @@
 id: "architecture-pack-and-packages"
 title: "Pack and packages"
 kind: architecture
-description: "Four trees keep the markdown pack, workspace packages, dest copy, and first-party npm copies apart."
+description: "Source pack, workspace packages, frameworks, dest copy, and first-party npm copies stay apart."
 domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-08-31"
+updated_at: "2026-09-01"
 ---
 
 # Pack and packages
@@ -16,7 +16,7 @@ updated_at: "2026-08-31"
 
 This repo is a pnpm workspace. It is the only place you install from. A dest project never depends on this checkout at runtime. The installer copies a self-contained tree the dest can commit.
 
-The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus the Pi runtime pack and profiles. `tests/` holds the checks and repo tests. `scripts/` is the npm entrypoints. The installer package owns profile parse and dest writes. Workspace packages are the TypeScript products under `packages/`. The dest tree is the copied project layout after install. First-party packages land under `.pi/npm/local/@agentic-core/`.
+The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus the Pi runtime pack and profiles. `tests/` holds the checks and repo tests. `scripts/` is the npm entrypoints. The installer package owns profile parse and dest writes. Workspace packages are the TypeScript session products under `packages/`. Frameworks are out-of-session TypeScript programs under `frameworks/`. The dest tree is the copied project layout after install. First-party packages land under `.pi/npm/local/@agentic-core/`. Frameworks land under `.pi/frameworks/`.
 
 See [[glossary]] for the names used here.
 
@@ -43,7 +43,8 @@ The folders are:
 - `ai/playbooks/` is the playbook library.
 - `ai/prompts/` is the prompt/command library.
 - `ai/pi/` is the Pi runtime pack. Prompts, skills, agents, and roles do not live here. It has no `extensions/` and no `lib/`.
-- `profiles/` is the install profiles.
+- `profiles/` is the install profiles. Each profile is `profiles/<name>/profile.yaml`. Optional `hivemind.yaml` in that directory is a write-if-missing dest template. See [[0016-profiles-are-directories]].
+- `frameworks/` is out-of-session programs. `frameworks/hivemind/` is the first. See [[0015-hivemind-is-a-framework]].
 - `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`.
 - `tests/` is the repo checks and tests. See [[architecture-verify]].
 
@@ -53,7 +54,7 @@ Skills, prompts, and third-party `npm:pi-lens` sources still copy into dest `.pi
 
 ### Workspace packages
 
-Product code lives under `packages/`. Folder names stay unscoped. Package names are scoped.
+Session product code lives under `packages/`. Folder names stay unscoped. Package names are scoped. Out-of-session programs live under `frameworks/`, not here.
 
 The folders are:
 
@@ -73,7 +74,7 @@ There is no npm publish. There is no git package source.
 
 ### Dest tree
 
-The dest tree is what a target project commits after install. It holds the copied agents, skills, and prompts under `.pi/`. Identity dest is only `.pi/agents/`. There is no dest roles tree. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
+The dest tree is what a target project commits after install. It holds the copied agents, skills, and prompts under `.pi/`. Identity dest is only `.pi/agents/`. There is no dest roles tree. Optional frameworks land at `.pi/frameworks/<name>/`. They are not Pi packages. Project-root `hivemind.yaml` is dest convention, not dest pack; install writes it only if missing. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
 
 A dest project never depends on this checkout at runtime.
 
@@ -96,7 +97,7 @@ copyTsSources(join(srcPkg, "src"), dest, join(destRel, "src"));
 The command is `pnpm exec agentic-core install`. The package lives in `packages/installer`.
 
 - **cli.ts**: parses argv and dispatches
-- **profile.ts**: reads `profiles/*.yaml` into a `Profile`
+- **profile.ts**: reads `profiles/<name>/profile.yaml` into a `Profile`
 - **dest.ts**: dest `.pi/` reads and writes
 - **pack-walk.ts**: `walkSkillDirs` finds `SKILL.md` folders under `ai/skills/`
 - **skills.ts**, **playbooks.ts**, **agents.ts**, **prompts.ts**, **extensions.ts**, **runtime.ts**: one module per library or dest write. Playbook catalog rewrite stays in `playbooks.ts`. Install does not call the dest playbook writer.
@@ -148,7 +149,7 @@ Install is the only path from workspace packages to a dest. A dest never keeps a
 
 Todo tests and imports stay in the workspace. Dest never sees a sibling lib package.
 
-The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. It also does not keep prompts, skills, agents, or roles under `ai/pi/`. Profiles list skills, agents, prompts, packages, and optional settings. They do not name a dest. See [[0005-pi-only-dest]] and [[0006-source-libraries-beside-pi-runtime]].
+The pack does not keep `ai/pi/extensions/` or `ai/pi/lib/`. It also does not keep prompts, skills, agents, or roles under `ai/pi/`. Profiles list skills, agents, prompts, packages, optional settings, and optional frameworks. They do not name a dest. See [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0015-hivemind-is-a-framework]], and [[0016-profiles-are-directories]].
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.
 

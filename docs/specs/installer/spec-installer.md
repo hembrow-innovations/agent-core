@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [spec]
 created_at: "2026-08-23"
-updated_at: "2026-08-30"
+updated_at: "2026-09-01"
 ---
 
 # Installer spec
@@ -23,15 +23,15 @@ The command is `pnpm exec agentic-core install <target>`.
 
 `parseArgs` in `packages/installer/src/cli.ts` accepts:
 
-- **`--profile`**: load `profiles/<name>.yaml`
+- **`--profile`**: load `profiles/<name>/profile.yaml`
 - **`--extension`**: first-party package. Repeatable.
 - **`--with`**: comma-separated skill folder names to add
 - **`--without`**: comma-separated skill folder names to drop
 - **`-h`, `--help`**: print usage
 
 `--extension` may repeat. A name outside `FIRST_PARTY_EXTENSIONS` dies with `Unknown extension`.
-A profile install also installs that profile's `packages` list.
-Dest is always `.pi/`.
+A profile install also installs that profile's `packages` list and optional `frameworks` list.
+Dest pack is always `.pi/`. Project-root `hivemind.yaml` is write-if-missing convention, not dest pack.
 
 The dest receives a first-party copy at `.pi/npm/local/@agentic-core/<name>`.
 Dest settings gain a dest-relative `npm/local/@agentic-core/<name>` source.
@@ -88,6 +88,8 @@ else if (a === "--without") out.without.push(...csv(need(args, a)));
 - **agents**: YAML only. Overlay when the key is not omit. No CLI add or remove.
 - **prompts**: YAML only. Overlay when the key is not omit. No CLI add or remove.
 - **packages**: `profile.packages` then CLI `--extension` names.
+- **frameworks**: `profile.frameworks`. Copy each `frameworks/<name>/` to `.pi/frameworks/<name>/` (`package.json` + non-test `src/`). Reinstall overwrites that tree. Not a settings `packages` entry.
+- **hivemind.yaml**: if `hivemind` is in `frameworks` and `profiles/<name>/hivemind.yaml` exists, copy to dest project-root `hivemind.yaml` only when that dest file is missing.
 - **settings**: optional untyped map from the profile. Missing or null is omit.
 
 Unknown agent or prompt ids fail in `resolveNamedIds` when the plan is built. Invalid package sources fail in `loadProfile`. Field rules are [[schema-profile]].
@@ -132,6 +134,8 @@ This checkout's Pi is not wired to `packages/`. Nothing vendors until the instal
 - The command accepts `<target>`, `--profile`, `--extension`, `--with`, and `--without`
 - `--extension` can be passed more than once
 - A profile install installs `profile.packages` into dest settings and copies first-party sources into dest npm
+- A profile `frameworks:` list copies those trees to `.pi/frameworks/<name>/` and does not merge them into settings `packages`
+- First install may write project-root `hivemind.yaml`; reinstall does not overwrite it
 - A profile can select `agents` and `prompts` from the source libraries
 - A profile `settings:` map deep-merges into dest `.pi/settings.json` after the packages union
 - An extensions-only run copies packages into dest npm and does not copy skills
