@@ -27,6 +27,9 @@ function readAll(files) {
 const STATUS_CHAIN =
   /draft[`']?\s*(?:→|->|\/)\s*[`']?ready[`']?\s*(?:→|->|\/)\s*[`']?claimed[`']?\s*(?:→|->|\/)\s*[`']?implemented[`']?\s*(?:→|->|\/)\s*[`']?completed/;
 
+const BUILDER_CLAIM_STOP =
+  /builder(?: skill)? claims and stops at [`']?implemented[`']? unless the invoked prompt is through-to-complete/i;
+
 const skillsDir = join(root, "ai", "skills", "heio-stack");
 if (existsSync(skillsDir)) {
   const skillsText = readAll(walkMarkdown(skillsDir));
@@ -40,6 +43,11 @@ if (existsSync(skillsDir)) {
   }
   if (!/planning or triage marks [`']?ready[`']?/i.test(skillsText)) {
     errors.push("heio-stack skills do not say planning or triage marks ready");
+  }
+  if (!BUILDER_CLAIM_STOP.test(skillsText)) {
+    errors.push(
+      "heio-stack skills do not say a builder claims and stops at implemented unless the invoked prompt is through-to-complete",
+    );
   }
 } else {
   errors.push("missing ai/skills/heio-stack");
@@ -62,6 +70,11 @@ for (const [name, path] of roleAgents) {
   if (!STATUS_CHAIN.test(text)) {
     errors.push(
       `${name} does not name draft, ready, claimed, implemented, completed`,
+    );
+  }
+  if (name === "heio-builder" && !BUILDER_CLAIM_STOP.test(text)) {
+    errors.push(
+      "heio-builder does not claim and stop at implemented unless the invoked prompt is through-to-complete",
     );
   }
 }

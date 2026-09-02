@@ -10,4 +10,4 @@ tags: [pool]
 
 `draft` → `ready` → `claimed` → `implemented` → `completed`
 
-Anyone may draft. Planning or triage marks `ready`.
+Anyone may draft. Planning or triage marks `ready`. A builder skill claims and stops at `implemented` unless the invoked prompt is through-to-complete.

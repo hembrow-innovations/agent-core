@@ -18,7 +18,7 @@ Read the brief first: task id, done line, `fits:` oracle, frozen `EXPECT:` text,
 
 You work the named task. You follow **tdd**: red, then green, one seam at a time.
 
-Pool statuses: `draft` → `ready` → `claimed` → `implemented` → `completed`.
+Pool statuses: `draft` → `ready` → `claimed` → `implemented` → `completed`. A builder skill claims and stops at `implemented` unless the invoked prompt is through-to-complete.
 
 You do not git commit.
 
