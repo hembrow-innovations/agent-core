@@ -126,6 +126,66 @@ if (poolText !== null) {
   }
 }
 
+const kindsPath = join(
+  root,
+  "ai",
+  "skills",
+  "heio-stack",
+  "heio-stack",
+  "rules",
+  "template-kinds.md",
+);
+
+if (existsSync(kindsPath)) {
+  const kinds = readFileSync(kindsPath, "utf8");
+  const existingMappings = [
+    "templates/intent.md",
+    "templates/roadmap.md",
+    "templates/location.md",
+    "templates/sprint-shape.md",
+    "templates/slice-spec.md",
+    "templates/slice-oracles.md",
+    "templates/slice-tasks.md",
+    "templates/ticket.md",
+    "templates/archive-index.md",
+  ];
+  for (const mapping of existingMappings) {
+    if (!kinds.includes(mapping)) {
+      errors.push(`template-kinds.md dropped existing kind mapping ${mapping}`);
+    }
+  }
+
+  const sliceLine = kinds
+    .split("\n")
+    .find((line) => line.includes("templates/slice.md"));
+  if (!sliceLine) {
+    errors.push(
+      "template-kinds.md does not point at the one-file slice template templates/slice.md",
+    );
+  } else if (!/s-<slug>\.md/.test(sliceLine)) {
+    errors.push(
+      "template-kinds.md does not map the one-file slice template to s-<slug>.md so new slices copy it",
+    );
+  }
+
+  const poolLine = kinds
+    .split("\n")
+    .find((line) => line.includes("templates/pool-task.md"));
+  if (!poolLine) {
+    errors.push(
+      "template-kinds.md does not point at the pool-task template templates/pool-task.md",
+    );
+  } else if (!poolLine.includes(".heio/pool/")) {
+    errors.push(
+      "template-kinds.md does not map the pool-task template to .heio/pool/",
+    );
+  }
+} else {
+  errors.push(
+    "missing ai/skills/heio-stack/heio-stack/rules/template-kinds.md",
+  );
+}
+
 if (errors.length) {
   console.error(errors.join("\n"));
   process.exit(1);
