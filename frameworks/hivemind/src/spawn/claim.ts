@@ -1,10 +1,5 @@
-import {
-  mkdirSync,
-  readFileSync,
-  rmdirSync,
-  writeFileSync,
-} from "node:fs";
-import { parseYaml, type YamlValue } from "./yaml.ts";
+import { mkdirSync, readFileSync, rmdirSync, writeFileSync } from "node:fs";
+import { parseYaml, type YamlValue } from "../yaml/yaml.ts";
 
 export type ClaimResult = { kind: "claimed" } | { kind: "skipped" };
 
@@ -23,10 +18,7 @@ export function claim(opts: {
     if (!Object.is(parsed.map.status, opts.triggerStatus)) {
       return { kind: "skipped" };
     }
-    writeFileSync(
-      opts.abs,
-      applyClaim(raw, opts.claimStatus, opts.runId),
-    );
+    writeFileSync(opts.abs, applyClaim(raw, opts.claimStatus, opts.runId));
     return { kind: "claimed" };
   } finally {
     rmdirSync(lockPath);
@@ -54,7 +46,12 @@ function isAlreadyExists(err: unknown): boolean {
 
 function applyClaim(raw: string, claimStatus: string, runId: string): string {
   const match = raw.match(/^(---\r?\n)([\s\S]*?)(\r?\n---(?:\r?\n|$))/);
-  if (match === null || match[1] === undefined || match[2] === undefined || match[3] === undefined) {
+  if (
+    match === null ||
+    match[1] === undefined ||
+    match[2] === undefined ||
+    match[3] === undefined
+  ) {
     return raw;
   }
   let front = match[2];
@@ -73,9 +70,7 @@ function upsertKey(front: string, key: string, value: string): string {
 
 function readFrontMatter(
   raw: string,
-):
-  | { kind: "ok"; map: Record<string, YamlValue> }
-  | { kind: "fault" } {
+): { kind: "ok"; map: Record<string, YamlValue> } | { kind: "fault" } {
   if (!raw.startsWith("---")) return { kind: "fault" };
   const afterOpen = raw.slice(3);
   const close = afterOpen.match(/\r?\n---(?:\r?\n|$)/);

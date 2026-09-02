@@ -1,6 +1,6 @@
-import type { Lane } from "./loadConfig.ts";
-import type { ScannedNote } from "./scan.ts";
-import type { YamlValue } from "./yaml.ts";
+import type { Lane } from "../config/loadConfig.ts";
+import type { ScannedNote } from "../scan/scan.ts";
+import type { YamlValue } from "../yaml/yaml.ts";
 
 export type Match = {
   lane: Lane;

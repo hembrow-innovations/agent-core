@@ -1,7 +1,7 @@
-import { ARCHIVE_KEYS } from "./schemaArchive.ts";
-import { PLANNING_KEYS } from "./schemaPlanning.ts";
-import { QUARANTINE_KEYS } from "./schemaQuarantine.ts";
-import { TICKET_KEYS } from "./schemaTicket.ts";
+import { ARCHIVE_KEYS } from "./archive.ts";
+import { PLANNING_KEYS } from "./planning.ts";
+import { QUARANTINE_KEYS } from "./quarantine.ts";
+import { TICKET_KEYS } from "./ticket.ts";
 
 export function namedAllowlist(name: string): ReadonlySet<string> {
   if (name === "ticket") return TICKET_KEYS;

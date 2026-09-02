@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { runOnce, type SpawnChild } from "./once.ts";
-import { runWatch } from "./watch.ts";
+import { runOnce } from "./loop/once.ts";
+import { runWatch } from "./loop/watch.ts";
+import type { SpawnChild } from "./loop/matches.ts";
 
 export type { SpawnChild };
 

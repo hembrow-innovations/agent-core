@@ -11,12 +11,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { loadConfig } from "./loadConfig.ts";
-import { matchNotes } from "./matcher.ts";
-import { spawnMatches } from "./once.ts";
-import { scan } from "./scan.ts";
+import { loadConfig } from "../config/loadConfig.ts";
+import { matchNotes } from "../match/matcher.ts";
+import { scan } from "../scan/scan.ts";
+import { spawnMatches } from "./matches.ts";
 
-const CLI = fileURLToPath(import.meta.url).replace(/once\.test\.ts$/, "cli.ts");
+const CLI = fileURLToPath(import.meta.url).replace(
+    /once\.test\.ts$/,
+    "../cli.ts",
+);
 
 type Proc = { status: number | null; stdout: string; stderr: string };
 

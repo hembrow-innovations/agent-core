@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "./loadConfig.ts";
 
-const REPO = join(dirname(fileURLToPath(import.meta.url)), "../../..");
+const REPO = join(dirname(fileURLToPath(import.meta.url)), "../../../..");
 
 test("loadConfig throws when hivemind.yaml is missing", () => {
   const cwd = mkdtempSync(join(tmpdir(), "hivemind-load-missing-"));

@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parseYaml, type YamlValue } from "./yaml.ts";
+import { parseYaml, type YamlValue } from "../yaml/yaml.ts";
 
 const CONFIG_KEYS = new Set([
   "concurrency",

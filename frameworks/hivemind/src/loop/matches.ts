@@ -1,13 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { claim } from "./claim.ts";
-import { interpolate } from "./interpolator.ts";
-import { loadConfig, type Lane } from "./loadConfig.ts";
-import { exclusiveSetsOverlap, matchNotes, type Match } from "./matcher.ts";
-import { scan } from "./scan.ts";
-import { spawnArgv } from "./spawner.ts";
-import { tokenize } from "./tokenizer.ts";
+import type { Lane } from "../config/loadConfig.ts";
+import { exclusiveSetsOverlap, type Match } from "../match/matcher.ts";
+import { claim } from "../spawn/claim.ts";
+import { interpolate } from "../spawn/interpolator.ts";
+import { spawnArgv } from "../spawn/spawner.ts";
+import { tokenize } from "../spawn/tokenizer.ts";
 
 export type SpawnChild = (argv: readonly string[]) => unknown;
 
@@ -18,31 +17,6 @@ export type LiveRun = {
   done: boolean;
   path: string;
 };
-
-export async function runOnce(opts: {
-  cwd: string;
-  spawnChild?: SpawnChild;
-  env?: NodeJS.ProcessEnv;
-}): Promise<void> {
-  const config = loadConfig(opts.cwd);
-  const lanes = config.lanes.filter(
-    (lane) => !config.disable.includes(lane.lane),
-  );
-  if (lanes.length === 0) return;
-  const { notes } = scan({ cwd: opts.cwd, config });
-  const matches = matchNotes({ lanes, notes, disable: config.disable });
-  const env = opts.env ?? process.env;
-  const live: LiveRun[] = [];
-  spawnMatches({
-    cwd: opts.cwd,
-    concurrency: config.concurrency,
-    matches,
-    env,
-    spawnChild: opts.spawnChild,
-    live,
-  });
-  await Promise.all(live.map((run) => run.wait));
-}
 
 export function spawnMatches(opts: {
   cwd: string;

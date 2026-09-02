@@ -1,9 +1,9 @@
 import { existsSync, watch, type FSWatcher } from "node:fs";
 import { dirname, isAbsolute, join } from "node:path";
-import { loadConfig, type Lane } from "./loadConfig.ts";
-import { matchNotes } from "./matcher.ts";
-import { spawnMatches, type LiveRun, type SpawnChild } from "./once.ts";
-import { scan } from "./scan.ts";
+import { loadConfig, type Lane } from "../config/loadConfig.ts";
+import { matchNotes } from "../match/matcher.ts";
+import { scan } from "../scan/scan.ts";
+import { spawnMatches, type LiveRun, type SpawnChild } from "./matches.ts";
 
 export async function runWatch(opts: {
   cwd: string;

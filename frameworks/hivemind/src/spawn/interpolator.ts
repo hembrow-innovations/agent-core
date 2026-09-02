@@ -1,4 +1,4 @@
-import type { Lane } from "./loadConfig.ts";
+import type { Lane } from "../config/loadConfig.ts";
 
 export type InterpolateResult =
   | { kind: "ok"; value: string }
@@ -11,20 +11,23 @@ export function interpolate(opts: {
   env: NodeJS.ProcessEnv;
 }): InterpolateResult {
   let skip = false;
-  const value = opts.template.replace(/\{\{([^}]*)\}\}/g, (_full, name: string) => {
-    if (skip) return "";
-    const resolved = resolvePlaceholder({
-      name,
-      cwd: opts.cwd,
-      lane: opts.lane,
-      env: opts.env,
-    });
-    if (resolved.kind === "skip") {
-      skip = true;
-      return "";
-    }
-    return resolved.value;
-  });
+  const value = opts.template.replace(
+    /\{\{([^}]*)\}\}/g,
+    (_full, name: string) => {
+      if (skip) return "";
+      const resolved = resolvePlaceholder({
+        name,
+        cwd: opts.cwd,
+        lane: opts.lane,
+        env: opts.env,
+      });
+      if (resolved.kind === "skip") {
+        skip = true;
+        return "";
+      }
+      return resolved.value;
+    },
+  );
   if (skip) return { kind: "skip" };
   if (value.includes("{{")) return { kind: "skip" };
   return { kind: "ok", value };

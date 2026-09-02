@@ -1,16 +1,9 @@
-import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  renameSync,
-  writeFileSync,
-  type Dirent,
-} from "node:fs";
-import { basename, join, relative, sep } from "node:path";
-import { loadConfig, type HivemindConfig } from "./loadConfig.ts";
-import { namedAllowlist } from "./namedSchema.ts";
-import { parseYaml, type YamlValue } from "./yaml.ts";
+import { existsSync, readdirSync, readFileSync, type Dirent } from "node:fs";
+import { join, relative, sep } from "node:path";
+import { loadConfig, type HivemindConfig } from "../config/loadConfig.ts";
+import { quarantineFile } from "../quarantine/write.ts";
+import { namedAllowlist } from "../schema/named.ts";
+import { parseYaml, type YamlValue } from "../yaml/yaml.ts";
 
 export type ScannedNote = {
   path: string;
@@ -218,22 +211,6 @@ function sortDirents(ents: Dirent[]): Dirent[] {
 
 function normalizePrefix(path: string): string {
   return path.replaceAll("\\", "/").replace(/\/+$/, "");
-}
-
-function quarantineFile(opts: {
-  abs: string;
-  destDir: string;
-  origin: string;
-  fault: string;
-  at: string;
-}): void {
-  mkdirSync(opts.destDir, { recursive: true });
-  const dest = join(opts.destDir, basename(opts.abs));
-  renameSync(opts.abs, dest);
-  writeFileSync(
-    dest,
-    `---\norigin-location: ${opts.origin}\nquarantined-at: ${opts.at}\nfault: ${opts.fault}\n---\n`,
-  );
 }
 
 function projectRel(cwd: string, abs: string): string {

@@ -14,7 +14,7 @@ import { fileURLToPath } from "node:url";
 
 const CLI = fileURLToPath(import.meta.url).replace(
   /watch\.test\.ts$/,
-  "cli.ts",
+  "../cli.ts",
 );
 
 function setupEmptyProject(): string {
