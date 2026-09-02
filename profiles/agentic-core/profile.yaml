@@ -12,6 +12,8 @@ packages:
   - local:@agentic-core/heio-footer
   - local:@agentic-core/heio-coord
   - local:@agentic-core/heio-onic
+frameworks:
+  - hivemind
 settings:
   toolDescriptionMode: compact
   defaultTools:

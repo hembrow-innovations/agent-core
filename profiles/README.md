@@ -1,6 +1,6 @@
 # Profiles
 
-`pnpm exec agentic-core install <target> --profile NAME` loads `profiles/NAME.yaml`. Dest is always `.pi/`.
+`pnpm exec agentic-core install <target> --profile NAME` loads `profiles/NAME/profile.yaml`. Dest is always `.pi/`.
 
 Field rules, leftover keys, and the YAML subset live in `docs/api/schema/schema-profile.md`.
 

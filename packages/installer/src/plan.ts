@@ -21,6 +21,7 @@ export type InstallRequest = {
 export type AvailableIds = {
   agents: string[];
   prompts: string[];
+  frameworks: string[];
 };
 
 export type InstallPlan = {
@@ -31,6 +32,7 @@ export type InstallPlan = {
   overlayPrompts: boolean;
   packages: ProfilePackage[];
   settings: Record<string, unknown> | null;
+  frameworks: string[];
 };
 
 const NO_SELECTION_OPTS: SelectionResolveOpts = {
@@ -84,5 +86,22 @@ export function planFromProfile(
     overlayPrompts: profile.prompts.kind !== "omit",
     packages: resolvePackages(profile.packages, opts.extensions),
     settings: profile.settings,
+    frameworks: resolveFrameworks(profile.frameworks, available.frameworks),
   };
+}
+
+function resolveFrameworks(
+  names: readonly string[],
+  available: readonly string[],
+): string[] {
+  const avail = new Set(available);
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const name of names) {
+    if (seen.has(name)) continue;
+    seen.add(name);
+    if (!avail.has(name)) throw new Error(`Unknown framework "${name}"`);
+    out.push(name);
+  }
+  return out;
 }

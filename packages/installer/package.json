@@ -6,7 +6,7 @@
     "agentic-core": "./src/cli.ts"
   },
   "scripts": {
-    "test": "node --test src/cli.test.ts",
+    "test": "node --test src/cli.test.ts src/profile.test.ts src/frameworks.test.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   }
 }

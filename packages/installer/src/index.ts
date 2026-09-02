@@ -49,6 +49,7 @@ export {
   installPrompts,
   writePrompts,
 } from "./prompts.ts";
+export { listFrameworks, writeFrameworks } from "./frameworks.ts";
 export {
   listProfiles,
   loadProfile,

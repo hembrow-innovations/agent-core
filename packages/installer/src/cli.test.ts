@@ -565,13 +565,14 @@ test("parseProfilePackage and loadProfile reject vendor: and vendor/ sources", (
   );
 
   const srcRoot = mkdtempSync(join(tmpdir(), "installer-vendor-src-"));
-  mkdirSync(join(srcRoot, "profiles"));
+  mkdirSync(join(srcRoot, "profiles", "vendor-colon"), { recursive: true });
+  mkdirSync(join(srcRoot, "profiles", "vendor-slash"), { recursive: true });
   writeFileSync(
-    join(srcRoot, "profiles", "vendor-colon.yaml"),
+    join(srcRoot, "profiles", "vendor-colon", "profile.yaml"),
     "packages:\n  - vendor:@agentic-core/heio-todo\n",
   );
   writeFileSync(
-    join(srcRoot, "profiles", "vendor-slash.yaml"),
+    join(srcRoot, "profiles", "vendor-slash", "profile.yaml"),
     "packages:\n  - vendor/@agentic-core/heio-todo\n",
   );
   assert.throws(
@@ -606,13 +607,41 @@ test("parseProfilePackage and loadProfile reject unknown local names", () => {
   );
 
   const srcRoot = mkdtempSync(join(tmpdir(), "installer-profile-"));
-  mkdirSync(join(srcRoot, "profiles"));
+  mkdirSync(join(srcRoot, "profiles", "bad"), { recursive: true });
   writeFileSync(
-    join(srcRoot, "profiles", "bad.yaml"),
+    join(srcRoot, "profiles", "bad", "profile.yaml"),
     "packages:\n  - local:@agentic-core/not-a-package\n",
   );
   assert.throws(
     () => loadProfile(srcRoot, "bad"),
     /Unknown extension: not-a-package/,
+  );
+});
+
+test("agentic-core lists frameworks hivemind", () => {
+  assert.deepEqual(loadProfile(REPO, "agentic-core").frameworks, ["hivemind"]);
+});
+
+test("install --profile agentic-core copies hivemind.yaml once and keeps dest edits", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-hivemind-yaml-"));
+  const first = runCli(["install", dest, "--profile", "agentic-core"]);
+  assert.equal(first.status, 0, first.stderr || first.stdout);
+
+  const template = readFileSync(
+    join(REPO, "profiles", "agentic-core", "hivemind.yaml"),
+    "utf8",
+  );
+  assert.equal(readFileSync(join(dest, "hivemind.yaml"), "utf8"), template);
+  assert.equal(
+    existsSync(join(dest, ".pi", "frameworks", "hivemind", "package.json")),
+    true,
+  );
+
+  writeFileSync(join(dest, "hivemind.yaml"), "lanes: [edited]\n");
+  const second = runCli(["install", dest, "--profile", "agentic-core"]);
+  assert.equal(second.status, 0, second.stderr || second.stdout);
+  assert.equal(
+    readFileSync(join(dest, "hivemind.yaml"), "utf8"),
+    "lanes: [edited]\n",
   );
 });

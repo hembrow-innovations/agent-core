@@ -159,6 +159,7 @@ test("loadProfile: defaults omit settings", () => {
 		prompts: { kind: "omit" },
 		packages: [],
 		settings: null,
+		frameworks: [],
 	});
 });
 
@@ -283,11 +284,12 @@ test("loadProfile: settings is an untyped map", () => {
 	assert.throws(() => loadProfile(root, "list"), /"settings" must be a map/);
 });
 
-test("listProfiles skips README", () => {
+test("listProfiles sees directory stems and ignores leftover flat yaml", () => {
 	const root = tempRoot();
 	writeYaml(root, "core", "skills: []\n");
 	writeYaml(root, "web", "skills: []\n");
 	writeFileSync(join(root, "profiles", "README.md"), "hi\n");
+	writeFileSync(join(root, "profiles", "foo.yaml"), "skills: []\n");
 	assert.deepEqual(listProfiles(root), ["core", "web"]);
 });
 
@@ -833,6 +835,31 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 	assert.equal(existsSync(join(dest, ".heio")), false);
 });
 
+test("agentic-core hivemind.yaml is a full heio-stack template", () => {
+	const yaml = readFileSync(
+		join(REPO, "profiles", "agentic-core", "hivemind.yaml"),
+		"utf8",
+	);
+	assert.match(yaml, /\.heio\/tickets/);
+	assert.match(yaml, /\.heio\/planning/);
+	assert.match(yaml, /\.heio\/archive/);
+	assert.match(yaml, /\.heio\/quarantine/);
+	assert.match(yaml, /sealed/i);
+	assert.match(yaml, /\bready\b/);
+	assert.match(yaml, /lane:\s*plan\b/);
+	assert.match(yaml, /lane:\s*tasker\b/);
+	assert.match(yaml, /lane:\s*build\b/);
+	assert.match(yaml, /lane:\s*review\b/);
+	assert.match(yaml, /claim-status:/);
+	assert.match(yaml, /mint-status:\s*ready-for-human/);
+	assert.match(yaml, /\{\{agent\}\}/);
+	assert.match(yaml, /\{\{prompt\}\}/);
+	const mintLane = /lane:\s*mint\b/.test(yaml);
+	const mintDisabled = /(?:^|\n)disable:[\s\S]*\bmint\b/.test(yaml);
+	assert.equal(mintLane && !mintDisabled, false);
+	assert.deepEqual(loadProfile(REPO, "agentic-core").frameworks, ["hivemind"]);
+});
+
 test("install --profile agentic-core writes .pi only", () => {
 	const dest = mkdtempSync(join(tmpdir(), "install-agentic-core-"));
 	const r = spawnSync(
@@ -987,6 +1014,17 @@ test("ported life-engine skills keep the management/docs split", () => {
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 });
 
+test("hivemind layout keeps profile dirs and frameworks dest", () => {
+	const r = spawnSync(
+		process.execPath,
+		[join(REPO, "tests", "checks", "check-hivemind-layout.mjs")],
+		{
+			encoding: "utf8",
+		},
+	);
+	assert.equal(r.status, 0, r.stderr || r.stdout);
+});
+
 test("root npm scripts call one scripts mjs file each", () => {
 	const pkg = JSON.parse(readFileSync(join(REPO, "package.json"), "utf8"));
 	for (const [name, value] of Object.entries(pkg.scripts)) {
@@ -1029,6 +1067,10 @@ test("scripts root holds npm entrypoints only", () => {
 	);
 	assert.equal(
 		existsSync(join(REPO, "tests", "checks", "check-ported-skills.mjs")),
+		true,
+	);
+	assert.equal(
+		existsSync(join(REPO, "tests", "checks", "check-hivemind-layout.mjs")),
 		true,
 	);
 	assert.equal(existsSync(join(REPO, "tests", "lib", "profile.mjs")), true);
@@ -1130,7 +1172,9 @@ function tempRoot() {
 }
 
 function writeYaml(root, name, body) {
-	writeFileSync(join(root, "profiles", `${name}.yaml`), body);
+	const dir = join(root, "profiles", name);
+	mkdirSync(dir, { recursive: true });
+	writeFileSync(join(dir, "profile.yaml"), body);
 }
 
 function snapshotInstall(dest) {

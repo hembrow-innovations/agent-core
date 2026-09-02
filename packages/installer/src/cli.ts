@@ -13,6 +13,7 @@ import {
 } from "./extensions.ts";
 import { planFromProfile, type InstallRequest } from "./plan.ts";
 import { listAgentIds, writeAgents } from "./agents.ts";
+import { listFrameworks, writeFrameworks } from "./frameworks.ts";
 import { listProfiles, loadProfile } from "./profile.ts";
 import { listPromptIds, writePrompts } from "./prompts.ts";
 import { writeRuntime } from "./runtime.ts";
@@ -38,7 +39,7 @@ Options:
   --without <skills>       comma-separated skills to remove
   -h, --help               Show help
 
-Profiles (profiles/*.yaml):
+Profiles (profiles/<name>/profile.yaml):
   ${listed}
 
 Dest is always .pi/. Agents, prompts, packages, and settings are selected in the YAML.
@@ -165,6 +166,7 @@ function run(argv: string[]): void {
     plan = planFromProfile(profile, opts, {
       agents: listAgentIds(srcRoot),
       prompts: listPromptIds(srcRoot),
+      frameworks: listFrameworks(srcRoot),
     });
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));
@@ -200,6 +202,14 @@ function run(argv: string[]): void {
     }
     if (plan.settings) {
       dest.mergeSettings(plan.settings);
+    }
+    if (plan.frameworks.length > 0) {
+      writeFrameworks({
+        srcRoot,
+        dest,
+        profileName,
+        names: plan.frameworks,
+      });
     }
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));

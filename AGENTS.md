@@ -51,6 +51,6 @@ pnpm run typecheck
 
 ## Pi
 
-The local profile is `profiles/agentic-core.yaml`. It is the skill list for developing this pack, not an export profile. It also installs the heio-stack skills so this checkout can run the loop.
+The local profile is `profiles/agentic-core/profile.yaml`. It is the skill list for developing this pack, not an export profile. It also installs the heio-stack skills so this checkout can run the loop.
 
 Run `pi` in this directory. Trust the folder.

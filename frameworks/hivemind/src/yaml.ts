@@ -1,45 +1,3 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import { parseProfilePackage, type ProfilePackage } from "./extensions.ts";
-
-export type NamedSelection =
-  | { kind: "all" }
-  | { kind: "list"; ids: string[] }
-  | { kind: "omit" };
-
-export type PlaybookSelection = NamedSelection;
-
-export type Profile = {
-  name: string;
-  skills: string[];
-  agents: NamedSelection;
-  prompts: NamedSelection;
-  packages: ProfilePackage[];
-  settings: Record<string, unknown> | null;
-  frameworks: string[];
-};
-
-const PROFILE_KEYS = new Set([
-  "skills",
-  "agents",
-  "prompts",
-  "packages",
-  "settings",
-  "frameworks",
-]);
-
-const LEFTOVER_KEYS = new Map([
-  ["mode", 'leftover "mode:". dest playbooks live at .pi/playbooks'],
-  ["playbooks", 'leftover "playbooks:". the installer does not copy playbooks'],
-  ["harness", 'leftover "harness:". dest is always .pi'],
-  ["pi", 'leftover "pi:". dest is always .pi'],
-  ["extensions", 'leftover "extensions:". use packages:'],
-  ["templates", 'leftover "templates:". dest is always .pi'],
-  ["commands", 'leftover "commands:". dest is always .pi'],
-]);
-
-const JSON_NUMBER = /^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?$/;
-
 export type YamlScalar = string | number | boolean | null;
 type YamlMap = { [key: string]: YamlValue };
 export type YamlValue = YamlScalar | YamlValue[] | YamlMap;
@@ -52,7 +10,9 @@ type YamlTok = {
   inline: string;
 };
 
-export function parseProfileYaml(text: string): Record<string, YamlValue> {
+const JSON_NUMBER = /^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?$/;
+
+export function parseYaml(text: string): Record<string, YamlValue> {
   const toks = tokenizeYaml(text);
   if (toks.length === 0) return {};
   if (toks[0].indent !== 0) {
@@ -63,103 +23,6 @@ export function parseProfileYaml(text: string): Record<string, YamlValue> {
     throw new Error(`Cannot parse YAML: ${toks[parsed.next].raw}`);
   }
   return parsed.value;
-}
-
-export function loadProfile(srcRoot: string, name: string): Profile {
-  const file = join(srcRoot, "profiles", name, "profile.yaml");
-  if (!existsSync(file)) {
-    const available = listProfiles(srcRoot);
-    const listed = available.length ? available.join(", ") : "(none)";
-    throw new Error(`Unknown profile "${name}". Choose: ${listed}`);
-  }
-  const raw = parseProfileYaml(readFileSync(file, "utf8"));
-  for (const key of Object.keys(raw)) {
-    const leftover = LEFTOVER_KEYS.get(key);
-    if (leftover) throw new Error(`Profile "${name}" has ${leftover}`);
-    if (!PROFILE_KEYS.has(key)) {
-      throw new Error(`Unknown profile key "${key}"`);
-    }
-  }
-  return {
-    name,
-    skills: asStringList(raw.skills, "skills"),
-    agents: toSelection(raw.agents, "agents"),
-    prompts: toSelection(raw.prompts, "prompts"),
-    packages: asStringList(raw.packages, "packages").map(parseProfilePackage),
-    settings: asSettings(raw.settings),
-    frameworks: asStringList(raw.frameworks, "frameworks"),
-  };
-}
-
-export function listProfiles(srcRoot: string): string[] {
-  const dir = join(srcRoot, "profiles");
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir, { withFileTypes: true })
-    .filter(
-      (ent) =>
-        ent.isDirectory() &&
-        !ent.name.startsWith(".") &&
-        existsSync(join(dir, ent.name, "profile.yaml")),
-    )
-    .map((ent) => ent.name)
-    .sort();
-}
-
-export type SelectionResolveOpts = {
-  replace: string[] | null;
-  add: string[];
-  remove: string[];
-};
-
-export function resolveNamedIds(
-  selection: NamedSelection,
-  opts: SelectionResolveOpts,
-  available: string[],
-  label: string,
-): string[] {
-  const avail = new Set(available);
-  let ids: string[];
-  if (opts.replace != null) ids = [...opts.replace];
-  else if (selection.kind === "all") ids = [...available];
-  else if (selection.kind === "list") ids = [...selection.ids];
-  else ids = [];
-  ids.push(...opts.add);
-  if (opts.remove.length > 0) {
-    const drop = new Set(opts.remove);
-    ids = ids.filter((id) => !drop.has(id));
-  }
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const id of ids) {
-    if (seen.has(id)) continue;
-    seen.add(id);
-    if (!avail.has(id)) throw new Error(`Unknown ${label} "${id}"`);
-    out.push(id);
-  }
-  return out;
-}
-
-function toSelection(value: unknown, key: string): NamedSelection {
-  if (value === undefined || value === null) return { kind: "omit" };
-  if (value === "all") return { kind: "all" };
-  if (Array.isArray(value)) return { kind: "list", ids: value.map(String) };
-  throw new Error(`Invalid ${key} value: ${JSON.stringify(value)}`);
-}
-
-function asStringList(value: unknown, key: string): string[] {
-  if (value === undefined || value === null) return [];
-  if (!Array.isArray(value)) throw new Error(`"${key}" must be a list`);
-  return value.map(String);
-}
-
-function asSettings(value: unknown): Record<string, unknown> | null {
-  if (value === undefined || value === null) return null;
-  if (!isYamlMap(value)) throw new Error(`"settings" must be a map`);
-  return value;
-}
-
-function isYamlMap(value: unknown): value is YamlMap {
-  return value != null && typeof value === "object" && !Array.isArray(value);
 }
 
 function tokenizeYaml(text: string): YamlTok[] {
@@ -373,7 +236,7 @@ function parseScalar(s: string, raw: string): YamlValue {
   return unquote(s);
 }
 
-export function unquote(s: string): string {
+function unquote(s: string): string {
   if (s.length >= 2 && s.startsWith('"') && s.endsWith('"')) {
     return s.slice(1, -1).replace(/\\"/g, '"').replace(/\\n/g, "\n");
   }
