@@ -1,5 +1,25 @@
-agents: all
-prompts: all
+agents:
+  - heio-builder
+  - heio-tasker
+  - heio-triage
+  - heio-verifier
+prompts:
+  - afk-loop
+  - arena
+  - automate-me
+  - blast-radius
+  - bro
+  - create-progressive-skill
+  - figure-it-out
+  - heio-planning
+  - heio-slice
+  - heio-wayfinder
+  - maintain-verification-skill
+  - planning-arena
+  - swarm
+  - teach
+  - technical-writing
+  - verify-issue
 packages:
   - npm:pi-lens
   - npm:pi-web-access

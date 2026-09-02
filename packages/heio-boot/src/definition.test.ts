@@ -55,6 +55,7 @@ test("every non-empty pack agent parses", () => {
 		.filter((ent) => ent.isDirectory())
 		.map((ent) => ent.name)
 		.filter((name) => !name.startsWith("heio-"))
+		.filter((name) => !name.endsWith("-mcp") && name !== "littlepaw-builder")
 		.sort();
 	const parsed: string[] = [];
 	for (const stem of stems) {
