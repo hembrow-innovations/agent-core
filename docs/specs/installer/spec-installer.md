@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [spec]
 created_at: "2026-08-23"
-updated_at: "2026-09-01"
+updated_at: "2026-09-02"
 ---
 
 # Installer spec
@@ -91,14 +91,15 @@ else if (a === "--without") out.without.push(...csv(need(args, a)));
 - **frameworks**: `profile.frameworks`. Copy each `frameworks/<name>/` to `.pi/frameworks/<name>/` (`package.json` + non-test `src/`). Reinstall overwrites that tree. Not a settings `packages` entry.
 - **hivemind.yaml**: if `hivemind` is in `frameworks` and `profiles/<name>/hivemind.yaml` exists, copy to dest project-root `hivemind.yaml` only when that dest file is missing.
 - **settings**: optional untyped map from the profile. Missing or null is omit.
+- **system-prompt**: YAML only. Optional stem. No CLI add or remove. Unknown or missing `ai/pi/<stem>.md` fails in `planFromProfile` when the plan is built.
 
-Unknown agent or prompt ids fail in `resolveNamedIds` when the plan is built. Invalid package sources fail in `loadProfile`. Field rules are [[schema-profile]].
+Unknown agent or prompt ids fail in `resolveNamedIds` when the plan is built. Unknown `system-prompt` stems fail in `planFromProfile` when the plan is built. Invalid package sources fail in `loadProfile`. Field rules are [[schema-profile]].
 
 ### Dest writes
 
 Selected skills copy from `ai/skills/` to `.pi/skills/<name>/`. `findSkillDir` walks with `walkSkillDirs`. A missing name fails with `Skill not found in source`. Overlay agents write `.pi/agents/<id>.md`. Overlay prompts write `.pi/prompts/<id>.md`. Each overlay updates listed ids. Extra dest markdown of that kind stays. Extra dest skill dirs, extra dest playbooks, and extra settings keys stay, except parked leftovers. Install does not write `.pi/playbooks/`.
 
-Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md` and `ai/pi/heio-models.md`. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, `.pi/roles`, installer-owned `.pi/vendor/@agentic-core`, parked dest copies of `heio-coms` and `heio-teams`, and `.pi/skills/agent-teams`. Other dest extras stay. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. It writes `.pi/heio-models.md` only when missing. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing.
+Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md`. It does not require or write `heio-models.md`. An existing dest `.pi/heio-models.md` stays. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, `.pi/roles`, installer-owned `.pi/vendor/@agentic-core`, parked dest copies of `heio-coms` and `heio-teams`, and `.pi/skills/agent-teams`. Other dest extras stay. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. The body is `ai/pi/<stem>.md` when the profile sets `system-prompt: <stem>`, else `ai/pi/APPEND_SYSTEM.md`. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing.
 
 `ai/pi/packages.json` is not merged on install.
 
@@ -137,6 +138,8 @@ This checkout's Pi is not wired to `packages/`. Nothing vendors until the instal
 - A profile `frameworks:` list copies those trees to `.pi/frameworks/<name>/` and does not merge them into settings `packages`
 - First install may write project-root `hivemind.yaml`; reinstall does not overwrite it
 - A profile can select `agents` and `prompts` from the source libraries
+- A profile `system-prompt:` stem copies `ai/pi/<stem>.md` to dest `.pi/APPEND_SYSTEM.md` when dest is missing or a known legacy stub; omit the key and install still copies `ai/pi/APPEND_SYSTEM.md`
+- Install does not require or write `heio-models.md`; an existing dest `.pi/heio-models.md` stays
 - A profile `settings:` map deep-merges into dest `.pi/settings.json` after the packages union
 - An extensions-only run copies packages into dest npm and does not copy skills
 - First-party path is `.pi/npm/local/@agentic-core/<name>`

@@ -8,7 +8,7 @@ area: installer
 tags: [schema, installer, profiles]
 source: "packages/installer/src/profile.ts"
 created_at: "2026-08-25"
-updated_at: "2026-09-01"
+updated_at: "2026-09-02"
 ---
 
 # Profile YAML schema
@@ -19,7 +19,7 @@ A profile is a named install set. `--profile <name>` loads `profiles/<name>/prof
 
 ## Fields
 
-Allowed keys are `skills`, `agents`, `prompts`, `packages`, `settings`, and `frameworks`. All six are optional. `PROFILE_KEYS` is that set.
+Allowed keys are `skills`, `agents`, `prompts`, `packages`, `settings`, `frameworks`, and `system-prompt`. All seven are optional. `PROFILE_KEYS` is that set.
 
 - **skills.** String list of skill folder names. Missing or `null` becomes `[]`. A present non-list is an error. Each name must be a directory under `ai/skills/` that holds `SKILL.md`. `findSkillDir` walks with `walkSkillDirs` from `pack-walk.ts`. If two directories share a basename, install prefers `ai/skills/workflow/`, then `ai/skills/setup/`, then the first walk hit. Install copies each name to `.pi/skills/<name>/`. A typo parses. Copy then fails with `Skill not found in source`. CLI `--with` and `--without` change the planned list. That overlay is [[spec-installer]].
 
@@ -32,6 +32,8 @@ Allowed keys are `skills`, `agents`, `prompts`, `packages`, `settings`, and `fra
 - **settings.** Untyped map merged into dest `.pi/settings.json`. Missing or `null` is omit. A present non-map is `"settings" must be a map`. There is no key allowlist. Unknown keys are not rejected. `settings.packages` is not a load error. `packages:` stays a sibling and keeps the package-source union. Install merges `packages:` first, then deep-merges `settings:`. Dest keys the profile does not name stay. Objects merge recursively. Profile wins scalar leaf conflicts and type mismatches. Arrays merge as sets. Dest order stays. Profile items append when not already present. Duplicates drop. Scalar equality is value equality. Nested array values compare with `JSON.stringify`.
 
 - **frameworks.** String list of framework folder names under `frameworks/`. Missing or `null` becomes `[]`. A present non-list is an error. Each name must be a directory under `frameworks/<name>/` that holds `package.json`. Unknown names fail at plan time. Install copies `package.json` and non-test `src/` to `.pi/frameworks/<name>/`. Reinstall overwrites that tree. Frameworks are not Pi packages and do not enter `.pi/settings.json` `packages`. If `hivemind` is listed and `profiles/<name>/hivemind.yaml` exists, install copies that file to dest project-root `hivemind.yaml` **only when missing**. Reinstall never overwrites the dest yaml. Runtime of Hivemind fail-closes without that file. See [[0015-hivemind-is-a-framework]] and [[schema-hivemind]].
+
+- **system-prompt.** Optional string stem. Missing or `null` omits the field. A present non-string is `"system-prompt" must be a string`. The stem names `ai/pi/<stem>.md`. Unknown or missing stems fail at plan time, not at parse. Install copies that markdown to dest `.pi/APPEND_SYSTEM.md` with the same write-if-missing / legacy-stub replace as today. Omit the key and install still copies `ai/pi/APPEND_SYSTEM.md`. Dest filename stays `.pi/APPEND_SYSTEM.md`. See [[spec-installer]].
 
 ```ts
 // packages/installer/src/profile.ts — loadProfile leftover keys
@@ -55,7 +57,7 @@ Unknown keys fail. These leftovers have their own messages because they used to 
 
 `listProfiles` reads `profiles/*/profile.yaml`, ignores names that start with `.`, and sorts the directory stems. A leftover flat `profiles/<name>.yaml` is not a profile. A missing directory or missing `profile.yaml` is `Unknown profile "<name>". Choose: ...`.
 
-Unknown agent or prompt ids fail when the plan is built, not at parse. Invalid package sources fail at load.
+Unknown agent or prompt ids fail when the plan is built, not at parse. Unknown `system-prompt` stems fail when the plan is built, not at parse. Invalid package sources fail at load.
 
 Profile `packages` is the install list. `readPiPackages` can read `ai/pi/packages.json`. `writeRuntime` does not merge that file.
 
