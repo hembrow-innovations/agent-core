@@ -4,6 +4,7 @@
 # ready-for-agent vs ready-for-human. Mint omitted. Doctor not shipped.
 # cmd is pi --print so watch does not open a TUI.
 concurrency: 1
+history: .heio/logs/hivemind.tsv
 folders:
   - path: .heio/tickets
     schema: ticket

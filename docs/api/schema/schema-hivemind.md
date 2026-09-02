@@ -8,7 +8,7 @@ area: api
 tags: [schema, hivemind]
 source: "hivemind.yaml"
 created_at: "2026-09-01"
-updated_at: "2026-09-01"
+updated_at: "2026-09-02"
 ---
 
 # Hivemind YAML schema
@@ -18,6 +18,8 @@ Runtime reads **project-root `hivemind.yaml` only**. Missing file is fatal. Unkn
 ## Fields
 
 - **`concurrency`**: optional non-negative integer. Max live children. Default `1`. `0` is illegal.
+
+- **`history`**: optional project-relative path. Append-only TSV of supervisor actions (`scan`, `quarantine`, `skip`, `claim`, `spawn`, `exit`). Absent → no file. Events still print one line each to stderr. Values from `{{env.NAME}}` are never written.
 
 - **`watch`**: optional list of project-relative globs or directories the supervisor may scan. If omitted, the engine scans every `folders` path. Discovery is this list, not “AI finds files.”
 
@@ -61,6 +63,7 @@ Placeholders in `cmd` (double braces only):
 
 ```yaml
 concurrency: 2
+history: .heio/logs/hivemind.tsv
 folders:
   - path: .heio/tickets
     schema: ticket

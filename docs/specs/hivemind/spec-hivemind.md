@@ -8,7 +8,7 @@ domain: hivemind
 area: hivemind
 tags: [spec]
 created_at: "2026-09-01"
-updated_at: "2026-09-01"
+updated_at: "2026-09-02"
 ---
 
 # Hivemind spec
@@ -87,6 +87,10 @@ Generate `run-id`. CAS claim. Interpolate. `exec`. Wait. Child exit does not by 
 
 `watch` then sleeps until an fs event or backoff. `once` waits for the children from this scan and exits.
 
+### Journal
+
+Each supervisor action prints one `hivemind …` line to stderr. Child stdio stays inherited. Optional `history` appends the same actions as TSV (`ts`, `action`, `lane`, `path`, `run_id`, `detail`). Actions: `scan`, `quarantine`, `skip`, `claim`, `spawn`, `exit`. Skip reasons are machine tokens (`cmd-skip`, `missing-prompt`, `claim-race`, `exclusive`, `concurrency`, `live`). Interpolated argv and env values are never logged.
+
 ### Heio-stack template (not core)
 
 The profile template may describe this loop. Core does not hardcode the nouns.
@@ -119,6 +123,8 @@ The profile template may describe this loop. Core does not hardcode the nouns.
 - Two `once` processes cannot both CAS-claim the same file
 - Faulty front matter lands in quarantine with only `origin-location`, `quarantined-at`, `fault`
 - `{{env.SECRET}}` with unset SECRET does not spawn and does not print the name’s value as a secret dump
+- `once` prints `hivemind scan|claim|spawn|exit` lines to stderr for a matching file
+- `history` path receives those actions as TSV; absent `history` writes no file
 - `cmd` with metacharacters in an interpolated path does not invoke a shell
 - Reinstall of the framework tree does not change dest `hivemind.yaml`
 - Supervisor does not write `caused-by` or intent files

@@ -8,7 +8,7 @@ domain: hivemind
 area: hivemind
 tags: [purpose]
 created_at: "2026-09-01"
-updated_at: "2026-09-01"
+updated_at: "2026-09-02"
 ---
 
 # Hivemind purpose
@@ -24,6 +24,7 @@ Let a dest project walk away from a trusted folder and still make progress: a pr
 - `watch` and `once` process models
 - Front-matter parse, per-folder schema, fail-closed quarantine
 - Lane match, CAS claim, cmd-template spawn, backoff
+- Supervisor event lines on stderr and optional TSV history
 - A heio-stack template the user may copy and edit
 
 ## Out of scope

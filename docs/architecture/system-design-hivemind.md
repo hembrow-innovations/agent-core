@@ -8,7 +8,7 @@ domain: hivemind
 area: architecture
 tags: [hivemind]
 created_at: "2026-09-01"
-updated_at: "2026-09-01"
+updated_at: "2026-09-02"
 ---
 
 # Hivemind system design
@@ -32,6 +32,10 @@ Bin name `hivemind`. Commands `watch` and `once`. Flags `--until-quiet` and `--u
 Reads project-root `hivemind.yaml`. Fail-closed on missing file, parse error, or unknown keys. No merge with a default pack. No `hivemind.local.yaml`. No vault.
 
 The heio-stack **template** lives at `profiles/<name>/hivemind.yaml` and is copied once at install. After that the dest file is the contract.
+
+### Journal
+
+A small `record` interface. Implementation writes one human line to stderr and, if `history` is set, appends a TSV row. Callers pass events (`scan`, `quarantine`, `skip`, `claim`, `spawn`, `exit`). The journal never sees interpolated argv or env values.
 
 ### Scanner
 
@@ -81,6 +85,7 @@ Entities the **engine** knows:
 - **Lane**: id, cmd template, trigger, need, exclusive, backoff, claim-status.
 - **Run**: run-id, lane, claimed path, child pid, exclusive set.
 - **Fault**: machine code on a quarantined note.
+- **History row**: timestamp, action, lane, path, run-id, detail. Optional file.
 
 Entities the **heio-stack template** names (not core):
 

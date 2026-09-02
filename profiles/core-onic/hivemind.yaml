@@ -4,6 +4,7 @@
 # Review miss and improve mint at ready-for-agent so watch needs no human.
 # cmd is pi --print so watch does not open a TUI.
 concurrency: 1
+history: .heio/logs/hivemind.tsv
 folders:
   - path: .heio/tickets
     schema: ticket

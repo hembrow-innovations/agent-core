@@ -61,6 +61,7 @@ test("loadConfig accepts the agentic-core heio-stack template", () => {
   const mintLane = cfg.lanes.some((lane) => lane.lane === "mint");
   assert.equal(mintLane && !cfg.disable.includes("mint"), false);
   assert.equal(cfg.watch, undefined);
+  assert.equal(cfg.history, ".heio/logs/hivemind.tsv");
 });
 
 test("loadConfig omits watch as folders when the key is absent", () => {
@@ -76,4 +77,19 @@ test("loadConfig stores watch directories and strips glob suffixes", () => {
     "folders: []\nlanes: []\nwatch:\n  - .heio/tickets\n  - .heio/planning/**/*.md\n",
   );
   assert.deepEqual(loadConfig(cwd).watch, [".heio/tickets", ".heio/planning"]);
+});
+
+test("loadConfig omits history when the key is absent", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "hivemind-load-history-omit-"));
+  writeFileSync(join(cwd, "hivemind.yaml"), "folders: []\nlanes: []\n");
+  assert.equal(loadConfig(cwd).history, undefined);
+});
+
+test("loadConfig stores a history path", () => {
+  const cwd = mkdtempSync(join(tmpdir(), "hivemind-load-history-"));
+  writeFileSync(
+    join(cwd, "hivemind.yaml"),
+    "folders: []\nlanes: []\nhistory: .heio/logs/hivemind.tsv\n",
+  );
+  assert.equal(loadConfig(cwd).history, ".heio/logs/hivemind.tsv");
 });

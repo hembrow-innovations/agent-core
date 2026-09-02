@@ -4,6 +4,7 @@
 # ready-for-agent. Review misses mint ready-for-agent. Improve fills an empty
 # queue from GOAL.md. cmd is pi --print so watch does not open a TUI.
 concurrency: 1
+history: .heio/logs/hivemind.tsv
 folders:
   - path: .heio/tickets
     schema: ticket

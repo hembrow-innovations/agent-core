@@ -4,6 +4,7 @@
 # released / failed. Failed stays sealed. Tickets: ready-for-agent vs
 # ready-for-human. Mint omitted. Doctor not shipped.
 concurrency: 2
+history: .heio/logs/hivemind.tsv
 folders:
   - path: .heio/tickets
     schema: ticket
