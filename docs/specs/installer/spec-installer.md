@@ -31,7 +31,7 @@ The command is `pnpm exec agentic-core install <target>`.
 
 `--extension` may repeat. A name outside `FIRST_PARTY_EXTENSIONS` dies with `Unknown extension`.
 A profile install also installs that profile's `packages` list and optional `frameworks` list.
-Dest pack is always `.pi/`. Project-root `hivemind.yaml` is write-if-missing convention, not dest pack.
+Dest pack is always `.pi/`. Dest `.hivemind/hivemind.yaml` is write-if-missing convention, not dest pack.
 
 The dest receives a first-party copy at `.pi/npm/local/@agentic-core/<name>`.
 Dest settings gain a dest-relative `npm/local/@agentic-core/<name>` source.
@@ -89,7 +89,7 @@ else if (a === "--without") out.without.push(...csv(need(args, a)));
 - **prompts**: YAML only. Overlay when the key is not omit. No CLI add or remove.
 - **packages**: `profile.packages` then CLI `--extension` names.
 - **frameworks**: `profile.frameworks`. Copy each `frameworks/<name>/` to `.pi/frameworks/<name>/` (`package.json` + non-test `src/`). Reinstall overwrites that tree. Not a settings `packages` entry.
-- **hivemind.yaml**: if `hivemind` is in `frameworks` and `profiles/<name>/hivemind.yaml` exists, copy to dest project-root `hivemind.yaml` only when that dest file is missing.
+- **hivemind.yaml**: if `hivemind` is in `frameworks` and dest `.hivemind/hivemind.yaml` is missing, copy a legacy dest `hivemind.yaml` there if present, else copy `profiles/<name>/hivemind.yaml` if that template exists. Reinstall does not overwrite the dest file.
 - **settings**: optional untyped map from the profile. Missing or null is omit.
 - **system-prompt**: YAML only. Optional stem. No CLI add or remove. Unknown or missing `ai/system-prompts/<stem>.md` fails in `planFromProfile` when the plan is built.
 
@@ -136,7 +136,7 @@ This checkout's Pi is not wired to `packages/`. Nothing vendors until the instal
 - `--extension` can be passed more than once
 - A profile install installs `profile.packages` into dest settings and copies first-party sources into dest npm
 - A profile `frameworks:` list copies those trees to `.pi/frameworks/<name>/` and does not merge them into settings `packages`
-- First install may write project-root `hivemind.yaml`; reinstall does not overwrite it
+- First install may write `.hivemind/hivemind.yaml`; reinstall does not overwrite it
 - A profile can select `agents` and `prompts` from the source libraries
 - A profile `system-prompt:` stem copies `ai/system-prompts/<stem>.md` to dest `.pi/APPEND_SYSTEM.md` when dest is missing or a known legacy stub; omit the key and install still copies `ai/system-prompts/default.md`
 - Install does not require or write `heio-models.md`; an existing dest `.pi/heio-models.md` stays

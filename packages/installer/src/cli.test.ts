@@ -154,7 +154,10 @@ test("install --profile agentic-core removes leftover dest extension files", () 
   assert.equal(existsSync(join(dest, ".pi", "extensions")), false);
   assert.equal(existsSync(join(dest, ".pi", "lib")), false);
   assert.equal(existsSync(join(dest, ".pi", "roles")), false);
-  assert.equal(existsSync(join(dest, ".pi", "agents", "heio-builder.md")), true);
+  assert.equal(
+    existsSync(join(dest, ".pi", "agents", "heio-builder.md")),
+    true,
+  );
 });
 
 test("install --profile agentic-core removes parked heio-coms, heio-teams, and heio-coord dest copies", () => {
@@ -322,12 +325,18 @@ test("install --profile agentic-core keeps dest extras and updates listed files"
   settings.defaultTools = ["custom", ...(settings.defaultTools ?? [])];
   writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`);
 
-  writeFileSync(join(dest, ".pi", "agents", "heio-builder.md"), "STALE AGENT\n");
+  writeFileSync(
+    join(dest, ".pi", "agents", "heio-builder.md"),
+    "STALE AGENT\n",
+  );
   writeFileSync(
     join(dest, ".pi", "skills", "heio-stack", "SKILL.md"),
     "STALE SKILL\n",
   );
-  writeFileSync(join(dest, ".pi", "prompts", "heio-slice.md"), "STALE PROMPT\n");
+  writeFileSync(
+    join(dest, ".pi", "prompts", "heio-slice.md"),
+    "STALE PROMPT\n",
+  );
 
   const second = runCli(["install", dest, "--profile", "agentic-core"]);
   assert.equal(second.status, 0, second.stderr || second.stdout);
@@ -377,10 +386,7 @@ test("install --profile agentic-core keeps dest extras and updates listed files"
     ),
   );
   assert.equal(
-    readFileSync(
-      join(dest, ".pi", "skills", "heio-stack", "SKILL.md"),
-      "utf8",
-    ),
+    readFileSync(join(dest, ".pi", "skills", "heio-stack", "SKILL.md"), "utf8"),
     readFileSync(
       join(REPO, "ai", "skills", "heio-stack", "heio-stack", "SKILL.md"),
       "utf8",
@@ -670,7 +676,7 @@ test("profile frameworks: [hivemind] copies the tree; settings packages unchange
   );
 });
 
-test("second install does not overwrite an edited dest hivemind.yaml", () => {
+test("second install does not overwrite an edited dest .hivemind/hivemind.yaml", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-hivemind-yaml-"));
   const first = runCli(["install", dest, "--profile", "agentic-core"]);
   assert.equal(first.status, 0, first.stderr || first.stdout);
@@ -679,18 +685,21 @@ test("second install does not overwrite an edited dest hivemind.yaml", () => {
     join(REPO, "profiles", "agentic-core", "hivemind.yaml"),
     "utf8",
   );
-  assert.equal(readFileSync(join(dest, "hivemind.yaml"), "utf8"), template);
+  assert.equal(
+    readFileSync(join(dest, ".hivemind", "hivemind.yaml"), "utf8"),
+    template,
+  );
   assert.equal(
     existsSync(join(dest, ".pi", "frameworks", "hivemind", "package.json")),
     true,
   );
 
-  writeFileSync(join(dest, "hivemind.yaml"), "lanes: [edited]\n");
+  writeFileSync(join(dest, ".hivemind", "hivemind.yaml"), "lanes: {}\n");
   const second = runCli(["install", dest, "--profile", "agentic-core"]);
   assert.equal(second.status, 0, second.stderr || second.stdout);
   assert.equal(
-    readFileSync(join(dest, "hivemind.yaml"), "utf8"),
-    "lanes: [edited]\n",
+    readFileSync(join(dest, ".hivemind", "hivemind.yaml"), "utf8"),
+    "lanes: {}\n",
   );
 });
 

@@ -2,6 +2,9 @@ import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { Destination } from "./dest.ts";
 
+export const HIVEMIND_YAML_REL = ".hivemind/hivemind.yaml";
+export const HIVEMIND_YAML_LEGACY = "hivemind.yaml";
+
 export function listFrameworks(srcRoot: string): string[] {
   const dir = join(srcRoot, "frameworks");
   if (!existsSync(dir)) return [];
@@ -75,8 +78,12 @@ function copyHivemindYamlIfMissing(
   dest: Destination,
   profileName: string,
 ): void {
-  if (dest.exists("hivemind.yaml")) return;
+  if (dest.exists(HIVEMIND_YAML_REL)) return;
+  if (dest.exists(HIVEMIND_YAML_LEGACY)) {
+    dest.copyFile(dest.path(HIVEMIND_YAML_LEGACY), HIVEMIND_YAML_REL);
+    return;
+  }
   const template = join(srcRoot, "profiles", profileName, "hivemind.yaml");
   if (!existsSync(template)) return;
-  dest.copyFile(template, "hivemind.yaml");
+  dest.copyFile(template, HIVEMIND_YAML_REL);
 }

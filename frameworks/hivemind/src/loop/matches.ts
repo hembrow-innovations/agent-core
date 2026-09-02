@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import type { Lane } from "../config/loadConfig.ts";
+import type { Lane, SpawnSpec } from "../config/loadConfig.ts";
 import type { Journal } from "../journal/journal.ts";
 import { exclusiveSetsOverlap, type Match } from "../match/matcher.ts";
 import { claim } from "../spawn/claim.ts";
 import { interpolate } from "../spawn/interpolator.ts";
-import { spawnArgv } from "../spawn/spawner.ts";
+import { spawnArgv, type SpawnHandle } from "../spawn/spawner.ts";
 import { tokenize } from "../spawn/tokenizer.ts";
 
 export type SpawnChild = (argv: readonly string[]) => unknown;
@@ -23,17 +23,20 @@ export type LiveRun = {
 
 export function spawnMatches(opts: {
   cwd: string;
-  concurrency: number;
   matches: readonly Match[];
   env: NodeJS.ProcessEnv;
   spawnChild?: SpawnChild;
   live: LiveRun[];
   journal?: Journal;
+  lastFinished?: Map<string, number>;
+  now?: () => number;
 }): number {
   let spawned = 0;
+  const now = opts.now ?? Date.now;
   for (const match of opts.matches) {
     const current = opts.live.filter((run) => !run.done);
-    if (current.length >= opts.concurrency) {
+    const laneLive = current.filter((run) => run.lane === match.lane.lane);
+    if (laneLive.length >= match.lane.concurrency) {
       opts.journal?.record({
         kind: "skip",
         lane: match.lane.lane,
@@ -64,13 +67,40 @@ export function spawnMatches(opts: {
       });
       continue;
     }
-    const argv = cmdArgv({ lane: match.lane, cwd: opts.cwd, env: opts.env });
-    if (argv.kind === "skip") {
+    if (match.lane.cooldownMs > 0 && opts.lastFinished !== undefined) {
+      const last = opts.lastFinished.get(match.lane.lane);
+      if (last !== undefined && now() - last < match.lane.cooldownMs) {
+        opts.journal?.record({
+          kind: "skip",
+          lane: match.lane.lane,
+          path: match.note.path,
+          reason: "cooldown",
+        });
+        continue;
+      }
+    }
+    const specs = spawnSpecs(match.lane);
+    const argvList: string[][] = [];
+    let skipped: "missing-prompt" | "cmd-skip" | undefined;
+    for (const spec of specs) {
+      const argv = cmdArgv({
+        spec,
+        lane: match.lane.lane,
+        cwd: opts.cwd,
+        env: opts.env,
+      });
+      if (argv.kind === "skip") {
+        skipped = argv.reason;
+        break;
+      }
+      argvList.push(argv.argv);
+    }
+    if (skipped !== undefined) {
       opts.journal?.record({
         kind: "skip",
         lane: match.lane.lane,
         path: match.note.path,
-        reason: argv.reason,
+        reason: skipped,
       });
       continue;
     }
@@ -96,33 +126,17 @@ export function spawnMatches(opts: {
       path: match.note.path,
       runId,
     });
-    opts.journal?.record({
-      kind: "spawn",
+    const handle = startChildren({
+      argvList,
+      cwd: opts.cwd,
+      env: opts.env,
+      spawnChild: opts.spawnChild,
+      journal: opts.journal,
       lane: match.lane.lane,
       path: match.note.path,
       runId,
     });
-    if (opts.spawnChild !== undefined) {
-      opts.spawnChild(argv.argv);
-      opts.live.push(
-        track({
-          exclusive: match.lane.exclusive,
-          wait: Promise.resolve(0),
-          kill: noop,
-          path: match.note.path,
-          lane: match.lane.lane,
-          runId,
-          journal: opts.journal,
-        }),
-      );
-      spawned += 1;
-      continue;
-    }
-    const handle = spawnArgv({
-      argv: argv.argv,
-      cwd: opts.cwd,
-      env: opts.env,
-    });
+    const pipelineExits = argvList.length > 1 && opts.spawnChild === undefined;
     opts.live.push(
       track({
         exclusive: match.lane.exclusive,
@@ -131,7 +145,8 @@ export function spawnMatches(opts: {
         path: match.note.path,
         lane: match.lane.lane,
         runId,
-        journal: opts.journal,
+        journal: pipelineExits ? undefined : opts.journal,
+        lastFinished: opts.lastFinished,
       }),
     );
     spawned += 1;
@@ -139,7 +154,102 @@ export function spawnMatches(opts: {
   return spawned;
 }
 
-function track(run: Omit<LiveRun, "done"> & { journal?: Journal }): LiveRun {
+function spawnSpecs(lane: Lane): SpawnSpec[] {
+  if (lane.type === "single") return [lane];
+  return [...lane.stages];
+}
+
+function startChildren(opts: {
+  argvList: readonly (readonly string[])[];
+  cwd: string;
+  env: NodeJS.ProcessEnv;
+  spawnChild?: SpawnChild;
+  journal?: Journal;
+  lane: string;
+  path: string;
+  runId: string;
+}): SpawnHandle {
+  if (opts.spawnChild !== undefined) {
+    for (const argv of opts.argvList) {
+      opts.journal?.record({
+        kind: "spawn",
+        lane: opts.lane,
+        path: opts.path,
+        runId: opts.runId,
+      });
+      opts.spawnChild(argv);
+    }
+    return { wait: Promise.resolve(0), kill: noop };
+  }
+  if (opts.argvList.length === 1 && opts.argvList[0] !== undefined) {
+    opts.journal?.record({
+      kind: "spawn",
+      lane: opts.lane,
+      path: opts.path,
+      runId: opts.runId,
+    });
+    return spawnArgv({
+      argv: opts.argvList[0],
+      cwd: opts.cwd,
+      env: opts.env,
+    });
+  }
+  return startPipeline(opts);
+}
+
+function startPipeline(opts: {
+  argvList: readonly (readonly string[])[];
+  cwd: string;
+  env: NodeJS.ProcessEnv;
+  journal?: Journal;
+  lane: string;
+  path: string;
+  runId: string;
+}): SpawnHandle {
+  let currentKill = noop;
+  let cancelled = false;
+  const wait = (async () => {
+    for (const argv of opts.argvList) {
+      if (cancelled) return 1;
+      opts.journal?.record({
+        kind: "spawn",
+        lane: opts.lane,
+        path: opts.path,
+        runId: opts.runId,
+      });
+      const handle = spawnArgv({
+        argv,
+        cwd: opts.cwd,
+        env: opts.env,
+      });
+      currentKill = handle.kill;
+      const status = await handle.wait;
+      opts.journal?.record({
+        kind: "exit",
+        lane: opts.lane,
+        path: opts.path,
+        runId: opts.runId,
+        status,
+      });
+      if (status !== 0) return status;
+    }
+    return 0;
+  })();
+  return {
+    wait,
+    kill: () => {
+      cancelled = true;
+      currentKill();
+    },
+  };
+}
+
+function track(
+  run: Omit<LiveRun, "done"> & {
+    journal?: Journal;
+    lastFinished?: Map<string, number>;
+  },
+): LiveRun {
   const live: LiveRun = {
     exclusive: run.exclusive,
     wait: run.wait,
@@ -152,6 +262,7 @@ function track(run: Omit<LiveRun, "done"> & { journal?: Journal }): LiveRun {
   void live.wait.then(
     (status) => {
       live.done = true;
+      run.lastFinished?.set(live.lane, Date.now());
       run.journal?.record({
         kind: "exit",
         lane: live.lane,
@@ -162,6 +273,7 @@ function track(run: Omit<LiveRun, "done"> & { journal?: Journal }): LiveRun {
     },
     () => {
       live.done = true;
+      run.lastFinished?.set(live.lane, Date.now());
       run.journal?.record({
         kind: "exit",
         lane: live.lane,
@@ -177,24 +289,26 @@ function track(run: Omit<LiveRun, "done"> & { journal?: Journal }): LiveRun {
 function noop(): void {}
 
 function cmdArgv(opts: {
-  lane: Lane;
+  spec: SpawnSpec;
+  lane: string;
   cwd: string;
   env: NodeJS.ProcessEnv;
 }):
   | { kind: "ok"; argv: string[] }
   | { kind: "skip"; reason: "missing-prompt" | "cmd-skip" } {
-  if (opts.lane.prompt !== undefined && opts.lane.prompt !== "") {
-    if (!existsSync(join(opts.cwd, opts.lane.prompt))) {
+  if (opts.spec.prompt !== undefined && opts.spec.prompt !== "") {
+    if (!existsSync(join(opts.cwd, opts.spec.prompt))) {
       return { kind: "skip", reason: "missing-prompt" };
     }
   }
-  if (typeof opts.lane.cmd !== "string") {
+  if (typeof opts.spec.cmd !== "string") {
     const argv: string[] = [];
-    for (const part of opts.lane.cmd) {
+    for (const part of opts.spec.cmd) {
       const rendered = interpolate({
         template: part,
         cwd: opts.cwd,
         lane: opts.lane,
+        spec: opts.spec,
         env: opts.env,
       });
       if (rendered.kind === "skip") {
@@ -205,9 +319,10 @@ function cmdArgv(opts: {
     return { kind: "ok", argv };
   }
   const rendered = interpolate({
-    template: opts.lane.cmd,
+    template: opts.spec.cmd,
     cwd: opts.cwd,
     lane: opts.lane,
+    spec: opts.spec,
     env: opts.env,
   });
   if (rendered.kind === "skip") return { kind: "skip", reason: "cmd-skip" };

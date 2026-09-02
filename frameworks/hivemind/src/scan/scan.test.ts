@@ -21,12 +21,17 @@ const CONFIG = `folders:
   - path: quarantine
     schema: quarantine
     required: [origin-location, quarantined-at, fault]
-lanes: []
+lanes: {}
 `;
+
+function writeConfig(cwd: string, body: string): void {
+  mkdirSync(join(cwd, ".hivemind"), { recursive: true });
+  writeFileSync(join(cwd, ".hivemind", "hivemind.yaml"), body);
+}
 
 function setup(): string {
   const cwd = mkdtempSync(join(tmpdir(), "hivemind-scan-"));
-  writeFileSync(join(cwd, "hivemind.yaml"), CONFIG);
+  writeConfig(cwd, CONFIG);
   mkdirSync(join(cwd, "notes"));
   mkdirSync(join(cwd, "quarantine"));
   return cwd;
@@ -185,7 +190,7 @@ test("scan walks nested markdown under a configured folder", () => {
 
 test("scan creates the quarantine directory if missing before rename", () => {
   const cwd = mkdtempSync(join(tmpdir(), "hivemind-scan-mkdir-"));
-  writeFileSync(join(cwd, "hivemind.yaml"), CONFIG);
+  writeConfig(cwd, CONFIG);
   mkdirSync(join(cwd, "notes"));
   writeFileSync(join(cwd, "notes", "bad.md"), "---\n{\n---\n");
 
@@ -200,8 +205,8 @@ test("scan creates the quarantine directory if missing before rename", () => {
 
 test("watch paths are scanned instead of every folders path", () => {
   const cwd = mkdtempSync(join(tmpdir(), "hivemind-scan-watch-"));
-  writeFileSync(
-    join(cwd, "hivemind.yaml"),
+  writeConfig(
+    cwd,
     [
       "watch:",
       "  - notes/keep/**/*.md",
@@ -217,7 +222,7 @@ test("watch paths are scanned instead of every folders path", () => {
       "  - path: quarantine",
       "    schema: quarantine",
       "    required: [origin-location, quarantined-at, fault]",
-      "lanes: []",
+      "lanes: {}",
       "",
     ].join("\n"),
   );
@@ -236,8 +241,8 @@ test("watch paths are scanned instead of every folders path", () => {
 
 test("named ticket schema unknown key moves the file to quarantine", () => {
   const cwd = mkdtempSync(join(tmpdir(), "hivemind-scan-named-"));
-  writeFileSync(
-    join(cwd, "hivemind.yaml"),
+  writeConfig(
+    cwd,
     [
       "folders:",
       "  - path: tickets",
@@ -246,7 +251,7 @@ test("named ticket schema unknown key moves the file to quarantine", () => {
       "  - path: quarantine",
       "    schema: quarantine",
       "    required: [origin-location, quarantined-at, fault]",
-      "lanes: []",
+      "lanes: {}",
       "",
     ].join("\n"),
   );
@@ -268,8 +273,8 @@ test("named ticket schema unknown key moves the file to quarantine", () => {
 
 test("named schemas keep notes that use live heio-stack extra keys", () => {
   const cwd = mkdtempSync(join(tmpdir(), "hivemind-scan-allow-"));
-  writeFileSync(
-    join(cwd, "hivemind.yaml"),
+  writeConfig(
+    cwd,
     [
       "folders:",
       "  - path: tickets",
@@ -281,7 +286,7 @@ test("named schemas keep notes that use live heio-stack extra keys", () => {
       "  - path: quarantine",
       "    schema: quarantine",
       "    required: [origin-location, quarantined-at, fault]",
-      "lanes: []",
+      "lanes: {}",
       "",
     ].join("\n"),
   );

@@ -98,12 +98,12 @@ test("writeFrameworks copies package.json and non-test src, not settings package
   assert.equal(existsSync(join(destRoot, ".pi", "settings.json")), false);
 });
 
-test("writeFrameworks copies hivemind.yaml only when missing", () => {
+test("writeFrameworks copies .hivemind/hivemind.yaml only when missing", () => {
   const srcRoot = tempSrc();
   writeFrameworkTree(srcRoot, "hivemind");
   writeFileSync(
     join(srcRoot, "profiles", "demo", "hivemind.yaml"),
-    "lanes: []\n",
+    "lanes: {}\n",
   );
   const destRoot = mkdtempSync(join(tmpdir(), "fw-yaml-"));
   const dest = openDestination(destRoot);
@@ -115,14 +115,17 @@ test("writeFrameworks copies hivemind.yaml only when missing", () => {
     names: ["hivemind"],
   });
   assert.equal(
-    readFileSync(join(destRoot, "hivemind.yaml"), "utf8"),
-    "lanes: []\n",
+    readFileSync(join(destRoot, ".hivemind", "hivemind.yaml"), "utf8"),
+    "lanes: {}\n",
   );
 
-  writeFileSync(join(destRoot, "hivemind.yaml"), "lanes: [edited]\n");
+  writeFileSync(
+    join(destRoot, ".hivemind", "hivemind.yaml"),
+    "lanes: {edited: true}\n",
+  );
   writeFileSync(
     join(srcRoot, "profiles", "demo", "hivemind.yaml"),
-    "lanes: [template]\n",
+    "lanes: {template: true}\n",
   );
   writeFrameworks({
     srcRoot,
@@ -131,8 +134,31 @@ test("writeFrameworks copies hivemind.yaml only when missing", () => {
     names: ["hivemind"],
   });
   assert.equal(
-    readFileSync(join(destRoot, "hivemind.yaml"), "utf8"),
-    "lanes: [edited]\n",
+    readFileSync(join(destRoot, ".hivemind", "hivemind.yaml"), "utf8"),
+    "lanes: {edited: true}\n",
+  );
+});
+
+test("writeFrameworks migrates a legacy root hivemind.yaml", () => {
+  const srcRoot = tempSrc();
+  writeFrameworkTree(srcRoot, "hivemind");
+  writeFileSync(
+    join(srcRoot, "profiles", "demo", "hivemind.yaml"),
+    "lanes: {template: true}\n",
+  );
+  const destRoot = mkdtempSync(join(tmpdir(), "fw-yaml-legacy-"));
+  writeFileSync(join(destRoot, "hivemind.yaml"), "lanes: {legacy: true}\n");
+  const dest = openDestination(destRoot);
+
+  writeFrameworks({
+    srcRoot,
+    dest,
+    profileName: "demo",
+    names: ["hivemind"],
+  });
+  assert.equal(
+    readFileSync(join(destRoot, ".hivemind", "hivemind.yaml"), "utf8"),
+    "lanes: {legacy: true}\n",
   );
 });
 

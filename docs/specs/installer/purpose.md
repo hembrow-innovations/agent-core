@@ -29,7 +29,7 @@ export function localPackageSource(name: FirstPartyExtension): string {
 - Install from this repo only
 - Profile install with that profile's `packages` list
 - Optional `frameworks:` list copied to `.pi/frameworks/<name>/`
-- Write-if-missing dest project-root `hivemind.yaml` from the profile template
+- Write-if-missing dest `.hivemind/hivemind.yaml` from the profile template
 - One extension install with `--extension`
 - Repeatable `--extension`
 - Dest always `.pi/`

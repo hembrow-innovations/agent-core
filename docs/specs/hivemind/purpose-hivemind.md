@@ -8,7 +8,7 @@ domain: hivemind
 area: hivemind
 tags: [purpose]
 created_at: "2026-09-01"
-updated_at: "2026-09-02"
+updated_at: "2026-09-03"
 ---
 
 # Hivemind purpose
@@ -20,7 +20,7 @@ Let a dest project walk away from a trusted folder and still make progress: a pr
 ## In scope
 
 - Optional framework install via profile `frameworks:`
-- Project-root `hivemind.yaml` as the only runtime lane contract
+- `.hivemind/hivemind.yaml` as the only runtime lane contract
 - `watch` and `once` process models
 - Front-matter parse, per-folder schema, fail-closed quarantine
 - Lane match, CAS claim, cmd-template spawn, backoff
@@ -47,7 +47,7 @@ Hard fences. The things an agent will invent if you leave them unsaid.
 
 - Source: `frameworks/hivemind/`
 - Dest program: `.pi/frameworks/hivemind/`
-- Dest config: project-root `hivemind.yaml`
+- Dest config: `.hivemind/hivemind.yaml`
 - CLI: `hivemind watch` and `hivemind once`
 
 ## Authority

@@ -62,8 +62,12 @@ The first framework. A predicate machine that matches front matter and spawns sh
 _Avoid_: orchestrator, afk-orchestrator, coord, in-session boss
 
 **Lane**:
-A named plugin in project-root `hivemind.yaml`: trigger, cmd template, claim-status. One child life is one unit.
+A named plugin in `.hivemind/hivemind.yaml`: type, trigger, per-lane concurrency, cmd template or pipeline stages, claim-status. A `single` lane is one child life. A `pipeline` is ordered stages on one claim.
 _Avoid_: agent definition, teammate, adapter module
+
+**Actor**:
+Reusable spawn identity for Hivemind lanes (`cmd`, `agent`, `prompt`, `scope`, `claim-status`). Defined in `.hivemind/hivemind.yaml` `actors:` and/or `.hivemind/actors/*.yaml`. The main yaml overlays files.
+_Avoid_: agent definition, teammate
 
 **Coms**:
 The living-session mailbox formerly in `@agentic-core/heio-coms`. Bind, stamp, send, get, await. Parked under `deprecated/packages/heio-coms`. Architecture: [[architecture-heio-coms]].

@@ -8,11 +8,12 @@ actors:
       - .heio/tickets
     claim-status: active
 lanes:
-# Pipeline lane
+  # Pipeline lane
   workflow:
     type: pipeline
-    concurrency: 2
+    concurrency: 1
     cooldown: 90s
+    claim-status: active
     trigger:
       kind: ticket
       status: ready-for-agent
@@ -34,7 +35,7 @@ lanes:
         agent: heio-verifier
         prompt: .pi/prompts/heio-slice.md
 
-# Single action lane
+  # Single action lane
   plan:
     type: single
     concurrency: 2

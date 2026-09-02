@@ -17,29 +17,32 @@ const CLI = fileURLToPath(import.meta.url).replace(
   "../cli.ts",
 );
 
+function writeConfig(cwd: string, lines: string[]): void {
+  mkdirSync(join(cwd, ".hivemind"), { recursive: true });
+  writeFileSync(join(cwd, ".hivemind", "hivemind.yaml"), lines.join("\n"));
+}
+
 function setupEmptyProject(): string {
   const cwd = mkdtempSync(join(tmpdir(), "hivemind-watch-"));
   mkdirSync(join(cwd, "tickets"));
   mkdirSync(join(cwd, "quarantine"));
-  writeFileSync(
-    join(cwd, "hivemind.yaml"),
-    [
-      "folders:",
-      "  - path: tickets",
-      "    schema: ticket",
-      "    required: [id, status]",
-      "  - path: quarantine",
-      "    schema: quarantine",
-      "    required: [origin-location, quarantined-at, fault]",
-      "lanes:",
-      "  - lane: plan",
-      "    cmd: /bin/echo",
-      "    trigger:",
-      "      status: ready-for-agent",
-      "    claim-status: active",
-      "",
-    ].join("\n"),
-  );
+  writeConfig(cwd, [
+    "folders:",
+    "  - path: tickets",
+    "    schema: ticket",
+    "    required: [id, status]",
+    "  - path: quarantine",
+    "    schema: quarantine",
+    "    required: [origin-location, quarantined-at, fault]",
+    "lanes:",
+    "  plan:",
+    "    type: single",
+    "    cmd: /bin/echo",
+    "    trigger:",
+    "      status: ready-for-agent",
+    "    claim-status: active",
+    "",
+  ]);
   return cwd;
 }
 
@@ -93,28 +96,26 @@ test("backoff does not busy-spin; killing the process stops spawn", async () => 
     join(cwd, "record.mjs"),
     "import { appendFileSync } from 'node:fs';\nappendFileSync('spawns.log', '1\\n');\n",
   );
-  writeFileSync(
-    join(cwd, "hivemind.yaml"),
-    [
-      "folders:",
-      "  - path: tickets",
-      "    schema: ticket",
-      "    required: [id, status]",
-      "  - path: quarantine",
-      "    schema: quarantine",
-      "    required: [origin-location, quarantined-at, fault]",
-      "lanes:",
-      "  - lane: plan",
-      "    cmd:",
-      `      - ${process.execPath}`,
-      "      - record.mjs",
-      "    trigger:",
-      "      status: ready-for-agent",
-      "    claim-status: active",
-      "    backoff: 1s",
-      "",
-    ].join("\n"),
-  );
+  writeConfig(cwd, [
+    "folders:",
+    "  - path: tickets",
+    "    schema: ticket",
+    "    required: [id, status]",
+    "  - path: quarantine",
+    "    schema: quarantine",
+    "    required: [origin-location, quarantined-at, fault]",
+    "lanes:",
+    "  plan:",
+    "    type: single",
+    "    cmd:",
+    `      - ${process.execPath}`,
+    "      - record.mjs",
+    "    trigger:",
+    "      status: ready-for-agent",
+    "    claim-status: active",
+    "    backoff: 1s",
+    "",
+  ]);
   const child = startWatch(cwd);
   try {
     await delay(250);
@@ -144,28 +145,26 @@ test("killing the process stops spawn", async () => {
       "",
     ].join("\n"),
   );
-  writeFileSync(
-    join(cwd, "hivemind.yaml"),
-    [
-      "folders:",
-      "  - path: tickets",
-      "    schema: ticket",
-      "    required: [id, status]",
-      "  - path: quarantine",
-      "    schema: quarantine",
-      "    required: [origin-location, quarantined-at, fault]",
-      "lanes:",
-      "  - lane: plan",
-      "    cmd:",
-      `      - ${process.execPath}`,
-      "      - hold.mjs",
-      "    trigger:",
-      "      status: ready-for-agent",
-      "    claim-status: active",
-      "    backoff: 1s",
-      "",
-    ].join("\n"),
-  );
+  writeConfig(cwd, [
+    "folders:",
+    "  - path: tickets",
+    "    schema: ticket",
+    "    required: [id, status]",
+    "  - path: quarantine",
+    "    schema: quarantine",
+    "    required: [origin-location, quarantined-at, fault]",
+    "lanes:",
+    "  plan:",
+    "    type: single",
+    "    cmd:",
+    `      - ${process.execPath}`,
+    "      - hold.mjs",
+    "    trigger:",
+    "      status: ready-for-agent",
+    "    claim-status: active",
+    "    backoff: 1s",
+    "",
+  ]);
   writeFileSync(
     join(cwd, "tickets", "agent.md"),
     "---\nid: agent\nstatus: ready-for-agent\n---\n\n# agent\n",

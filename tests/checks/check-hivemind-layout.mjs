@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -57,8 +58,9 @@ if (errors.length) {
 
 const dest = mkdtempSync(join(tmpdir(), "check-hivemind-layout-"));
 try {
-  const sentinel = "lanes: [keep-existing]\n";
-  writeFileSync(join(dest, "hivemind.yaml"), sentinel);
+  const sentinel = "lanes: {}\n";
+  mkdirSync(join(dest, ".hivemind"), { recursive: true });
+  writeFileSync(join(dest, ".hivemind", "hivemind.yaml"), sentinel);
   const r = spawnSync(
     process.execPath,
     [
@@ -88,9 +90,9 @@ try {
     console.error("install copied hivemind tests into dest");
     process.exit(1);
   }
-  const yaml = readFileSync(join(dest, "hivemind.yaml"), "utf8");
+  const yaml = readFileSync(join(dest, ".hivemind", "hivemind.yaml"), "utf8");
   if (yaml !== sentinel) {
-    console.error("install overwrote an existing root hivemind.yaml");
+    console.error("install overwrote an existing .hivemind/hivemind.yaml");
     process.exit(1);
   }
   console.log("check-hivemind-layout: ok");

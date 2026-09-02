@@ -43,7 +43,7 @@ The folders are:
 - `ai/playbooks/` is the playbook library.
 - `ai/prompts/` is the prompt/command library.
 - `ai/system-prompts/` is the system-prompt library. Files are markdown. Required pack file is `default.md`. Other `*.md` stems are profile-selectable. Dest is `.pi/APPEND_SYSTEM.md`. There is no `ai/pi/` folder.
-- `profiles/` is the install profiles. Each profile is `profiles/<name>/profile.yaml`. Optional `hivemind.yaml` in that directory is a write-if-missing dest template. See [[0016-profiles-are-directories]].
+- `profiles/` is the install profiles. Each profile is `profiles/<name>/profile.yaml`. Optional `hivemind.yaml` in that directory is a write-if-missing template for dest `.hivemind/hivemind.yaml`. See [[0016-profiles-are-directories]].
 - `frameworks/` is out-of-session programs. `frameworks/hivemind/` is the first. See [[0015-hivemind-is-a-framework]].
 - `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`.
 - `tests/` is the repo checks and tests. See [[architecture-verify]].
@@ -73,7 +73,7 @@ There is no npm publish. There is no git package source.
 
 ### Dest tree
 
-The dest tree is what a target project commits after install. It holds the copied agents, skills, and prompts under `.pi/`. Identity dest is only `.pi/agents/`. There is no dest roles tree. Optional frameworks land at `.pi/frameworks/<name>/`. They are not Pi packages. Project-root `hivemind.yaml` is dest convention, not dest pack; install writes it only if missing. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
+The dest tree is what a target project commits after install. It holds the copied agents, skills, and prompts under `.pi/`. Identity dest is only `.pi/agents/`. There is no dest roles tree. Optional frameworks land at `.pi/frameworks/<name>/`. They are not Pi packages. Dest `.hivemind/hivemind.yaml` is dest convention, not dest pack; install writes it only if missing. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
 
 A dest project never depends on this checkout at runtime.
 

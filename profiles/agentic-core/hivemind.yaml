@@ -3,7 +3,6 @@
 # unseal. Slice status ready means schedulable (replaces frozen). Then active /
 # released / failed. Failed stays sealed. Tickets: ready-for-agent vs
 # ready-for-human. Mint omitted. Doctor not shipped.
-concurrency: 2
 history: .heio/logs/hivemind.tsv
 folders:
   - path: .heio/tickets
@@ -18,10 +17,15 @@ folders:
   - path: .heio/quarantine
     schema: quarantine
     required: [origin-location, quarantined-at, fault]
+actors:
+  pi:
+    cmd: "pi --agent {{agent}} {{prompt}}"
 lanes:
   # Plan: one matching ticket per life. No match → exit. Does not invent work.
-  - lane: plan
-    cmd: "pi --agent {{agent}} {{prompt}}"
+  plan:
+    type: single
+    concurrency: 1
+    actor: pi
     agent: heio-planner
     prompt: .pi/prompts/heio-planning.md
     trigger:
@@ -33,8 +37,10 @@ lanes:
     claim-status: active
     backoff: 30s
   # Tasker: writes tasks.md once from a sealed spec. Separate life from Plan.
-  - lane: tasker
-    cmd: "pi --agent {{agent}} {{prompt}}"
+  tasker:
+    type: single
+    concurrency: 1
+    actor: pi
     agent: heio-tasker
     prompt: .pi/prompts/heio-slice.md
     trigger:
@@ -46,8 +52,10 @@ lanes:
     backoff: 30s
   # Build: next unchecked task on a ready/active slice. Need: sealed spec +
   # EXPECT.
-  - lane: build
-    cmd: "pi --agent {{agent}} {{prompt}}"
+  build:
+    type: single
+    concurrency: 1
+    actor: pi
     agent: heio-builder
     prompt: .pi/prompts/heio-slice.md
     trigger:
@@ -59,8 +67,10 @@ lanes:
     backoff: 30s
   # Review: released work. Miss → new ticket at mint-status. Old slice sealed +
   # failed.
-  - lane: review
-    cmd: "pi --agent {{agent}} {{prompt}}"
+  review:
+    type: single
+    concurrency: 1
+    actor: pi
     agent: heio-verifier
     prompt: .pi/prompts/heio-slice.md
     trigger:

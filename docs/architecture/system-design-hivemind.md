@@ -8,14 +8,14 @@ domain: hivemind
 area: architecture
 tags: [hivemind]
 created_at: "2026-09-01"
-updated_at: "2026-09-02"
+updated_at: "2026-09-03"
 ---
 
 # Hivemind system design
 
 ## Overview
 
-Hivemind is an out-of-session **predicate machine**. It watches typed markdown in a dest project, reads **YAML front matter only**, matches **lanes** from project-root `hivemind.yaml`, and starts **short-lived** child processes. It does not understand intent prose, product code, or “what the app should be.” Quality is gates on disk.
+Hivemind is an out-of-session **predicate machine**. It watches typed markdown in a dest project, reads **YAML front matter only**, matches **lanes** from `.hivemind/hivemind.yaml`, and starts **short-lived** child processes. It does not understand intent prose, product code, or “what the app should be.” Quality is gates on disk.
 
 It is not coord, not a Pi extension, not tmux team-lead, not the AFK orchestrator. Those are in-session bosses. Hivemind is a watcher plus a spawner. Every **agent** life is one planning, build, or review **unit**. Endless operation is `watch` + backoff + optional user-written Mint, not one process that keeps planning.
 
@@ -29,9 +29,9 @@ Bin name `hivemind`. Commands `watch` and `once`. Flags `--until-quiet` and `--u
 
 ### Config loader
 
-Reads project-root `hivemind.yaml`. Fail-closed on missing file, parse error, or unknown keys. No merge with a default pack. No `hivemind.local.yaml`. No vault.
+Reads `.hivemind/hivemind.yaml`. Fail-closed on missing file, parse error, or unknown keys. No merge with a default pack. No `hivemind.local.yaml`. No vault. Root `hivemind.yaml` is not read.
 
-The heio-stack **template** lives at `profiles/<name>/hivemind.yaml` and is copied once at install. After that the dest file is the contract.
+The heio-stack **template** lives at `profiles/<name>/hivemind.yaml` and is copied once at install to `.hivemind/hivemind.yaml`. After that the dest file is the contract.
 
 ### Journal
 
@@ -49,9 +49,9 @@ Faulty notes move to the configured quarantine folder. Supervisor writes only `o
 
 ### Matcher
 
-For each lane in file order: files whose front matter satisfies `trigger` and `need`. Skip files with a live `claimed-by` whose process is still running. Skip when overlapping `exclusive`/`scope` with a live child.
+For each lane: files whose front matter satisfies `trigger` and `need`. Skip files with a live `claimed-by` whose process is still running. Skip when overlapping `exclusive`/`scope` with a live child. Skip when this lane is at its `concurrency`.
 
-Starvation: if Build’s `when` is false, backoff. Do not spawn Plan because Build is idle.
+Lanes are independent. A busy Plan does not take Build's seats. If a lane has no match, do not spawn another lane because this one is idle.
 
 ### Claim
 
@@ -59,7 +59,7 @@ Before spawn, CAS the file: read `status`, if it still matches `trigger.status`,
 
 ### Spawner
 
-Interpolate `{{agent}}`, `{{prompt}}`, `{{cwd}}`, `{{exclusive}}`, `{{lane}}`, `{{env.NAME}}`. Tokenize. `exec` argv. No `/bin/sh -c`. No `$VAR`. Unmatched quotes or leftover `{{` → do not spawn.
+Interpolate `{{agent}}`, `{{prompt}}`, `{{cwd}}`, `{{exclusive}}`, `{{lane}}`, `{{stage}}`, `{{env.NAME}}`. Tokenize. `exec` argv. No `/bin/sh -c`. No `$VAR`. Unmatched quotes or leftover `{{` → do not spawn.
 
 There is no adapter module. A lane’s `cmd` is the adapter. Pi, Claude Code, OpenCode, or any binary on `PATH` is a template string. v1 dogfoods Pi by writing a Pi `cmd` in the template, not by importing Pi.
 
@@ -67,11 +67,11 @@ Env values come from `process.env` only. Missing or empty `{{env.NAME}}` → do 
 
 ### Backoff and concurrency
 
-At most `concurrency` live children. Non-overlapping declared exclusive sets. When `when` is false, sleep `backoff`. `watch` waits on the next fs event. Children are never reused for a second unit.
+Each lane has its own `concurrency`. Lanes do not share seats. Non-overlapping declared exclusive sets. When a scan is quiet, sleep `backoff`. After a run finishes, `cooldown` skips that lane. `watch` waits on the next fs event. Children are never reused for a second unit. A `pipeline` occupies one seat while its stages run in order.
 
 ## Interfaces
 
-- **Install**: profile `frameworks: [hivemind]` → dest `.pi/frameworks/hivemind/` plus write-if-missing `hivemind.yaml`. See [[spec-installer]] and [[schema-profile]].
+- **Install**: profile `frameworks: [hivemind]` → dest `.pi/frameworks/hivemind/` plus write-if-missing `.hivemind/hivemind.yaml`. See [[spec-installer]] and [[schema-profile]].
 - **Run**: `hivemind watch|once` from a trusted project cwd.
 - **Config**: [[schema-hivemind]].
 - **File contract**: folder type + front-matter keys + presence/absence of artifacts (spec + EXPECT before tasks). Bodies are for agents.
@@ -82,7 +82,7 @@ Entities the **engine** knows:
 
 - **Typed folder**: path + schema name + required keys.
 - **Note**: path + front-matter map. Body ignored.
-- **Lane**: id, cmd template, trigger, need, exclusive, backoff, claim-status.
+- **Lane**: id, type (`single` or `pipeline`), per-lane concurrency, cmd template or stages, trigger, need, exclusive, backoff, cooldown, claim-status.
 - **Run**: run-id, lane, claimed path, child pid, exclusive set.
 - **Fault**: machine code on a quarantined note.
 - **History row**: timestamp, action, lane, path, run-id, detail. Optional file.

@@ -40,7 +40,6 @@ export async function runOnce(opts: {
   const live: LiveRun[] = [];
   spawnMatches({
     cwd: opts.cwd,
-    concurrency: config.concurrency,
     matches,
     env,
     spawnChild: opts.spawnChild,

@@ -49,29 +49,35 @@ function writeTicket(cwd: string, name: string, status: string): void {
         );
 }
 
+function writeConfig(cwd: string, lines: string[]): void {
+        mkdirSync(join(cwd, ".hivemind"), { recursive: true });
+        writeFileSync(
+                join(cwd, ".hivemind", "hivemind.yaml"),
+                lines.join("\n"),
+        );
+}
+
 function setupMatchProject(cmd: string): string {
         const cwd = mkdtempSync(join(tmpdir(), "hivemind-once-"));
         mkdirSync(join(cwd, "tickets"));
         mkdirSync(join(cwd, "quarantine"));
-        writeFileSync(
-                join(cwd, "hivemind.yaml"),
-                [
-                        "folders:",
-                        "  - path: tickets",
-                        "    schema: ticket",
-                        "    required: [id, status]",
-                        "  - path: quarantine",
-                        "    schema: quarantine",
-                        "    required: [origin-location, quarantined-at, fault]",
-                        "lanes:",
-                        "  - lane: plan",
-                        `    cmd: ${cmd}`,
-                        "    trigger:",
-                        "      status: ready-for-agent",
-                        "    claim-status: active",
-                        "",
-                ].join("\n"),
-        );
+        writeConfig(cwd, [
+                "folders:",
+                "  - path: tickets",
+                "    schema: ticket",
+                "    required: [id, status]",
+                "  - path: quarantine",
+                "    schema: quarantine",
+                "    required: [origin-location, quarantined-at, fault]",
+                "lanes:",
+                "  plan:",
+                "    type: single",
+                `    cmd: ${cmd}`,
+                "    trigger:",
+                "      status: ready-for-agent",
+                "    claim-status: active",
+                "",
+        ]);
         return cwd;
 }
 
@@ -108,27 +114,25 @@ test("two once processes cannot both take the same matching file", async () => {
                 ].join("\n"),
         );
         mkdirSync(join(cwd, "spawns"));
-        writeFileSync(
-                join(cwd, "hivemind.yaml"),
-                [
-                        "folders:",
-                        "  - path: tickets",
-                        "    schema: ticket",
-                        "    required: [id, status]",
-                        "  - path: quarantine",
-                        "    schema: quarantine",
-                        "    required: [origin-location, quarantined-at, fault]",
-                        "lanes:",
-                        "  - lane: plan",
-                        "    cmd:",
-                        `      - ${process.execPath}`,
-                        "      - record.mjs",
-                        "    trigger:",
-                        "      status: ready-for-agent",
-                        "    claim-status: active",
-                        "",
-                ].join("\n"),
-        );
+        writeConfig(cwd, [
+                "folders:",
+                "  - path: tickets",
+                "    schema: ticket",
+                "    required: [id, status]",
+                "  - path: quarantine",
+                "    schema: quarantine",
+                "    required: [origin-location, quarantined-at, fault]",
+                "lanes:",
+                "  plan:",
+                "    type: single",
+                "    cmd:",
+                `      - ${process.execPath}`,
+                "      - record.mjs",
+                "    trigger:",
+                "      status: ready-for-agent",
+                "    claim-status: active",
+                "",
+        ]);
         writeTicket(cwd, "only.md", "ready-for-agent");
 
         const [first, second] = await Promise.all([
@@ -175,26 +179,24 @@ test("cmd with metacharacters in an interpolated path does not invoke a shell", 
         const cwd = mkdtempSync(join(tmpdir(), "hivemind-meta-"));
         mkdirSync(join(cwd, "tickets"));
         mkdirSync(join(cwd, "quarantine"));
-        writeFileSync(
-                join(cwd, "hivemind.yaml"),
-                [
-                        "folders:",
-                        "  - path: tickets",
-                        "    schema: ticket",
-                        "    required: [id, status]",
-                        "  - path: quarantine",
-                        "    schema: quarantine",
-                        "    required: [origin-location, quarantined-at, fault]",
-                        "lanes:",
-                        "  - lane: plan",
-                        '    cmd: "/bin/echo {{prompt}}"',
-                        '    prompt: "foo; echo HACKED"',
-                        "    trigger:",
-                        "      status: ready-for-agent",
-                        "    claim-status: active",
-                        "",
-                ].join("\n"),
-        );
+        writeConfig(cwd, [
+                "folders:",
+                "  - path: tickets",
+                "    schema: ticket",
+                "    required: [id, status]",
+                "  - path: quarantine",
+                "    schema: quarantine",
+                "    required: [origin-location, quarantined-at, fault]",
+                "lanes:",
+                "  plan:",
+                "    type: single",
+                '    cmd: "/bin/echo {{prompt}}"',
+                '    prompt: "foo; echo HACKED"',
+                "    trigger:",
+                "      status: ready-for-agent",
+                "    claim-status: active",
+                "",
+        ]);
         writeFileSync(join(cwd, "foo; echo HACKED"), "x\n");
         writeTicket(cwd, "agent.md", "ready-for-agent");
 
@@ -213,26 +215,24 @@ test("interpolated spaces stay one argv", () => {
                 join(cwd, "record.mjs"),
                 "import { writeFileSync } from 'node:fs';\nwriteFileSync('argv.json', JSON.stringify(process.argv.slice(2)));\n",
         );
-        writeFileSync(
-                join(cwd, "hivemind.yaml"),
-                [
-                        "folders:",
-                        "  - path: tickets",
-                        "    schema: ticket",
-                        "    required: [id, status]",
-                        "  - path: quarantine",
-                        "    schema: quarantine",
-                        "    required: [origin-location, quarantined-at, fault]",
-                        "lanes:",
-                        "  - lane: plan",
-                        `    cmd: ${process.execPath} record.mjs "{{prompt}}"`,
-                        '    prompt: "hello world"',
-                        "    trigger:",
-                        "      status: ready-for-agent",
-                        "    claim-status: active",
-                        "",
-                ].join("\n"),
-        );
+        writeConfig(cwd, [
+                "folders:",
+                "  - path: tickets",
+                "    schema: ticket",
+                "    required: [id, status]",
+                "  - path: quarantine",
+                "    schema: quarantine",
+                "    required: [origin-location, quarantined-at, fault]",
+                "lanes:",
+                "  plan:",
+                "    type: single",
+                `    cmd: ${process.execPath} record.mjs "{{prompt}}"`,
+                '    prompt: "hello world"',
+                "    trigger:",
+                "      status: ready-for-agent",
+                "    claim-status: active",
+                "",
+        ]);
         writeFileSync(join(cwd, "hello world"), "x\n");
         writeTicket(cwd, "agent.md", "ready-for-agent");
 
@@ -261,30 +261,28 @@ test("overlapping live exclusive/scope skip", async () => {
                         "",
                 ].join("\n"),
         );
-        writeFileSync(
-                join(cwd, "hivemind.yaml"),
-                [
-                        "concurrency: 2",
-                        "folders:",
-                        "  - path: tickets",
-                        "    schema: ticket",
-                        "    required: [id, status]",
-                        "  - path: quarantine",
-                        "    schema: quarantine",
-                        "    required: [origin-location, quarantined-at, fault]",
-                        "lanes:",
-                        "  - lane: plan",
-                        "    cmd:",
-                        `      - ${process.execPath}`,
-                        "      - record.mjs",
-                        "    trigger:",
-                        "      status: ready-for-agent",
-                        "    exclusive:",
-                        "      - tickets",
-                        "    claim-status: active",
-                        "",
-                ].join("\n"),
-        );
+        writeConfig(cwd, [
+                "folders:",
+                "  - path: tickets",
+                "    schema: ticket",
+                "    required: [id, status]",
+                "  - path: quarantine",
+                "    schema: quarantine",
+                "    required: [origin-location, quarantined-at, fault]",
+                "lanes:",
+                "  plan:",
+                "    type: single",
+                "    concurrency: 2",
+                "    cmd:",
+                `      - ${process.execPath}`,
+                "      - record.mjs",
+                "    trigger:",
+                "      status: ready-for-agent",
+                "    exclusive:",
+                "      - tickets",
+                "    claim-status: active",
+                "",
+        ]);
         writeTicket(cwd, "one.md", "ready-for-agent");
         writeTicket(cwd, "two.md", "ready-for-agent");
 
@@ -316,28 +314,25 @@ test("child is one unit; supervisor does not loop tickets inside the child", () 
                         "",
                 ].join("\n"),
         );
-        writeFileSync(
-                join(cwd, "hivemind.yaml"),
-                [
-                        "concurrency: 1",
-                        "folders:",
-                        "  - path: tickets",
-                        "    schema: ticket",
-                        "    required: [id, status]",
-                        "  - path: quarantine",
-                        "    schema: quarantine",
-                        "    required: [origin-location, quarantined-at, fault]",
-                        "lanes:",
-                        "  - lane: plan",
-                        "    cmd:",
-                        `      - ${process.execPath}`,
-                        "      - record.mjs",
-                        "    trigger:",
-                        "      status: ready-for-agent",
-                        "    claim-status: active",
-                        "",
-                ].join("\n"),
-        );
+        writeConfig(cwd, [
+                "folders:",
+                "  - path: tickets",
+                "    schema: ticket",
+                "    required: [id, status]",
+                "  - path: quarantine",
+                "    schema: quarantine",
+                "    required: [origin-location, quarantined-at, fault]",
+                "lanes:",
+                "  plan:",
+                "    type: single",
+                "    cmd:",
+                `      - ${process.execPath}`,
+                "      - record.mjs",
+                "    trigger:",
+                "      status: ready-for-agent",
+                "    claim-status: active",
+                "",
+        ]);
         writeTicket(cwd, "one.md", "ready-for-agent");
         writeTicket(cwd, "two.md", "ready-for-agent");
 
@@ -369,26 +364,24 @@ test("missing prompt file does not spawn and does not claim", () => {
         const cwd = mkdtempSync(join(tmpdir(), "hivemind-prompt-"));
         mkdirSync(join(cwd, "tickets"));
         mkdirSync(join(cwd, "quarantine"));
-        writeFileSync(
-                join(cwd, "hivemind.yaml"),
-                [
-                        "folders:",
-                        "  - path: tickets",
-                        "    schema: ticket",
-                        "    required: [id, status]",
-                        "  - path: quarantine",
-                        "    schema: quarantine",
-                        "    required: [origin-location, quarantined-at, fault]",
-                        "lanes:",
-                        "  - lane: plan",
-                        "    cmd: /bin/echo spawned",
-                        "    prompt: missing.md",
-                        "    trigger:",
-                        "      status: ready-for-agent",
-                        "    claim-status: active",
-                        "",
-                ].join("\n"),
-        );
+        writeConfig(cwd, [
+                "folders:",
+                "  - path: tickets",
+                "    schema: ticket",
+                "    required: [id, status]",
+                "  - path: quarantine",
+                "    schema: quarantine",
+                "    required: [origin-location, quarantined-at, fault]",
+                "lanes:",
+                "  plan:",
+                "    type: single",
+                "    cmd: /bin/echo spawned",
+                "    prompt: missing.md",
+                "    trigger:",
+                "      status: ready-for-agent",
+                "    claim-status: active",
+                "",
+        ]);
         writeTicket(cwd, "agent.md", "ready-for-agent");
 
         const proc = once(cwd);
@@ -409,7 +402,6 @@ test("live claimed-by skip does not re-spawn the same path", () => {
         const spawned: unknown[] = [];
         const n = spawnMatches({
                 cwd,
-                concurrency: 2,
                 matches,
                 env: process.env,
                 spawnChild: (argv) => {
@@ -457,26 +449,24 @@ test("once appends those actions to the history TSV", () => {
         const cwd = mkdtempSync(join(tmpdir(), "hivemind-history-"));
         mkdirSync(join(cwd, "tickets"));
         mkdirSync(join(cwd, "quarantine"));
-        writeFileSync(
-                join(cwd, "hivemind.yaml"),
-                [
-                        "history: hivemind.tsv",
-                        "folders:",
-                        "  - path: tickets",
-                        "    schema: ticket",
-                        "    required: [id, status]",
-                        "  - path: quarantine",
-                        "    schema: quarantine",
-                        "    required: [origin-location, quarantined-at, fault]",
-                        "lanes:",
-                        "  - lane: plan",
-                        "    cmd: /bin/echo agent-matched",
-                        "    trigger:",
-                        "      status: ready-for-agent",
-                        "    claim-status: active",
-                        "",
-                ].join("\n"),
-        );
+        writeConfig(cwd, [
+                "history: hivemind.tsv",
+                "folders:",
+                "  - path: tickets",
+                "    schema: ticket",
+                "    required: [id, status]",
+                "  - path: quarantine",
+                "    schema: quarantine",
+                "    required: [origin-location, quarantined-at, fault]",
+                "lanes:",
+                "  plan:",
+                "    type: single",
+                "    cmd: /bin/echo agent-matched",
+                "    trigger:",
+                "      status: ready-for-agent",
+                "    claim-status: active",
+                "",
+        ]);
         writeTicket(cwd, "agent.md", "ready-for-agent");
 
         const proc = once(cwd);
@@ -496,26 +486,24 @@ test("once logs quarantine of a faulty note", () => {
         const cwd = mkdtempSync(join(tmpdir(), "hivemind-history-q-"));
         mkdirSync(join(cwd, "tickets"));
         mkdirSync(join(cwd, "quarantine"));
-        writeFileSync(
-                join(cwd, "hivemind.yaml"),
-                [
-                        "history: hivemind.tsv",
-                        "folders:",
-                        "  - path: tickets",
-                        "    schema: ticket",
-                        "    required: [id, status]",
-                        "  - path: quarantine",
-                        "    schema: quarantine",
-                        "    required: [origin-location, quarantined-at, fault]",
-                        "lanes:",
-                        "  - lane: plan",
-                        "    cmd: /bin/echo spawned",
-                        "    trigger:",
-                        "      status: ready-for-agent",
-                        "    claim-status: active",
-                        "",
-                ].join("\n"),
-        );
+        writeConfig(cwd, [
+                "history: hivemind.tsv",
+                "folders:",
+                "  - path: tickets",
+                "    schema: ticket",
+                "    required: [id, status]",
+                "  - path: quarantine",
+                "    schema: quarantine",
+                "    required: [origin-location, quarantined-at, fault]",
+                "lanes:",
+                "  plan:",
+                "    type: single",
+                "    cmd: /bin/echo spawned",
+                "    trigger:",
+                "      status: ready-for-agent",
+                "    claim-status: active",
+                "",
+        ]);
         writeFileSync(join(cwd, "tickets", "bad.md"), "---\n{\n---\n");
 
         const proc = once(cwd);
@@ -549,6 +537,126 @@ test("skip for unset env is logged without the secret value", () => {
         );
         assert.equal(proc.stderr.includes("super-secret-value"), false);
         assert.equal(proc.stdout.includes("super-secret-value"), false);
+});
+
+test("independent lanes do not share a concurrency pool", () => {
+        const cwd = mkdtempSync(join(tmpdir(), "hivemind-lanes-"));
+        mkdirSync(join(cwd, "tickets"));
+        mkdirSync(join(cwd, "quarantine"));
+        mkdirSync(join(cwd, "spawns"));
+        writeFileSync(
+                join(cwd, "record.mjs"),
+                [
+                        "import { writeFileSync } from 'node:fs';",
+                        "import { join } from 'node:path';",
+                        "writeFileSync(join('spawns', process.argv[2] + '.flag'), '1');",
+                        "",
+                ].join("\n"),
+        );
+        writeConfig(cwd, [
+                "folders:",
+                "  - path: tickets",
+                "    schema: ticket",
+                "    required: [id, status]",
+                "  - path: quarantine",
+                "    schema: quarantine",
+                "    required: [origin-location, quarantined-at, fault]",
+                "lanes:",
+                "  plan:",
+                "    type: single",
+                "    concurrency: 1",
+                "    cmd:",
+                `      - ${process.execPath}`,
+                "      - record.mjs",
+                "      - plan",
+                "    trigger:",
+                "      status: ready-for-agent",
+                "    claim-status: active",
+                "  build:",
+                "    type: single",
+                "    concurrency: 1",
+                "    cmd:",
+                `      - ${process.execPath}`,
+                "      - record.mjs",
+                "      - build",
+                "    trigger:",
+                "      status: ready-for-build",
+                "    claim-status: active",
+                "",
+        ]);
+        writeTicket(cwd, "plan.md", "ready-for-agent");
+        writeTicket(cwd, "build.md", "ready-for-build");
+
+        const proc = once(cwd);
+        assert.equal(proc.status, 0, proc.stderr);
+        const flags = readdirSync(join(cwd, "spawns")).filter((name) =>
+                name.endsWith(".flag"),
+        );
+        assert.deepEqual(flags.sort(), ["build.flag", "plan.flag"]);
+});
+
+test("pipeline runs stages in order and stops on failure", () => {
+        const cwd = mkdtempSync(join(tmpdir(), "hivemind-pipe-"));
+        mkdirSync(join(cwd, "tickets"));
+        mkdirSync(join(cwd, "quarantine"));
+        mkdirSync(join(cwd, "spawns"));
+        writeFileSync(
+                join(cwd, "stage.mjs"),
+                [
+                        "import { appendFileSync } from 'node:fs';",
+                        "appendFileSync('spawns/order.log', process.argv[2] + '\\n');",
+                        "process.exit(Number(process.argv[3]));",
+                        "",
+                ].join("\n"),
+        );
+        writeConfig(cwd, [
+                "folders:",
+                "  - path: tickets",
+                "    schema: ticket",
+                "    required: [id, status]",
+                "  - path: quarantine",
+                "    schema: quarantine",
+                "    required: [origin-location, quarantined-at, fault]",
+                "lanes:",
+                "  workflow:",
+                "    type: pipeline",
+                "    concurrency: 1",
+                "    claim-status: active",
+                "    trigger:",
+                "      status: ready-for-agent",
+                "    stages:",
+                "      - stage: one",
+                "        cmd:",
+                `          - ${process.execPath}`,
+                "          - stage.mjs",
+                "          - one",
+                '          - "0"',
+                "      - stage: two",
+                "        cmd:",
+                `          - ${process.execPath}`,
+                "          - stage.mjs",
+                "          - two",
+                '          - "1"',
+                "      - stage: three",
+                "        cmd:",
+                `          - ${process.execPath}`,
+                "          - stage.mjs",
+                "          - three",
+                '          - "0"',
+                "",
+        ]);
+        writeTicket(cwd, "agent.md", "ready-for-agent");
+
+        const proc = once(cwd);
+        assert.equal(proc.status, 0, proc.stderr);
+        assert.equal(
+                readFileSync(join(cwd, "spawns", "order.log"), "utf8"),
+                "one\ntwo\n",
+        );
+        assert.match(
+                readFileSync(join(cwd, "tickets", "agent.md"), "utf8"),
+                /^status: active$/m,
+        );
 });
 
 function onceAsync(cwd: string): Promise<Proc> {

@@ -24,6 +24,7 @@ export async function runWatch(opts: {
   const target = resolveTarget(opts.cwd, opts.untilTarget);
   const env = opts.env ?? process.env;
   const live: LiveRun[] = [];
+  const lastFinished = new Map<string, number>();
   try {
     while (opts.signal?.aborted !== true) {
       if (target !== undefined && existsSync(target)) return;
@@ -43,12 +44,12 @@ export async function runWatch(opts: {
       const matches = matchNotes({ lanes, notes, disable: config.disable });
       const spawned = spawnMatches({
         cwd: opts.cwd,
-        concurrency: config.concurrency,
         matches,
         env,
         spawnChild: opts.spawnChild,
         live,
         journal,
+        lastFinished,
       });
       await Promise.resolve();
       const remaining = live.filter((run) => !run.done);

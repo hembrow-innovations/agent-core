@@ -8,7 +8,7 @@ domain: hivemind
 area: hivemind
 tags: [spec]
 created_at: "2026-09-01"
-updated_at: "2026-09-02"
+updated_at: "2026-09-03"
 ---
 
 # Hivemind spec
@@ -23,10 +23,10 @@ Hivemind is a TypeScript CLI installed to `.pi/frameworks/hivemind/` ([[0015-hiv
 
 Commands:
 
-- **`watch`**: resident predicate loop. Scan, spawn up to `concurrency`, wait on fs events or backoff. Flags `--until-quiet` (exit when a scan finds nothing to spawn and no children live) and `--until-target <path>` (exit when that path exists).
-- **`once`**: one scan, spawn what matches under concurrency, wait for those children, exit.
+- **`watch`**: resident predicate loop. Scan, spawn up to each lane's `concurrency`, wait on fs events or backoff. Flags `--until-quiet` (exit when a scan finds nothing to spawn and no children live) and `--until-target <path>` (exit when that path exists).
+- **`once`**: one scan, spawn what matches under each lane's `concurrency`, wait for those children, exit.
 
-Runtime config is project-root `hivemind.yaml` ([[schema-hivemind]]). Absent file is fatal. The engine does not overlay a shipped pack.
+Runtime config is `.hivemind/hivemind.yaml` ([[schema-hivemind]], [[0018-hivemind-independent-lanes]]). Absent file is fatal. Project-root `hivemind.yaml` is not read. The engine does not overlay a shipped pack.
 
 The supervisor reads **YAML front matter keys only**. It does not parse intent, spec prose, oracles bodies, or product code.
 
@@ -69,7 +69,7 @@ Two live children whose declared `exclusive`/`scope` sets overlap are not spawne
 
 Profile lists `frameworks: [hivemind]`. Install copies `frameworks/hivemind/package.json` and non-test `src/` to `.pi/frameworks/hivemind/`. Reinstall overwrites that tree. Not a `packages` entry. See [[spec-installer]].
 
-If the profile has `hivemind.yaml` and dest project-root `hivemind.yaml` is missing, copy once. Reinstall does not overwrite.
+If the profile has `hivemind.yaml` and dest `.hivemind/hivemind.yaml` is missing, copy once (or copy a legacy dest `hivemind.yaml` into that path). Reinstall does not overwrite.
 
 ### Scan
 
@@ -77,19 +77,19 @@ Watch configured paths. Parse front matter. Validate schema. Fault → quarantin
 
 Walk `blocked-by` / `caused-by` only as **id strings** for skip/need predicates. Do not interpret prose.
 
-Match lanes whose `trigger` is true and `need` holds. Order is file order in `lanes`. Spawn at most `concurrency` live children.
+Match lanes whose `trigger` is true and `need` holds. Lanes are independent. Each lane spawns at most its own `concurrency` live children. File order is not a priority queue.
 
 If a lane has no match, apply `backoff`. Do not spawn another lane “because this one is idle.”
 
 ### Claim and spawn
 
-Generate `run-id`. CAS claim. Interpolate. `exec`. Wait. Child exit does not by itself flip further status; the **agent** writes remaining keys it owns. Supervisor does not read the body to decide success.
+Generate `run-id`. CAS claim. Interpolate. `exec`. Wait. A `pipeline` claims once, then runs stages as sequential children and stops on non-zero. Child exit does not by itself flip further status; the **agent** writes remaining keys it owns. Supervisor does not read the body to decide success.
 
 `watch` then sleeps until an fs event or backoff. `once` waits for the children from this scan and exits.
 
 ### Journal
 
-Each supervisor action prints one `hivemind …` line to stderr. Child stdio stays inherited. Optional `history` appends the same actions as TSV (`ts`, `action`, `lane`, `path`, `run_id`, `detail`). Actions: `scan`, `quarantine`, `skip`, `claim`, `spawn`, `exit`. Skip reasons are machine tokens (`cmd-skip`, `missing-prompt`, `claim-race`, `exclusive`, `concurrency`, `live`). Interpolated argv and env values are never logged.
+Each supervisor action prints one `hivemind …` line to stderr. Child stdio stays inherited. Optional `history` appends the same actions as TSV (`ts`, `action`, `lane`, `path`, `run_id`, `detail`). Actions: `scan`, `quarantine`, `skip`, `claim`, `spawn`, `exit`. Skip reasons are machine tokens (`cmd-skip`, `missing-prompt`, `claim-race`, `exclusive`, `concurrency`, `cooldown`, `live`). Interpolated argv and env values are never logged.
 
 ### Heio-stack template (not core)
 
@@ -116,7 +116,7 @@ The profile template may describe this loop. Core does not hardcode the nouns.
 
 ## Acceptance
 
-- Missing project-root `hivemind.yaml` exits non-zero without spawn
+- Missing `.hivemind/hivemind.yaml` exits non-zero without spawn
 - Unknown yaml keys exit non-zero
 - `once` with no matching files exits zero and spawns nothing
 - A ticket at `ready-for-human` does not start a lane triggered on `ready-for-agent`
@@ -126,7 +126,7 @@ The profile template may describe this loop. Core does not hardcode the nouns.
 - `once` prints `hivemind scan|claim|spawn|exit` lines to stderr for a matching file
 - `history` path receives those actions as TSV; absent `history` writes no file
 - `cmd` with metacharacters in an interpolated path does not invoke a shell
-- Reinstall of the framework tree does not change dest `hivemind.yaml`
+- Reinstall of the framework tree does not change dest `.hivemind/hivemind.yaml`
 - Supervisor does not write `caused-by` or intent files
 
 ## Open questions

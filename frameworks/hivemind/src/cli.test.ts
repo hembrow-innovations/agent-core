@@ -1,15 +1,20 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { run } from "./cli.ts";
 
+function writeConfig(cwd: string, body: string): void {
+  mkdirSync(join(cwd, ".hivemind"), { recursive: true });
+  writeFileSync(join(cwd, ".hivemind", "hivemind.yaml"), body);
+}
+
 const CLI = fileURLToPath(import.meta.url).replace(/\.test\.ts$/, ".ts");
 
-test("once with no hivemind.yaml exits non-zero, no child", async () => {
+test("once with no .hivemind/hivemind.yaml exits non-zero, no child", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "hivemind-missing-"));
   const spawned: unknown[] = [];
   const status = await run({
@@ -33,10 +38,7 @@ test("once with no hivemind.yaml exits non-zero, no child", async () => {
 
 test("unknown keys exit non-zero", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "hivemind-unknown-"));
-  writeFileSync(
-    join(cwd, "hivemind.yaml"),
-    "folders: []\nlanes: []\nunknown: 1\n",
-  );
+  writeConfig(cwd, "folders: []\nlanes: {}\nunknown: 1\n");
   const spawned: unknown[] = [];
   const status = await run({
     argv: ["once"],
@@ -49,9 +51,9 @@ test("unknown keys exit non-zero", async () => {
   assert.deepEqual(spawned, []);
 });
 
-test("empty lanes: [] exits zero and spawns nothing", async () => {
+test("empty lanes: {} exits zero and spawns nothing", async () => {
   const cwd = mkdtempSync(join(tmpdir(), "hivemind-empty-"));
-  writeFileSync(join(cwd, "hivemind.yaml"), "folders: []\nlanes: []\n");
+  writeConfig(cwd, "folders: []\nlanes: {}\n");
   const spawned: unknown[] = [];
   const status = await run({
     argv: ["once"],
