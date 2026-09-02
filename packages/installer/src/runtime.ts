@@ -1,10 +1,19 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { openDestination, type Destination } from "./dest.ts";
 import { packRoot } from "./pack.ts";
 
 const STUB_APPEND_SYSTEM =
   "# Pi runtime\n\nThis file is the required pack stub. Identity is a dest `.pi/agents/` file. Boot appends it only after /agent or --agent.\n";
+
+export function listSystemPromptStems(srcRoot: string): string[] {
+  const dir = join(packRoot(srcRoot), "pi");
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true })
+    .filter((ent) => ent.isFile() && ent.name.endsWith(".md"))
+    .map((ent) => ent.name.slice(0, -3))
+    .sort();
+}
 
 export function installPiRuntime(
   srcRoot: string,

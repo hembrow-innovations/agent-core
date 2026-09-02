@@ -59,5 +59,9 @@ export {
   type PlaybookSelection,
   type Profile,
 } from "./profile.ts";
-export { installPiRuntime, readPiPackages } from "./runtime.ts";
+export {
+  installPiRuntime,
+  listSystemPromptStems,
+  readPiPackages,
+} from "./runtime.ts";
 export { findSkillDir, installSkills } from "./skills.ts";

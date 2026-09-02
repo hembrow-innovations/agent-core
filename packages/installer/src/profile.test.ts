@@ -3,7 +3,9 @@ import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { listProfiles, loadProfile } from "./profile.ts";
+import { planFromProfile, type InstallRequest } from "./plan.ts";
+import { listProfiles, loadProfile, type Profile } from "./profile.ts";
+import { listSystemPromptStems } from "./runtime.ts";
 
 function tempRoot(): string {
   const root = mkdtempSync(join(tmpdir(), "profile-dirs-"));
@@ -74,4 +76,91 @@ test("loadProfile: system-prompt stem is kept; absent key omits the field", () =
   writeDirProfile(root, "named", "system-prompt: persona\n");
   assert.equal("system-prompt" in loadProfile(root, "bare"), false);
   assert.equal(loadProfile(root, "named")["system-prompt"], "persona");
+});
+
+function planProfile(over: Partial<Profile> = {}): Profile {
+  return {
+    name: "demo",
+    skills: [],
+    agents: { kind: "omit" },
+    prompts: { kind: "omit" },
+    packages: [],
+    settings: null,
+    frameworks: [],
+    ...over,
+  };
+}
+
+function planRequest(): InstallRequest {
+  return {
+    kind: "install",
+    target: "/tmp",
+    profile: "demo",
+    with: [],
+    without: [],
+    extensions: [],
+  };
+}
+
+test("planFromProfile rejects unknown system-prompt stems", () => {
+  assert.throws(
+    () =>
+      planFromProfile(planProfile({ "system-prompt": "nope" }), planRequest(), {
+        agents: [],
+        prompts: [],
+        frameworks: [],
+        systemPrompts: ["APPEND_SYSTEM"],
+      }),
+    /Unknown system-prompt "nope"/,
+  );
+});
+
+test("planFromProfile rejects a system-prompt stem with no ai/pi markdown", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "ai", "pi"), { recursive: true });
+  writeFileSync(join(root, "ai", "pi", "APPEND_SYSTEM.md"), "boot\n");
+  writeFileSync(join(root, "ai", "pi", "packages.json"), "[]\n");
+  assert.throws(
+    () =>
+      planFromProfile(
+        planProfile({ "system-prompt": "persona" }),
+        planRequest(),
+        {
+          agents: [],
+          prompts: [],
+          frameworks: [],
+          systemPrompts: listSystemPromptStems(root),
+        },
+      ),
+    /Unknown system-prompt "persona"/,
+  );
+});
+
+test("planFromProfile allows omitting system-prompt", () => {
+  assert.doesNotThrow(() =>
+    planFromProfile(planProfile(), planRequest(), {
+      agents: [],
+      prompts: [],
+      frameworks: [],
+      systemPrompts: [],
+    }),
+  );
+});
+
+test("planFromProfile accepts a system-prompt stem that has ai/pi markdown", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "ai", "pi"), { recursive: true });
+  writeFileSync(join(root, "ai", "pi", "persona.md"), "hello\n");
+  assert.doesNotThrow(() =>
+    planFromProfile(
+      planProfile({ "system-prompt": "persona" }),
+      planRequest(),
+      {
+        agents: [],
+        prompts: [],
+        frameworks: [],
+        systemPrompts: listSystemPromptStems(root),
+      },
+    ),
+  );
 });

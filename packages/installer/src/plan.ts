@@ -22,6 +22,7 @@ export type AvailableIds = {
   agents: string[];
   prompts: string[];
   frameworks: string[];
+  systemPrompts: string[];
 };
 
 export type InstallPlan = {
@@ -68,6 +69,13 @@ export function planFromProfile(
   const set = new Set(profile.skills);
   for (const s of opts.with) set.add(s);
   for (const s of opts.without) set.delete(s);
+  const systemPrompt = profile["system-prompt"];
+  if (
+    systemPrompt !== undefined &&
+    !available.systemPrompts.includes(systemPrompt)
+  ) {
+    throw new Error(`Unknown system-prompt "${systemPrompt}"`);
+  }
   return {
     skills: [...set].sort(),
     agentIds: resolveNamedIds(

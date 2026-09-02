@@ -63,6 +63,7 @@ test("planFromProfile rejects unknown framework names", () => {
         agents: [],
         prompts: [],
         frameworks: [],
+        systemPrompts: [],
       }),
     /Unknown framework "hivemind"/,
   );
@@ -72,7 +73,7 @@ test("planFromProfile keeps known frameworks", () => {
   const plan = planFromProfile(
     profile({ frameworks: ["hivemind"] }),
     request(),
-    { agents: [], prompts: [], frameworks: ["hivemind"] },
+    { agents: [], prompts: [], frameworks: ["hivemind"], systemPrompts: [] },
   );
   assert.deepEqual(plan.frameworks, ["hivemind"]);
 });
