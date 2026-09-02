@@ -5,7 +5,6 @@ import { type Destination, openDestination } from "./dest.ts";
 export const FIRST_PARTY_EXTENSIONS = [
   "heio-boot",
   "heio-footer",
-  "heio-coord",
   "heio-onic",
 ] as const;
 

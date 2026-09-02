@@ -15,9 +15,9 @@ updated_at: "2026-09-01"
 
 ## Context
 
-This pack already has in-session gates ([[architecture-pack-and-packages]], `@agentic-core/heio-coord`) and parked in-session orchestrators (tmux team-lead, AFK orchestrator). Those are chat bosses. The wanted product is a **predicate machine outside a session**: watch files, read front matter, spawn short-lived children, die or sleep.
+This pack has parked in-session gates ([[architecture-heio-coord]]) and parked in-session orchestrators (tmux team-lead, AFK orchestrator). Those are chat bosses. The wanted product is a **predicate machine outside a session**: watch files, read front matter, spawn short-lived children, die or sleep.
 
-Product TypeScript today lives under `packages/` and install copies it into `.pi/npm/local/` as a Pi extension. Putting Hivemind there would load a daemon into the session plugin list. Folding it into coord mixes a live-session gate with an out-of-session process.
+Product TypeScript today lives under `packages/` and install copies it into `.pi/npm/local/` as a Pi extension. Putting Hivemind there would load a daemon into the session plugin list. Folding it into parked coord would mix a live-session gate with an out-of-session process.
 
 Dest is always `.pi/` ([[0005-pi-only-dest]]). Project conventions still need a committed file the reinstall of `.pi/frameworks/` cannot eat.
 

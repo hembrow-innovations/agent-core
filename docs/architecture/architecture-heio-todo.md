@@ -38,6 +38,6 @@ We do not maintain a todo extension. Version bumps of `@inobit/pi-todo` need a t
 
 ## Consequences
 
-`--extension heio-todo` is an unknown extension. First-party `--extension` names are `heio-boot`, `heio-footer`, `heio-coord`, and `heio-onic`.
+`--extension heio-todo` is an unknown extension. First-party `--extension` names are `heio-boot`, `heio-footer`, and `heio-onic`.
 
 Terms live in [[glossary]].

@@ -26,6 +26,7 @@ const PREVIOUS_FIRST_PARTY = [
   "heio-coms",
   "heio-teams",
   "heio-todo",
+  "heio-coord",
 ] as const;
 
 export type DestEntry = {

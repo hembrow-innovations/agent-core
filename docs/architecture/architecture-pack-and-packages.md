@@ -60,11 +60,10 @@ The folders are:
 
 - `packages/heio-boot` is `@agentic-core/heio-boot`.
 - `packages/heio-footer` is `@agentic-core/heio-footer`.
-- `packages/heio-coord` is `@agentic-core/heio-coord`.
 - `packages/heio-onic` is `@agentic-core/heio-onic`.
 - `packages/installer` is the install CLI.
 
-`heio-coms`, `heio-teams`, and `heio-todo` live under `deprecated/packages/`. They are not workspace packages and no profile installs them. See [[architecture-heio-coms]], [[spec-tmux-agent-teams]], and [[architecture-heio-todo]].
+`heio-coms`, `heio-teams`, `heio-todo`, and `heio-coord` live under `deprecated/packages/`. They are not workspace packages and no profile installs them. See [[architecture-heio-coms]], [[spec-tmux-agent-teams]], [[architecture-heio-todo]], and [[architecture-heio-coord]].
 
 Session checklists are pinned `@inobit/pi-todo`. The questionnaire tool is pinned `@juicesharp/rpiv-ask-user-question`. There is no `packages/lib`. See [[0012-inobit-pi-todo]] and [[0014-rpiv-ask-user-question]].
 
@@ -121,7 +120,7 @@ pnpm exec agentic-core install <target> --extension heio-boot
 
 `--extension` can repeat. Dest is always `.pi/`.
 
-A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the third-party `npm:` sources plus `local:@agentic-core/` packages for boot, footer, coord, and onic, pinned `npm:@inobit/pi-todo@0.1.1`, and pinned `npm:@juicesharp/rpiv-ask-user-question@2.8.0`. They do not install coms, teams, todo, or the rest of `rpiv-*`. See [[0012-inobit-pi-todo]] and [[0014-rpiv-ask-user-question]].
+A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the third-party `npm:` sources plus `local:@agentic-core/` packages for boot, footer, and onic, pinned `npm:@inobit/pi-todo@0.1.1`, and pinned `npm:@juicesharp/rpiv-ask-user-question@2.8.0`. They do not install coms, teams, todo, coord, or the rest of `rpiv-*`. See [[0012-inobit-pi-todo]], [[0014-rpiv-ask-user-question]], and [[0017-park-heio-coord]].
 
 A leftover `playbooks:` or `mode:` key is an error. Install does not write `.pi/playbooks/`.
 

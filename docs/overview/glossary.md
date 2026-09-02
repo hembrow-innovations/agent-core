@@ -33,10 +33,10 @@ A named install set. `--profile <name>` loads `profiles/<name>/profile.yaml`. Sk
 _Avoid_: flat `profiles/<name>.yaml`
 
 **Workspace package**:
-A TypeScript package under `packages/`. Folders are `heio-boot`, `heio-footer`, `heio-coord`, `heio-onic`, and `installer`. Parked packages live under `deprecated/packages/`.
+A TypeScript package under `packages/`. Folders are `heio-boot`, `heio-footer`, `heio-onic`, and `installer`. Parked packages live under `deprecated/packages/`.
 
 **First-party extension**:
-A product extension among the workspace packages. The four are `@agentic-core/heio-boot`, `@agentic-core/heio-footer`, `@agentic-core/heio-coord`, and `@agentic-core/heio-onic`.
+A product extension among the workspace packages. The three are `@agentic-core/heio-boot`, `@agentic-core/heio-footer`, and `@agentic-core/heio-onic`.
 _Avoid_: loose extension file
 
 **Local first-party copy**:
@@ -64,6 +64,10 @@ _Avoid_: agent definition, teammate, adapter module
 **Coms**:
 The living-session mailbox formerly in `@agentic-core/heio-coms`. Bind, stamp, send, get, await. Parked under `deprecated/packages/heio-coms`. Architecture: [[architecture-heio-coms]].
 _Avoid_: second mailbox, PI_* project flags
+
+**Coord**:
+The former in-session heio-stack gate `@agentic-core/heio-coord` (`heio_stack`, `/heio`). Parked under `deprecated/packages/heio-coord`. The tracker is skills and `.heio/` files. Architecture: [[architecture-heio-coord]]. Decision: [[0017-park-heio-coord]].
+_Avoid_: required extension, heio_stack
 
 **Session checklist**:
 The `todo` tool from pinned `@inobit/pi-todo`. State lives on the session branch. `.heio/TODO.md` is a leftover stub if it exists, not the live list. Architecture: [[architecture-heio-todo]].

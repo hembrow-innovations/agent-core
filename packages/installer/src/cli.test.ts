@@ -121,10 +121,7 @@ test("install --profile agentic-core writes skills, pack files, and third-party 
     existsSync(join(npmRoot, "heio-footer", "src", "index.ts")),
     true,
   );
-  assert.equal(
-    existsSync(join(npmRoot, "heio-coord", "src", "index.ts")),
-    true,
-  );
+  assert.equal(existsSync(join(npmRoot, "heio-coord")), false);
   assert.equal(existsSync(join(npmRoot, "heio-onic", "src", "index.ts")), true);
   assert.equal(existsSync(join(npmRoot, "lib")), false);
   assert.equal(
@@ -160,13 +157,30 @@ test("install --profile agentic-core removes leftover dest extension files", () 
   assert.equal(existsSync(join(dest, ".pi", "agents", "architect.md")), true);
 });
 
-test("install --profile agentic-core removes parked heio-coms and heio-teams dest copies", () => {
+test("install --profile agentic-core removes parked heio-coms, heio-teams, and heio-coord dest copies", () => {
   const dest = mkdtempSync(join(tmpdir(), "installer-parked-"));
   const npmRoot = join(dest, ".pi", "npm", "node_modules", "@agentic-core");
-  for (const name of ["heio-coms", "heio-teams"]) {
+  for (const name of ["heio-coms", "heio-teams", "heio-coord"]) {
     mkdirSync(join(npmRoot, name, "src"), { recursive: true });
     writeFileSync(join(npmRoot, name, "src", "index.ts"), "old\n");
   }
+  mkdirSync(
+    join(dest, ".pi", "npm", "local", "@agentic-core", "heio-coord", "src"),
+    { recursive: true },
+  );
+  writeFileSync(
+    join(
+      dest,
+      ".pi",
+      "npm",
+      "local",
+      "@agentic-core",
+      "heio-coord",
+      "src",
+      "index.ts",
+    ),
+    "old\n",
+  );
   mkdirSync(join(dest, ".pi", "skills", "agent-teams"), { recursive: true });
   writeFileSync(
     join(dest, ".pi", "skills", "agent-teams", "SKILL.md"),
@@ -178,9 +192,11 @@ test("install --profile agentic-core removes parked heio-coms and heio-teams des
       {
         packages: [
           "npm/local/@agentic-core/heio-todo",
+          "npm/local/@agentic-core/heio-coord",
           "npm/node_modules/@agentic-core/heio-todo",
           "npm/node_modules/@agentic-core/heio-coms",
           "npm/node_modules/@agentic-core/heio-teams",
+          "npm/node_modules/@agentic-core/heio-coord",
         ],
       },
       null,
@@ -192,10 +208,12 @@ test("install --profile agentic-core removes parked heio-coms and heio-teams des
   assert.equal(existsSync(join(npmRoot, "heio-coms")), false);
   assert.equal(existsSync(join(npmRoot, "heio-teams")), false);
   assert.equal(existsSync(join(npmRoot, "heio-todo")), false);
+  assert.equal(existsSync(join(npmRoot, "heio-coord")), false);
   assert.equal(existsSync(join(dest, ".pi", "skills", "agent-teams")), false);
   const localRoot = join(dest, ".pi", "npm", "local", "@agentic-core");
   assert.equal(existsSync(join(localRoot, "heio-todo")), false);
   assert.equal(existsSync(join(localRoot, "heio-coms")), false);
+  assert.equal(existsSync(join(localRoot, "heio-coord")), false);
   const settings = JSON.parse(
     readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
   ) as { packages: string[] };
@@ -213,6 +231,14 @@ test("install --profile agentic-core removes parked heio-coms and heio-teams des
   );
   assert.equal(
     settings.packages.includes("npm/local/@agentic-core/heio-todo"),
+    false,
+  );
+  assert.equal(
+    settings.packages.includes("npm/local/@agentic-core/heio-coord"),
+    false,
+  );
+  assert.equal(
+    settings.packages.includes("npm/node_modules/@agentic-core/heio-coord"),
     false,
   );
   assert.ok(settings.packages.includes("npm:@inobit/pi-todo@0.1.1"));
@@ -541,13 +567,6 @@ test("install --extension can repeat and a second run overwrites the npm copy", 
   assertNoCheckoutPath(dest);
 });
 
-test("parseProfilePackage accepts local:@agentic-core/heio-coord", () => {
-  assert.deepEqual(parseProfilePackage("local:@agentic-core/heio-coord"), {
-    kind: "local",
-    name: "heio-coord",
-  });
-});
-
 test("parseProfilePackage accepts local:@agentic-core/heio-onic", () => {
   assert.deepEqual(parseProfilePackage("local:@agentic-core/heio-onic"), {
     kind: "local",
@@ -586,7 +605,7 @@ test("parseProfilePackage and loadProfile reject vendor: and vendor/ sources", (
   );
 });
 
-test("parseProfilePackage rejects parked heio-coms, heio-teams, and heio-todo", () => {
+test("parseProfilePackage rejects parked heio-coms, heio-teams, heio-todo, and heio-coord", () => {
   assert.throws(
     () => parseProfilePackage("local:@agentic-core/heio-coms"),
     /Unknown extension: heio-coms/,
@@ -598,6 +617,10 @@ test("parseProfilePackage rejects parked heio-coms, heio-teams, and heio-todo", 
   assert.throws(
     () => parseProfilePackage("local:@agentic-core/heio-todo"),
     /Unknown extension: heio-todo/,
+  );
+  assert.throws(
+    () => parseProfilePackage("local:@agentic-core/heio-coord"),
+    /Unknown extension: heio-coord/,
   );
 });
 

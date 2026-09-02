@@ -7,7 +7,7 @@ description: Heio-stack operating loop under `.heio/planning`, `.heio/tickets`, 
 
 `.heio/planning/`, `.heio/tickets/`, `.heio/pool/`, and `.heio/archive/` are the working tree. Git ignores `.heio/`. `docs/` is the committed source of truth. Load **docs** for that vault. Load **domain-modeling** when a term or ADR belongs there.
 
-This tree is the tracker. If `AGENTS.md` or `WORKSPACE.md` already names a tracker, that file wins. Do not start a second tree.
+This tree is the tracker. If `AGENTS.md` or `WORKSPACE.md` already names a tracker, that file wins. Do not start a second tree. There is no required Pi extension. `@agentic-core/heio-coord` is parked. Do not call `heio_stack`.
 
 The map is **locations**. A sprint groups slices. Per-rule detail lives in `rules/`. Copy-ready skeletons live in `templates/`.
 

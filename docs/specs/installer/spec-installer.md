@@ -99,7 +99,7 @@ Unknown agent or prompt ids fail in `resolveNamedIds` when the plan is built. Un
 
 Selected skills copy from `ai/skills/` to `.pi/skills/<name>/`. `findSkillDir` walks with `walkSkillDirs`. A missing name fails with `Skill not found in source`. Overlay agents write `.pi/agents/<id>.md`. Overlay prompts write `.pi/prompts/<id>.md`. Each overlay updates listed ids. Extra dest markdown of that kind stays. Extra dest skill dirs, extra dest playbooks, and extra settings keys stay, except parked leftovers. Install does not write `.pi/playbooks/`.
 
-Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md`. It does not require or write `heio-models.md`. An existing dest `.pi/heio-models.md` stays. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, `.pi/roles`, installer-owned `.pi/vendor/@agentic-core`, parked dest copies of `heio-coms` and `heio-teams`, and `.pi/skills/agent-teams`. Other dest extras stay. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. The body is `ai/pi/<stem>.md` when the profile sets `system-prompt: <stem>`, else `ai/pi/APPEND_SYSTEM.md`. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing.
+Profile install then calls `writeRuntime`. That requires `ai/pi/APPEND_SYSTEM.md`. It does not require or write `heio-models.md`. An existing dest `.pi/heio-models.md` stays. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, `.pi/roles`, installer-owned `.pi/vendor/@agentic-core`, parked dest copies of `heio-coms`, `heio-teams`, `heio-todo`, and `heio-coord`, and `.pi/skills/agent-teams`. Other dest extras stay. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. The body is `ai/pi/<stem>.md` when the profile sets `system-prompt: <stem>`, else `ai/pi/APPEND_SYSTEM.md`. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing.
 
 `ai/pi/packages.json` is not merged on install.
 
@@ -120,7 +120,7 @@ copyTsSources(join(srcPkg, "src"), dest, join(destRel, "src"));
 
 `copyTsSources` copies `.ts` files and skips `*.test.ts`. Re-run deletes the dest folder first, so leftover files go away.
 
-The package `@agentic-core/heio-boot` lands at `.pi/npm/local/@agentic-core/heio-boot`. The same shape holds for `heio-footer`, `heio-coord`, and `heio-onic`. Parked `heio-coms`, `heio-teams`, and `heio-todo` dest copies are removed on profile install. Leftover `.pi/npm/node_modules/@agentic-core/<name>` copies for names the installer writes also go away.
+The package `@agentic-core/heio-boot` lands at `.pi/npm/local/@agentic-core/heio-boot`. The same shape holds for `heio-footer` and `heio-onic`. Parked `heio-coms`, `heio-teams`, `heio-todo`, and `heio-coord` dest copies are removed on profile install. Leftover `.pi/npm/node_modules/@agentic-core/<name>` copies for names the installer writes also go away.
 
 `dest.mergePackages` writes `.pi/settings.json`. Sources are dest-relative. `canonicalizePackageSource` rewrites `vendor/@agentic-core/<name>`, `.pi/vendor/@agentic-core/<name>`, and `npm/node_modules/@agentic-core/<name>` to `npm/local/@agentic-core/<name>`. Leftover vendor settings drop when that local path is present. No path back to this checkout.
 

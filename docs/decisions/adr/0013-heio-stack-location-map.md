@@ -35,7 +35,7 @@ Finished work **moves** to `.heio/archive/`, which mirrors `planning/` and `tick
 
 Notes carry enough ADRs, specs, paths, and whys that a stranger does not hunt. That is not a freeze ritual.
 
-Skills, templates, and `@agentic-core/heio-coord` follow this. Terms: [[glossary]].
+Skills and templates follow this. `@agentic-core/heio-coord` is parked ([[0017-park-heio-coord]]). Terms: [[glossary]].
 
 ## Alternatives considered
 
@@ -51,8 +51,9 @@ Ticket-first for every map edit. That is the ritual that blocked intended edits.
 
 ## Consequences
 
-Wayfinder charts locations, not ordered bets. Coord blocks sticky planning paths only in a builder-shaped session, and does not enforce a single active slice. Status, claim, advance, and oracle must name a slice when more than one is in flight. Two builders on one dirty tree stay out.
+Wayfinder charts locations, not ordered bets. A builder-shaped session must not rewrite sticky planning paths, and the stack does not enforce a single active slice. Status, claim, advance, and oracle must name a slice when more than one is in flight. Two builders on one dirty tree stay out. The live gate that used to do this in-session is parked ([[0017-park-heio-coord]]).
 
 ## Relationships
 
 - [[glossary]]
+- [[0017-park-heio-coord]]
