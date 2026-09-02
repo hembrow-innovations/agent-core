@@ -30,17 +30,16 @@ tags: [layout]
       └─ <sprint-id>/
          ├─ shape.md
          └─ slices/
-            └─ s-<slug>/
-               ├─ spec.md
-               ├─ oracles.md
-               └─ tasks.md
+            └─ s-<slug>.md
 ```
 
 Create a folder when the first file needs it. `planning/locations/` exists only when a location needs a file. `archive/` exists on the first move.
 
 `.heio/pool/` is one markdown file per task. Completed pool files are moved on completed to `.heio/archive/pool/`.
 
-Parked tickets live in `.heio/tickets/`, never in a slice. `tasks.md` exists on frozen or active slices.
+A slice is one markdown file: status, oracle checklist, durable pool-id links. Sprint `shape.md` stays the grouping. Slice `met` means linked pool ids are `completed` and oracles hold. Links are never dropped.
+
+Parked tickets live in `.heio/tickets/`, never in a slice.
 
 Reserved at the root, owned by other skills. Leave them in place.
 
@@ -53,7 +52,7 @@ Reserved at the root, owned by other skills. Leave them in place.
 
 - **sprint-id**: short folder name (`week-1`, `auth-working`). The id is the folder. A location name or a timebox.
 - **location file**: `locations/<slug>.md`. Lowercase kebab-case. Only when the roadmap bullet needs depth.
-- **slice folder**: `s-<slug>`. Lowercase kebab-case.
+- **slice file**: `s-<slug>.md`. Lowercase kebab-case.
 - **ticket**: `ticket-<NN>-<slug>.md`. `<NN>` is the next unused integer, zero-padded to two digits. Scan `.heio/tickets/`. Start at `01`. Do not reuse a number.
 
 `slug` is lowercase kebab-case. Keep it short.

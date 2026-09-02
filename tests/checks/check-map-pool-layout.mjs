@@ -34,6 +34,33 @@ if (existsSync(layoutPath)) {
       "layout.md does not say .heio/archive/pool/ is moved on completed",
     );
   }
+  if (!/a slice is one markdown file/i.test(text)) {
+    errors.push("layout.md does not say a slice is one markdown file");
+  }
+  if (!/status,\s*oracle checklist/i.test(text)) {
+    errors.push(
+      "layout.md does not say the slice file has status, oracle checklist",
+    );
+  }
+  if (!/durable (?:pool-id links|links to pool ids)/i.test(text)) {
+    errors.push(
+      "layout.md does not name durable pool-id links on the slice file",
+    );
+  }
+  if (!/shape\.md[`']? stays the grouping/i.test(text)) {
+    errors.push("layout.md does not say sprint shape.md stays the grouping");
+  }
+  if (!/met[`']? means linked pool ids are [`']?completed[`']?/i.test(text)) {
+    errors.push(
+      "layout.md does not say slice met means linked pool ids are completed",
+    );
+  }
+  if (!/oracles hold/i.test(text)) {
+    errors.push("layout.md does not say slice met requires oracles hold");
+  }
+  if (!/links are never dropped/i.test(text)) {
+    errors.push("layout.md does not say links are never dropped");
+  }
 } else {
   errors.push("missing ai/skills/heio-stack/heio-stack/rules/layout.md");
 }
