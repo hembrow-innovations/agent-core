@@ -9,6 +9,7 @@ prompts:
   - heio-wayfinder
   - heio-planning
   - heio-slice
+  - swarm
 packages:
   - npm:pi-lens
   - npm:pi-web-access
