@@ -1,6 +1,6 @@
 # agent-core
 
-Skill and profile pack for Pi.
+AI installer for Pi. Holds project profiles and copies a dest `.pi/` tree. Edit agents, skills, prompts, and first-party extensions here.
 
 ## Develop this repo with Pi
 

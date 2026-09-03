@@ -1,4 +1,4 @@
-# Dest: heio-stack + Hivemind for onic.
+# Dest: heio-stack for onic.
 # Install: pnpm exec agentic-core install ../core-onic --profile core-onic
 agents:
   - heio-triage
@@ -10,13 +10,6 @@ prompts:
   - heio-wayfinder
   - heio-planning
   - heio-slice
-  - hivemind-plan
-  - hivemind-tasker
-  - hivemind-build
-  - hivemind-review
-  - hivemind-improve
-frameworks:
-  - hivemind
 packages:
   - npm:pi-lens
   - npm:pi-subagents

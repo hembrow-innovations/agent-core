@@ -1,4 +1,4 @@
-# Littlepaw dest: heio-stack + Hivemind + Godot MCP.
+# Littlepaw dest: heio-stack + Godot MCP.
 # install . --profile little-paw
 agents:
   - heio-triage
@@ -15,13 +15,6 @@ prompts:
   - heio-slice
   - swarm
   - verify-littlepaw
-  - hivemind-plan
-  - hivemind-tasker
-  - hivemind-build
-  - hivemind-review
-  - hivemind-improve
-frameworks:
-  - hivemind
 packages:
   - npm:pi-lens
   - npm:pi-subagents

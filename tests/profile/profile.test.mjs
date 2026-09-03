@@ -159,7 +159,6 @@ test("loadProfile: defaults omit settings", () => {
 		prompts: { kind: "omit" },
 		packages: [],
 		settings: null,
-		frameworks: [],
 	});
 });
 
@@ -206,6 +205,11 @@ test("loadProfile: leftover dest keys die", () => {
 	);
 	writeYaml(root, "playbooks", "playbooks: all\nskills: []\n");
 	assert.throws(() => loadProfile(root, "playbooks"), /leftover "playbooks:"/);
+	writeYaml(root, "frameworks", "frameworks:\n  - hivemind\n");
+	assert.throws(
+		() => loadProfile(root, "frameworks"),
+		/leftover "frameworks:". hivemind is not installed from this pack/,
+	);
 });
 
 test("loadProfile: unknown key dies", () => {
@@ -787,31 +791,6 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 	assert.equal(existsSync(join(dest, ".heio")), false);
 });
 
-test("agentic-core hivemind.yaml is a full heio-stack template", () => {
-	const yaml = readFileSync(
-		join(REPO, "profiles", "agentic-core", "hivemind.yaml"),
-		"utf8",
-	);
-	assert.match(yaml, /\.heio\/tickets/);
-	assert.match(yaml, /\.heio\/planning/);
-	assert.match(yaml, /\.heio\/archive/);
-	assert.match(yaml, /\.heio\/quarantine/);
-	assert.match(yaml, /sealed/i);
-	assert.match(yaml, /\bready\b/);
-	assert.match(yaml, /^ {2}plan:/m);
-	assert.match(yaml, /^ {2}tasker:/m);
-	assert.match(yaml, /^ {2}build:/m);
-	assert.match(yaml, /^ {2}review:/m);
-	assert.match(yaml, /claim-status:/);
-	assert.match(yaml, /mint-status:\s*ready-for-human/);
-	assert.match(yaml, /\{\{agent\}\}/);
-	assert.match(yaml, /\{\{prompt\}\}/);
-	const mintLane = /^ {2}mint:/m.test(yaml);
-	const mintDisabled = /(?:^|\n)disable:[\s\S]*\bmint\b/.test(yaml);
-	assert.equal(mintLane && !mintDisabled, false);
-	assert.deepEqual(loadProfile(REPO, "agentic-core").frameworks, ["hivemind"]);
-});
-
 test("install --profile agentic-core writes .pi only", () => {
 	const dest = mkdtempSync(join(tmpdir(), "install-agentic-core-"));
 	const r = spawnSync(
@@ -966,17 +945,6 @@ test("ported life-engine skills keep the management/docs split", () => {
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 });
 
-test("hivemind layout keeps profile dirs and frameworks dest", () => {
-	const r = spawnSync(
-		process.execPath,
-		[join(REPO, "tests", "checks", "check-hivemind-layout.mjs")],
-		{
-			encoding: "utf8",
-		},
-	);
-	assert.equal(r.status, 0, r.stderr || r.stdout);
-});
-
 test("check-profile-dirs prints directory-profile oracle tokens", () => {
 	const r = spawnSync(
 		process.execPath,
@@ -1038,10 +1006,6 @@ test("scripts root holds npm entrypoints only", () => {
 	);
 	assert.equal(
 		existsSync(join(REPO, "tests", "checks", "check-ported-skills.mjs")),
-		true,
-	);
-	assert.equal(
-		existsSync(join(REPO, "tests", "checks", "check-hivemind-layout.mjs")),
 		true,
 	);
 	assert.equal(existsSync(join(REPO, "tests", "lib", "profile.mjs")), true);

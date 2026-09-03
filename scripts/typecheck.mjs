@@ -13,12 +13,3 @@ const result = spawnSync(
   },
 );
 if (result.status !== 0) process.exit(result.status ?? 1);
-const hivemind = spawnSync(
-  "pnpm",
-  ["exec", "tsc", "--noEmit", "-p", "frameworks/hivemind/tsconfig.json"],
-  {
-    cwd: ROOT,
-    stdio: "inherit",
-  },
-);
-if (hivemind.status !== 0) process.exit(hivemind.status ?? 1);

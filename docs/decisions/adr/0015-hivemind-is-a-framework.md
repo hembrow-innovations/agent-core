@@ -3,7 +3,7 @@ id: "adr-15"
 title: "ADR-0015: Hivemind is an optional framework"
 kind: adr
 description: "Out-of-session supervisor lives under frameworks/, installs via profile frameworks:, dest copy is .pi/frameworks/. Not a Pi package."
-status: accepted
+status: superseded
 domain: hivemind
 area: decisions
 tags: [hivemind, installer]
@@ -13,7 +13,7 @@ updated_at: "2026-09-03"
 
 # ADR-0015: Hivemind is an optional framework
 
-Runtime config path is [[0018-hivemind-independent-lanes]]. Dest is `.hivemind/hivemind.yaml`. The framework vs package decision still holds.
+Superseded by [[0019-hivemind-own-repo]]. Runtime config path was ADR-0018. Dest is `.hivemind/hivemind.yaml`. The framework vs package decision still holds.
 
 ## Context
 
@@ -61,11 +61,7 @@ Lane config survives reinstall. The program does not.
 
 - [[0005-pi-only-dest]]
 - [[0016-profiles-are-directories]]
-- [[0018-hivemind-independent-lanes]]
+- [[0019-hivemind-own-repo]]
 - [[architecture-pack-and-packages]]
 - [[schema-profile]]
-- [[purpose-hivemind]]
-- [[spec-hivemind]]
-- [[system-design-hivemind]]
-- [[schema-hivemind]]
 - [[glossary]]

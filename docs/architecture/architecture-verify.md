@@ -39,7 +39,7 @@ Do not put checks or tests here.
 
 Repo verification. Folders:
 
-- **checks/**: standalone integrity scripts. `check-no-pstack.mjs`, `check-ported-skills.mjs`, and `check-hivemind-layout.mjs` (profile dirs, frameworks dest, write-if-missing `.hivemind/hivemind.yaml`). Spawned from `tests/profile/profile.test.mjs`
+- **checks/**: standalone integrity scripts. `check-no-pstack.mjs` and `check-ported-skills.mjs`. Spawned from `tests/profile/profile.test.mjs`
 - **lib/**: test helpers. `profile.mjs` re-exports the installer. Profile parse still lives in `packages/installer`
 - **profile/**, **pi/**, **oracle/**: `node --test` files
 

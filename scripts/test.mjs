@@ -15,25 +15,7 @@ function run(command, args) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
-function listTestFiles(dir) {
-  const out = [];
-  for (const ent of readdirSync(dir, { withFileTypes: true })) {
-    const full = join(dir, ent.name);
-    if (ent.isDirectory()) {
-      out.push(...listTestFiles(full));
-      continue;
-    }
-    if (ent.isFile() && ent.name.endsWith(".test.ts")) out.push(full);
-  }
-  return out.sort();
-}
-
 run("pnpm", ["-r", "--filter", "./packages/**", "test"]);
-
-const hivemindTests = listTestFiles(
-  join(ROOT, "frameworks", "hivemind", "src"),
-);
-run("node", ["--experimental-strip-types", "--test", ...hivemindTests]);
 
 const piTests = readdirSync(join(ROOT, "tests", "pi"))
   .filter((name) => name.endsWith(".mjs"))

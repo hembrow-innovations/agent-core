@@ -6,7 +6,6 @@ import {
   mkdtempSync,
   readdirSync,
   readFileSync,
-  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
@@ -646,78 +645,4 @@ test("parseProfilePackage and loadProfile reject unknown local names", () => {
     () => loadProfile(srcRoot, "bad"),
     /Unknown extension: not-a-package/,
   );
-});
-
-test("agentic-core lists frameworks: [hivemind]", () => {
-  assert.deepEqual(loadProfile(REPO, "agentic-core").frameworks, ["hivemind"]);
-});
-
-test("profile frameworks: [hivemind] copies the tree; settings packages unchanged by that list", () => {
-  const dest = mkdtempSync(join(tmpdir(), "installer-fw-tree-"));
-  const r = runCli(["install", dest, "--profile", "agentic-core"]);
-  assert.equal(r.status, 0, r.stderr || r.stdout);
-
-  const copied = join(dest, ".pi", "frameworks", "hivemind");
-  assert.equal(existsSync(join(copied, "package.json")), true);
-  assert.equal(existsSync(join(copied, "src", "cli.ts")), true);
-  assert.equal(existsSync(join(copied, "src", "cli.test.ts")), false);
-  assert.equal(existsSync(join(copied, "tsconfig.json")), false);
-
-  const profile = loadProfile(REPO, "agentic-core");
-  const settings = JSON.parse(
-    readFileSync(join(dest, ".pi", "settings.json"), "utf8"),
-  ) as { packages: string[] };
-  assert.deepEqual(settings.packages, profile.packages.map(packageRefSource));
-  assert.equal(
-    settings.packages.some(
-      (item) => item.includes("hivemind") || item.includes("frameworks"),
-    ),
-    false,
-  );
-});
-
-test("second install does not overwrite an edited dest .hivemind/hivemind.yaml", () => {
-  const dest = mkdtempSync(join(tmpdir(), "installer-hivemind-yaml-"));
-  const first = runCli(["install", dest, "--profile", "agentic-core"]);
-  assert.equal(first.status, 0, first.stderr || first.stdout);
-
-  const template = readFileSync(
-    join(REPO, "profiles", "agentic-core", "hivemind.yaml"),
-    "utf8",
-  );
-  assert.equal(
-    readFileSync(join(dest, ".hivemind", "hivemind.yaml"), "utf8"),
-    template,
-  );
-  assert.equal(
-    existsSync(join(dest, ".pi", "frameworks", "hivemind", "package.json")),
-    true,
-  );
-
-  writeFileSync(join(dest, ".hivemind", "hivemind.yaml"), "lanes: {}\n");
-  const second = runCli(["install", dest, "--profile", "agentic-core"]);
-  assert.equal(second.status, 0, second.stderr || second.stdout);
-  assert.equal(
-    readFileSync(join(dest, ".hivemind", "hivemind.yaml"), "utf8"),
-    "lanes: {}\n",
-  );
-});
-
-test("install dies on a missing framework name at plan time", () => {
-  const dest = mkdtempSync(join(tmpdir(), "installer-missing-fw-"));
-  const profileName = ".tmp-unknown-framework";
-  const profileDir = join(REPO, "profiles", profileName);
-  mkdirSync(profileDir, { recursive: true });
-  writeFileSync(
-    join(profileDir, "profile.yaml"),
-    "frameworks:\n  - not-a-framework\n",
-  );
-  try {
-    const r = runCli(["install", dest, "--profile", profileName]);
-    assert.notEqual(r.status, 0, r.stderr || r.stdout);
-    assert.match(r.stderr, /Unknown framework "not-a-framework"/);
-    assert.equal(existsSync(join(dest, ".pi")), false);
-  } finally {
-    rmSync(profileDir, { recursive: true, force: true });
-  }
 });

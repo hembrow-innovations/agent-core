@@ -16,7 +16,6 @@ export type Profile = {
   prompts: NamedSelection;
   packages: ProfilePackage[];
   settings: Record<string, unknown> | null;
-  frameworks: string[];
   "system-prompt"?: string;
 };
 
@@ -26,7 +25,6 @@ const PROFILE_KEYS = new Set([
   "prompts",
   "packages",
   "settings",
-  "frameworks",
   "system-prompt",
 ]);
 
@@ -38,6 +36,10 @@ const LEFTOVER_KEYS = new Map([
   ["extensions", 'leftover "extensions:". use packages:'],
   ["templates", 'leftover "templates:". dest is always .pi'],
   ["commands", 'leftover "commands:". dest is always .pi'],
+  [
+    "frameworks",
+    'leftover "frameworks:". hivemind is not installed from this pack',
+  ],
 ]);
 
 const JSON_NUMBER = /^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?$/;
@@ -90,7 +92,6 @@ export function loadProfile(srcRoot: string, name: string): Profile {
     prompts: toSelection(raw.prompts, "prompts"),
     packages: asStringList(raw.packages, "packages").map(parseProfilePackage),
     settings: asSettings(raw.settings),
-    frameworks: asStringList(raw.frameworks, "frameworks"),
     ...(systemPrompt !== undefined ? { "system-prompt": systemPrompt } : {}),
   };
 }

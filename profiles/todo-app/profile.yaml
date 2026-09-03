@@ -1,4 +1,4 @@
-# Dest demo: heio-stack + Hivemind building a web todo app.
+# Dest demo: heio-stack building a web todo app.
 # Install: pnpm exec agentic-core install ../todo-app --profile todo-app
 agents:
   - heio-triage
@@ -9,8 +9,6 @@ prompts:
   - heio-wayfinder
   - heio-planning
   - heio-slice
-frameworks:
-  - hivemind
 packages:
   - npm:pi-lens
   - npm:pi-subagents

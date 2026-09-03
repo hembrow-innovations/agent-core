@@ -3,7 +3,7 @@ id: "adr-18"
 title: "ADR-0018: Hivemind lanes are independent and config lives under .hivemind/"
 kind: adr
 description: "Dest runtime is .hivemind/hivemind.yaml. Lanes are a named map with per-lane concurrency. Actors and typed lanes (single, pipeline)."
-status: accepted
+status: superseded
 domain: hivemind
 area: decisions
 tags: [hivemind]
@@ -13,9 +13,11 @@ updated_at: "2026-09-03"
 
 # ADR-0018: Hivemind lanes are independent and config lives under .hivemind/
 
+Superseded by [[0019-hivemind-own-repo]].
+
 ## Context
 
-[[0015-hivemind-is-a-framework]] put runtime config at project-root `hivemind.yaml`. Lanes were a list. A single top-level `concurrency` capped live children across every lane. File order was priority: the first matching lane could take the last seat and starve later lanes.
+ADR-0015 put runtime config at project-root `hivemind.yaml`. Lanes were a list. A single top-level `concurrency` capped live children across every lane. File order was priority: the first matching lane could take the last seat and starve later lanes.
 
 That was unexpected. A lane is a trigger that should fire when a matching file is ready. Lanes are not a pipeline unless the user writes a pipeline. Reusable spawn identity (cmd, agent, prompt, scope, claim-status) was copied on every lane.
 
@@ -45,14 +47,9 @@ Existing dest root files are inert until install migrates them or the user moves
 
 Heio-stack templates stay independent `single` lanes. A `pipeline` is opt-in for one match that runs several agents in order.
 
-Schema: [[schema-hivemind]]. Behaviour: [[spec-hivemind]].
-
 ## Relationships
 
-- [[0015-hivemind-is-a-framework]]
 - [[0016-profiles-are-directories]]
-- [[schema-hivemind]]
-- [[spec-hivemind]]
-- [[purpose-hivemind]]
+- [[0019-hivemind-own-repo]]
 - [[spec-installer]]
 - [[schema-profile]]

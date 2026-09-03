@@ -1,4 +1,4 @@
-# Dest: science fiction novel in the world vault. heio-stack + Hivemind.
+# Dest: science fiction novel in the world vault. heio-stack.
 # Install: pnpm exec agentic-core install ../world --profile world
 # Unattended. No ask-user-question. Lanes never interview.
 agents:
@@ -27,8 +27,6 @@ prompts:
   - audit-consistency
   - write-chapter
   - create-script
-frameworks:
-  - hivemind
 packages:
   - npm:pi-lens
   - npm:pi-web-access

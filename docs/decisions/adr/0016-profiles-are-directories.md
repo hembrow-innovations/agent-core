@@ -2,18 +2,18 @@
 id: "adr-16"
 title: "ADR-0016: profiles are directories"
 kind: adr
-description: "Each profile is profiles/<name>/profile.yaml. Optional hivemind.yaml in that directory is the write-if-missing dest template."
+description: "Each profile is profiles/<name>/profile.yaml. The directory stem is the name."
 status: accepted
 domain: pack
 area: decisions
-tags: [installer, profiles, hivemind]
+tags: [installer, profiles]
 created_at: "2026-09-01"
 updated_at: "2026-09-03"
 ---
 
 # ADR-0016: profiles are directories
 
-Dest runtime path is [[0018-hivemind-independent-lanes]]. The profile directory and sibling template still hold. Dest copy is `.hivemind/hivemind.yaml`.
+The directory shape still holds. Sibling `hivemind.yaml` and dest copy are superseded by [[0019-hivemind-own-repo]].
 
 ## Context
 
@@ -51,11 +51,8 @@ Dest lane config is not installer-owned after the first write.
 
 ## Relationships
 
-- [[0015-hivemind-is-a-framework]]
-- [[0018-hivemind-independent-lanes]]
+- [[0019-hivemind-own-repo]]
 - [[schema-profile]]
 - [[spec-installer]]
-- [[schema-hivemind]]
-- [[purpose-hivemind]]
 - [[architecture-pack-and-packages]]
 - [[glossary]]

@@ -57,7 +57,6 @@ test("loadProfile reads profiles/<name>/profile.yaml", () => {
     prompts: { kind: "omit" },
     packages: [],
     settings: null,
-    frameworks: [],
   });
 });
 
@@ -67,14 +66,13 @@ test("loadProfile treats leftover flat yaml as unknown", () => {
   assert.throws(() => loadProfile(root, "foo"), /Unknown profile "foo"/);
 });
 
-test("loadProfile: missing frameworks is empty; list is kept; non-list dies", () => {
+test("loadProfile: leftover frameworks key dies", () => {
   const root = tempRoot();
-  writeDirProfile(root, "bare", "skills: []\n");
-  writeDirProfile(root, "listed", "frameworks:\n  - hivemind\n");
-  writeDirProfile(root, "bad", "frameworks: hivemind\n");
-  assert.deepEqual(loadProfile(root, "bare").frameworks, []);
-  assert.deepEqual(loadProfile(root, "listed").frameworks, ["hivemind"]);
-  assert.throws(() => loadProfile(root, "bad"), /"frameworks" must be a list/);
+  writeDirProfile(root, "fw", "frameworks:\n  - hivemind\n");
+  assert.throws(
+    () => loadProfile(root, "fw"),
+    /leftover "frameworks:". hivemind is not installed from this pack/,
+  );
 });
 
 test("loadProfile: system-prompt stem is kept; absent key omits the field", () => {
@@ -93,7 +91,6 @@ function planProfile(over: Partial<Profile> = {}): Profile {
     prompts: { kind: "omit" },
     packages: [],
     settings: null,
-    frameworks: [],
     ...over,
   };
 }
@@ -115,7 +112,6 @@ test("planFromProfile rejects unknown system-prompt stems", () => {
       planFromProfile(planProfile({ "system-prompt": "nope" }), planRequest(), {
         agents: [],
         prompts: [],
-        frameworks: [],
         systemPrompts: ["default"],
       }),
     /Unknown system-prompt "nope"/,
@@ -134,7 +130,6 @@ test("planFromProfile rejects a system-prompt stem with no ai/system-prompts mar
         {
           agents: [],
           prompts: [],
-          frameworks: [],
           systemPrompts: listSystemPromptStems(root),
         },
       ),
@@ -147,7 +142,6 @@ test("planFromProfile allows omitting system-prompt", () => {
     planFromProfile(planProfile(), planRequest(), {
       agents: [],
       prompts: [],
-      frameworks: [],
       systemPrompts: [],
     }),
   );
@@ -172,7 +166,6 @@ test("planFromProfile accepts a system-prompt stem that has ai/system-prompts ma
     {
       agents: [],
       prompts: [],
-      frameworks: [],
       systemPrompts: listSystemPromptStems(root),
     },
   );
@@ -183,7 +176,6 @@ test("planFromProfile omits systemPrompt when the profile key is absent", () => 
   const plan = planFromProfile(planProfile(), planRequest(), {
     agents: [],
     prompts: [],
-    frameworks: [],
     systemPrompts: [],
   });
   assert.equal("systemPrompt" in plan, false);
