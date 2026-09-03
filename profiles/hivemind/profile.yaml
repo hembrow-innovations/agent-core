@@ -1,0 +1,44 @@
+# Dest: same cut as this pack's agentic-core profile.
+# Install: pnpm exec agentic-core install ../hivemind --profile hivemind
+agents:
+  - heio-triage
+  - heio-tasker
+  - heio-builder
+  - heio-verifier
+prompts:
+  - heio-wayfinder
+  - heio-planning
+  - heio-slice
+packages:
+  - npm:pi-lens
+  - npm:pi-web-access
+  - npm:pi-subagents
+  - npm:@ff-labs/pi-fff
+  - npm:@inobit/pi-todo@0.1.1
+  - npm:@juicesharp/rpiv-ask-user-question@2.8.0
+  - local:@agentic-core/heio-boot
+  - local:@agentic-core/heio-footer
+  - local:@agentic-core/heio-onic
+settings:
+  toolDescriptionMode: compact
+  defaultTools:
+    - read
+    - bash
+    - edit
+    - write
+    - ls
+skills:
+  - behaviour-contracts
+  - diagnose
+  - docs
+  - domain-modeling
+  - codebase-design
+  - improve-codebase-architecture
+  - heio-stack
+  - heio-wayfinder
+  - heio-planning
+  - heio-slice
+  - oracle
+  - tdd
+  - typescript-best-practices
+  - unpark
