@@ -24,6 +24,7 @@ test("cold start dest ships the opt-in agent file", () => {
     "heio-tasker",
     "heio-builder",
     "heio-verifier",
+    "heio-visual",
   ]) {
     const path = join(dest, ".pi", "agents", `${stem}.md`);
     assert.equal(existsSync(path), true, path);

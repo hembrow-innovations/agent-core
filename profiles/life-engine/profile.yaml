@@ -3,6 +3,7 @@ agents:
   - heio-tasker
   - heio-triage
   - heio-verifier
+  - heio-visual
 prompts:
   - afk-loop
   - arena
@@ -48,6 +49,7 @@ skills:
   - management
   - oracle
   - playwright-cli
+  - stitch
   - tanstack-query
   - tanstack-ui
   - tdd

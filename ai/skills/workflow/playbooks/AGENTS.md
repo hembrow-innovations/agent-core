@@ -2,7 +2,7 @@
 
 Prefer `rules/` plus the `SKILL.md` router. This file is the skip rationale. It is not auto-injected on skill load.
 
-Twenty-five rules. One per file in `ai/playbooks/` except `README.md`. Each rule is the matcher and the contract. The ordered steps stay in the library file. Install copies those files into dest `.pi/playbooks/`.
+Twenty-six rules. One per file in `ai/playbooks/` except `README.md`. Each rule is the matcher and the contract. The ordered steps stay in the library file. Install copies those files into dest `.pi/playbooks/`.
 
 This pack exists so a human can judge progressive disclosure over playbooks. It is not the source of truth for the steps.
 
@@ -18,6 +18,10 @@ Read the incorrect line. If you cannot picture an agent picking the wrong playbo
 - React app vs Prototype. Production source is React app. A throwaway to decide layout is Prototype.
 - React app vs Bug fix. A reported defect is Bug fix even when the file is `.tsx`.
 - React app vs Visual parity. Pixel-exact match is Visual parity.
+- Visual dev vs Prototype. Production look is Visual dev. A throwaway to decide layout is Prototype.
+- Visual dev vs React app. Pixels, mockup, and capture are Visual dev. Stack match and behavior in a React tree is React app.
+- Visual dev vs Visual parity. Iterative quality against a Stitch pull is Visual dev. Pixel-exact image-diff is Visual parity.
+- Visual dev vs Hillclimb. A visual critique loop is Visual dev. One numeric metric is Hillclimb.
 - Feature vs Refactoring. New behavior is Feature. Structure only is Refactoring.
 - Bug fix vs Investigation. A cited answer with no code is Investigation. A defect to fix is Bug fix.
 - Bug fix vs Perf vs Hillclimb. One defect is Bug fix. One measured slowness is Perf. A loop against a target is Hillclimb.

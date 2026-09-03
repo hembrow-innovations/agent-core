@@ -18,7 +18,7 @@ Pick one playbook. Read that rule. Then read the library file for the full steps
 
 **Prefer:** one playbook per task. Copy its steps into the todolist verbatim. A skip stays as `skip: <reason>`. Dest steps live at `.pi/playbooks/<id>.md`.
 
-**Careful:** Feature when `/figure-it-out` is the fit. Feature when the work is not a React tree. React app when the files are React. Babysit when the ask is to land. Perf when the ask is a sustained metric loop. Prototype when the sketch is the ship.
+**Careful:** Feature when `/figure-it-out` is the fit. Feature when the work is not a React tree. React app when the files are React. Visual dev when the ask is the look. Babysit when the ask is to land. Perf when the ask is a sustained metric loop. Prototype when the sketch is the ship.
 
 **Do not introduce:** Graphite or `gt` unless the repo already uses it. A Cursor cloud fleet on Pi. A second source of truth for playbook steps. This pack does not replace `ai/playbooks/`.
 
@@ -34,7 +34,7 @@ Choosing which playbook to run. A named playbook. Ambiguous "fix this", "ship it
 | 2 | Program | CRITICAL | `run-autonomous` `run-orchestrate` `run-saas-company` `run-hillclimb` |
 | 3 | Ship | HIGH | `ship-opening-a-pr` `ship-babysit` `ship-shipping` |
 | 4 | Autopilot | HIGH | `run-autopilot-full` `run-autopilot-stack` |
-| 5 | Build shape | HIGH | `build-refactoring` `build-prototype` `build-react-app` `fix-perf` `fix-visual-parity` |
+| 5 | Build shape | HIGH | `build-refactoring` `build-prototype` `build-react-app` `build-visual-dev` `fix-perf` `fix-visual-parity` |
 | 6 | Forensics | MEDIUM | `read-runtime-forensics` `read-trace-forensics` |
 | 7 | Session | MEDIUM | `session-pause` `session-pickup` `session-worktree-cleanup` |
 | 8 | Author | LOW | `author-skill` `author-eval` |
@@ -51,7 +51,7 @@ Prefer higher bands when the kind is unclear.
 
 **Autopilot.** `run-autopilot-full` owners merge · `run-autopilot-stack` operator lands the chain
 
-**Build shape.** `build-refactoring` behavior pinned · `build-prototype` throwaway to decide · `build-react-app` copy the neighbor, public UI tests, running app · `fix-perf` one-off measurement · `fix-visual-parity` image-diff zero
+**Build shape.** `build-refactoring` behavior pinned · `build-prototype` throwaway to decide · `build-react-app` copy the neighbor, public UI tests, running app · `build-visual-dev` stitch, capture, hillclimb the look · `fix-perf` one-off measurement · `fix-visual-parity` image-diff zero
 
 **Forensics.** `read-runtime-forensics` live process · `read-trace-forensics` dropped artifact
 

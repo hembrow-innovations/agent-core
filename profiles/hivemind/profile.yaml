@@ -5,6 +5,7 @@ agents:
   - heio-tasker
   - heio-builder
   - heio-verifier
+  - heio-visual
 prompts:
   - heio-wayfinder
   - heio-planning
@@ -40,6 +41,9 @@ skills:
   - heio-planning
   - heio-slice
   - oracle
+  - frontend-design
+  - maestro
+  - playwright-cli
   - stitch
   - tdd
   - typescript-best-practices
