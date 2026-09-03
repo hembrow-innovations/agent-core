@@ -54,3 +54,5 @@ Schema: [[schema-hivemind]]. Behaviour: [[spec-hivemind]].
 - [[schema-hivemind]]
 - [[spec-hivemind]]
 - [[purpose-hivemind]]
+- [[spec-installer]]
+- [[schema-profile]]

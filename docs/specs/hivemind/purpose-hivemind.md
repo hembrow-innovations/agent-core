@@ -21,6 +21,7 @@ Let a dest project walk away from a trusted folder and still make progress: a pr
 
 - Optional framework install via profile `frameworks:`
 - `.hivemind/hivemind.yaml` as the only runtime lane contract
+- Independent typed lanes (`single`, `pipeline`) and reusable actors
 - `watch` and `once` process models
 - Front-matter parse, per-folder schema, fail-closed quarantine
 - Lane match, CAS claim, cmd-template spawn, backoff
@@ -47,7 +48,7 @@ Hard fences. The things an agent will invent if you leave them unsaid.
 
 - Source: `frameworks/hivemind/`
 - Dest program: `.pi/frameworks/hivemind/`
-- Dest config: `.hivemind/hivemind.yaml`
+- Dest config: `.hivemind/hivemind.yaml` (optional `.hivemind/actors/`)
 - CLI: `hivemind watch` and `hivemind once`
 
 ## Authority
@@ -55,7 +56,7 @@ Hard fences. The things an agent will invent if you leave them unsaid.
 - Behaviour: [[spec-hivemind]]
 - Internals: [[system-design-hivemind]]
 - Config: [[schema-hivemind]]
-- Decisions: [[0015-hivemind-is-a-framework]], [[0016-profiles-are-directories]]
+- Decisions: [[0015-hivemind-is-a-framework]], [[0016-profiles-are-directories]], [[0018-hivemind-independent-lanes]]
 - Install: [[spec-installer]], [[schema-profile]]
 
 ## Open product questions

@@ -26,7 +26,7 @@ Commands:
 - **`watch`**: resident predicate loop. Scan, spawn up to each lane's `concurrency`, wait on fs events or backoff. Flags `--until-quiet` (exit when a scan finds nothing to spawn and no children live) and `--until-target <path>` (exit when that path exists).
 - **`once`**: one scan, spawn what matches under each lane's `concurrency`, wait for those children, exit.
 
-Runtime config is `.hivemind/hivemind.yaml` ([[schema-hivemind]], [[0018-hivemind-independent-lanes]]). Absent file is fatal. Project-root `hivemind.yaml` is not read. The engine does not overlay a shipped pack.
+Runtime config is `.hivemind/hivemind.yaml` ([[schema-hivemind]], [[0018-hivemind-independent-lanes]]). Absent file is fatal. Project-root `hivemind.yaml` is not read. `lanes` is a map. `type` is required (`single` or `pipeline`). There is no top-level `concurrency`. Each lane has its own seat cap. Optional `actors` come from that yaml and `.hivemind/actors/*.yaml`. `disable` omits named lanes from match. The engine does not overlay a shipped pack.
 
 The supervisor reads **YAML front matter keys only**. It does not parse intent, spec prose, oracles bodies, or product code.
 
@@ -69,7 +69,7 @@ Two live children whose declared `exclusive`/`scope` sets overlap are not spawne
 
 Profile lists `frameworks: [hivemind]`. Install copies `frameworks/hivemind/package.json` and non-test `src/` to `.pi/frameworks/hivemind/`. Reinstall overwrites that tree. Not a `packages` entry. See [[spec-installer]].
 
-If the profile has `hivemind.yaml` and dest `.hivemind/hivemind.yaml` is missing, copy once (or copy a legacy dest `hivemind.yaml` into that path). Reinstall does not overwrite.
+If the profile has `hivemind.yaml` and dest `.hivemind/hivemind.yaml` is missing, copy once (or copy a legacy dest `hivemind.yaml` into that path). Reinstall does not overwrite. Install does not seed `.hivemind/actors/`.
 
 ### Scan
 
@@ -77,7 +77,7 @@ Watch configured paths. Parse front matter. Validate schema. Fault → quarantin
 
 Walk `blocked-by` / `caused-by` only as **id strings** for skip/need predicates. Do not interpret prose.
 
-Match lanes whose `trigger` is true and `need` holds. Lanes are independent. Each lane spawns at most its own `concurrency` live children. File order is not a priority queue.
+Match lanes whose `trigger` is true and `need` holds, skipping ids in `disable`. Lanes are independent. Each lane spawns at most its own `concurrency` live children. File order is not a priority queue. A busy lane does not take seats from another.
 
 If a lane has no match, apply `backoff`. Do not spawn another lane “because this one is idle.”
 
@@ -117,10 +117,18 @@ The profile template may describe this loop. Core does not hardcode the nouns.
 ## Acceptance
 
 - Missing `.hivemind/hivemind.yaml` exits non-zero without spawn
+- A project-root `hivemind.yaml` is not read
 - Unknown yaml keys exit non-zero
+- Top-level `concurrency` exits non-zero
+- `lanes` as a list exits non-zero
+- Unknown lane `type` exits non-zero
+- Duplicate actor names across `.hivemind/actors/` files fail closed
 - `once` with no matching files exits zero and spawns nothing
+- `disable` omits those lane ids from match
 - A ticket at `ready-for-human` does not start a lane triggered on `ready-for-agent`
 - Two `once` processes cannot both CAS-claim the same file
+- Two lanes at `concurrency: 1` may both have a live child
+- A `pipeline` claims once, runs stages in order, and stops remaining stages on non-zero
 - Faulty front matter lands in quarantine with only `origin-location`, `quarantined-at`, `fault`
 - `{{env.SECRET}}` with unset SECRET does not spawn and does not print the name’s value as a secret dump
 - `once` prints `hivemind scan|claim|spawn|exit` lines to stderr for a matching file

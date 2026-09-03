@@ -7,7 +7,7 @@ domain: system
 area: overview
 tags: [glossary]
 created_at: "2026-08-23"
-updated_at: "2026-09-02"
+updated_at: "2026-09-03"
 ---
 
 # Glossary

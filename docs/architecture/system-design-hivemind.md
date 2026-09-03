@@ -19,7 +19,7 @@ Hivemind is an out-of-session **predicate machine**. It watches typed markdown i
 
 It is not coord, not a Pi extension, not tmux team-lead, not the AFK orchestrator. Those are in-session bosses. Hivemind is a watcher plus a spawner. Every **agent** life is one planning, build, or review **unit**. Endless operation is `watch` + backoff + optional user-written Mint, not one process that keeps planning.
 
-Source: `frameworks/hivemind/`. Dest program: `.pi/frameworks/hivemind/`. Decisions: [[0015-hivemind-is-a-framework]], [[0016-profiles-are-directories]]. Behaviour: [[spec-hivemind]]. Config: [[schema-hivemind]]. Job: [[purpose-hivemind]].
+Source: `frameworks/hivemind/`. Dest program: `.pi/frameworks/hivemind/`. Decisions: [[0015-hivemind-is-a-framework]], [[0016-profiles-are-directories]], [[0018-hivemind-independent-lanes]]. Behaviour: [[spec-hivemind]]. Config: [[schema-hivemind]]. Job: [[purpose-hivemind]].
 
 ## Components
 
@@ -31,7 +31,9 @@ Bin name `hivemind`. Commands `watch` and `once`. Flags `--until-quiet` and `--u
 
 Reads `.hivemind/hivemind.yaml`. Fail-closed on missing file, parse error, or unknown keys. No merge with a default pack. No `hivemind.local.yaml`. No vault. Root `hivemind.yaml` is not read.
 
-The heio-stack **template** lives at `profiles/<name>/hivemind.yaml` and is copied once at install to `.hivemind/hivemind.yaml`. After that the dest file is the contract.
+Actors load from `.hivemind/actors/*.yaml` (and `*.yml`) then the `actors:` map in the main yaml overlays names from files. Duplicate names across files fail. Lanes are a named map. `type` is required. Each lane has its own `concurrency`.
+
+The heio-stack **template** lives at `profiles/<name>/hivemind.yaml` and is copied once at install to `.hivemind/hivemind.yaml`. After that the dest file is the contract. Install does not seed `.hivemind/actors/`.
 
 ### Journal
 
@@ -82,7 +84,8 @@ Entities the **engine** knows:
 
 - **Typed folder**: path + schema name + required keys.
 - **Note**: path + front-matter map. Body ignored.
-- **Lane**: id, type (`single` or `pipeline`), per-lane concurrency, cmd template or stages, trigger, need, exclusive, backoff, cooldown, claim-status.
+- **Actor**: reusable spawn identity (`cmd`, `agent`, `prompt`, `scope` / `exclusive`, `claim-status`, extra string scalars).
+- **Lane**: id, type (`single` or `pipeline`), per-lane concurrency, actor or cmd template or stages, trigger, need, exclusive, backoff, cooldown, claim-status.
 - **Run**: run-id, lane, claimed path, child pid, exclusive set.
 - **Fault**: machine code on a quarantined note.
 - **History row**: timestamp, action, lane, path, run-id, detail. Optional file.
@@ -151,3 +154,4 @@ v1 honesty on ownership: the engine will not audit that a child stayed inside `e
 - [[glossary]]
 - [[architecture-pack-and-packages]]
 - [[0013-heio-stack-location-map]]
+- [[0018-hivemind-independent-lanes]]

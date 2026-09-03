@@ -8,7 +8,7 @@ area: installer
 tags: [schema, installer, profiles]
 source: "packages/installer/src/profile.ts"
 created_at: "2026-08-25"
-updated_at: "2026-09-02"
+updated_at: "2026-09-03"
 ---
 
 # Profile YAML schema

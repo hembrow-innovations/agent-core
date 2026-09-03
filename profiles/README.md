@@ -31,6 +31,8 @@ Install writes `.pi/skills` and dest runtime files into `.pi/`:
 - `.pi/.gitignore` if that file is missing
 - package sources from `profile.packages` into `.pi/settings.json`
 - `profile.settings` deep-merged into `.pi/settings.json`
+- optional `frameworks:` list copied to `.pi/frameworks/<name>/` (`package.json` + non-test `src/`). Reinstall overwrites that tree
+- if `hivemind` is listed and dest `.hivemind/hivemind.yaml` is missing, a legacy dest-root `hivemind.yaml` copies there once, else `profiles/<name>/hivemind.yaml` copies there once. Reinstall does not overwrite dest yaml. Runtime of Hivemind fail-closes without that file. See `docs/api/schema/schema-hivemind.md`
 
 A missing `ai/system-prompts/default.md` is an error when the key is omitted. An unknown or missing `system-prompt` stem fails at plan time. `ai/system-prompts/` is markdown only. There is no `ai/pi/` folder. Install does not require or write dest `.pi/heio-models.md`. An existing dest file stays. `ai/prompts/` is optional. Identity dest is `.pi/agents/`. Install deletes leftover dest `.pi/roles/`.
 

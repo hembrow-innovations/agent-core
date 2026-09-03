@@ -8,10 +8,12 @@ domain: hivemind
 area: decisions
 tags: [hivemind, installer]
 created_at: "2026-09-01"
-updated_at: "2026-09-01"
+updated_at: "2026-09-03"
 ---
 
 # ADR-0015: Hivemind is an optional framework
+
+Runtime config path is [[0018-hivemind-independent-lanes]]. Dest is `.hivemind/hivemind.yaml`. The framework vs package decision still holds.
 
 ## Context
 
@@ -59,6 +61,7 @@ Lane config survives reinstall. The program does not.
 
 - [[0005-pi-only-dest]]
 - [[0016-profiles-are-directories]]
+- [[0018-hivemind-independent-lanes]]
 - [[architecture-pack-and-packages]]
 - [[schema-profile]]
 - [[purpose-hivemind]]

@@ -52,9 +52,9 @@ Runtime reads **`.hivemind/hivemind.yaml` only**. Missing file is fatal. A proje
   - **`cooldown`**: optional duration string. After a run of this lane finishes, skip new matches until it elapses.
   - **`claim-status`**: required string after actor merge. Front-matter `status` written on CAS before spawn.
   - **`mint-status`**: optional extra scalar. Only meaningful if this lane creates tickets (user-written Review). Default in the heio-stack template is `ready-for-human`.
-  - **`stages`**: required on `type: pipeline`. Ordered list. Each entry has `stage` (id unique in the pipeline) plus the spawn fields of a `single` lane (`cmd` / `actor` / `agent` / `prompt`). Pipeline `cmd` / `actor` are defaults for stages that omit them. Claim once, then run stages as sequential children. Non-zero exit stops remaining stages. The pipeline occupies one of this lane's concurrency seats for the whole chain.
+  - **`stages`**: required on `type: pipeline`. Ordered list. Each entry has `stage` (id unique in the pipeline) plus spawn fields (`cmd` / `actor` / `agent` / `prompt` / `scope` / `exclusive` / `claim-status`). Extra string keys become interpolation scalars. Pipeline `cmd` / `actor` are defaults for stages that omit them. Claim once, then run stages as sequential children. Non-zero exit stops remaining stages. The pipeline occupies one of this lane's concurrency seats for the whole chain.
 
-- **`disable`**: optional list of lane ids to ignore even if present in `lanes`. For templates that include Mint.
+- **`disable`**: optional list of lane ids to ignore even if present in `lanes`. Unknown ids are unused. Filtered at run, not parse. For templates that include Mint.
 
 There is no top-level `concurrency`. That key is unknown and fails closed.
 
@@ -102,4 +102,21 @@ lanes:
       - .heio/tickets
     claim-status: active
     backoff: 30s
+  workflow:
+    type: pipeline
+    concurrency: 1
+    actor: pi
+    trigger:
+      kind: ticket
+      status: ready-for-agent
+    claim-status: active
+    stages:
+      - stage: plan
+        agent: heio-planner
+        prompt: .pi/prompts/heio-planning.md
+      - stage: build
+        agent: heio-builder
+        prompt: .pi/prompts/heio-slice.md
 ```
+
+Pack-root `example.hivemind.yaml` is a sample. Runtime does not read it.

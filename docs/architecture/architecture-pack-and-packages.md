@@ -7,7 +7,7 @@ domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-09-02"
+updated_at: "2026-09-03"
 ---
 
 # Pack and packages
@@ -43,7 +43,7 @@ The folders are:
 - `ai/playbooks/` is the playbook library.
 - `ai/prompts/` is the prompt/command library.
 - `ai/system-prompts/` is the system-prompt library. Files are markdown. Required pack file is `default.md`. Other `*.md` stems are profile-selectable. Dest is `.pi/APPEND_SYSTEM.md`. There is no `ai/pi/` folder.
-- `profiles/` is the install profiles. Each profile is `profiles/<name>/profile.yaml`. Optional `hivemind.yaml` in that directory is a write-if-missing template for dest `.hivemind/hivemind.yaml`. See [[0016-profiles-are-directories]].
+- `profiles/` is the install profiles. Each profile is `profiles/<name>/profile.yaml`. Optional `hivemind.yaml` in that directory is a write-if-missing template for dest `.hivemind/hivemind.yaml`. See [[0016-profiles-are-directories]] and [[0018-hivemind-independent-lanes]].
 - `frameworks/` is out-of-session programs. `frameworks/hivemind/` is the first. See [[0015-hivemind-is-a-framework]].
 - `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`.
 - `tests/` is the repo checks and tests. See [[architecture-verify]].
@@ -148,7 +148,7 @@ Install is the only path from workspace packages to a dest. A dest never keeps a
 
 Todo tests and imports stay in the workspace. Dest never sees a sibling lib package.
 
-The pack does not keep `ai/pi/`. System prompts live under `ai/system-prompts/`. Profiles list skills, agents, prompts, packages, optional settings, optional frameworks, and optional `system-prompt`. They do not name a dest. See [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0015-hivemind-is-a-framework]], [[0016-profiles-are-directories]], and [[schema-profile]].
+The pack does not keep `ai/pi/`. System prompts live under `ai/system-prompts/`. Profiles list skills, agents, prompts, packages, optional settings, optional frameworks, and optional `system-prompt`. They do not name a dest. See [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0015-hivemind-is-a-framework]], [[0016-profiles-are-directories]], [[0018-hivemind-independent-lanes]], and [[schema-profile]].
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.
 
