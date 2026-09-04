@@ -54,11 +54,12 @@ function ledger(...items) {
   return `# Oracles: test\n\n${items.join("\n")}`;
 }
 
-function run(args, cwd) {
+function run(args, cwd, env) {
   return spawnSync(process.execPath, [SCRIPT, ...args], {
     encoding: "utf8",
     cwd,
     timeout: 15000,
+    env: env ? { ...process.env, ...env } : undefined,
   });
 }
 
@@ -274,4 +275,20 @@ test("unknown flag is an error", () => {
   const cwd = workspace();
   const r = run(["--approve", "oracles.md"], cwd);
   assert.equal(r.status, 2);
+});
+
+test("ORACLE_CHECK_TIMEOUT_MS kills a slow CHECK as exit=timeout", () => {
+  const cwd = workspace();
+  writeLedger(
+    cwd,
+    ledger(
+      oracle({
+        check: `node -e "setTimeout(() => console.log('oracle passed'), 5000)"`,
+      }),
+    ),
+  );
+  const r = run(["oracles.md"], cwd, { ORACLE_CHECK_TIMEOUT_MS: "200" });
+  assert.equal(r.status, 1, r.stderr);
+  const body = readFileSync(join(cwd, "oracles.md"), "utf8");
+  assert.match(body, /exit=timeout/);
 });
