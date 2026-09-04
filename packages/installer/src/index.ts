@@ -45,6 +45,7 @@ export {
   writeAgents,
 } from "./agents.ts";
 export {
+  findPromptFile,
   listPromptIds,
   installPrompts,
   writePrompts,

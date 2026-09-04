@@ -8,7 +8,7 @@ area: installer
 tags: [schema, installer, profiles]
 source: "packages/installer/src/profile.ts"
 created_at: "2026-08-25"
-updated_at: "2026-09-03"
+updated_at: "2026-09-04"
 ---
 
 # Profile YAML schema
@@ -25,7 +25,7 @@ Allowed keys are `skills`, `agents`, `prompts`, `packages`, `settings`, and `sys
 
 - **agents.** One of three shapes. Missing, `null`, or `~` is omit. `all` selects every `ai/agents/<id>/` directory that holds `<id>.md`. The stem must match `^[a-z][a-z0-9-]{0,63}$`. A list selects those ids. Overlay writes `.pi/agents/<id>.md`. Extra dest agent markdown stays. Any other scalar, including `true` or `false`, is `Invalid agents value`.
 
-- **prompts.** Same three shapes as agents. `all` selects every `ai/prompts/*.md` except `README.md`. Overlay writes `.pi/prompts/<id>.md`. Extra dest prompt markdown stays.
+- **prompts.** Same three shapes as agents. `all` selects every markdown under `ai/prompts/` except `README.md`. `listPromptIds` walks with `walkPromptFiles` from `pack-walk.ts`. Duplicate stems fail. Overlay writes `.pi/prompts/<id>.md`. Extra dest prompt markdown stays.
 
 - **packages.** String list of Pi package sources. Missing or `null` becomes `[]`. A present non-list is an error. Each item is `npm:<name>` or `local:@agentic-core/<name>`. Local names must be `heio-boot`, `heio-footer`, or `heio-onic`. A bare first-party name is an error. Use the `local:` source. `vendor:` and `vendor/` sources fail at load. `npm:` with nothing after the prefix is `Invalid package source`. Install copies those trees to `.pi/npm/local/@agentic-core/<name>` and merges dest-relative `npm/local/@agentic-core/<name>` into `.pi/settings.json` `packages` in list order. Those copies stay outside `.pi/npm/node_modules/` so Pi npm install cannot delete them. Settings do not list `npm:@agentic-core/<name>`. `--extension` appends a local source. Profile order wins, then CLI, duplicates dropped.
 

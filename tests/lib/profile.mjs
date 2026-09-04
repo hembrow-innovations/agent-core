@@ -2,6 +2,7 @@ export {
   PACK_DIR,
   PLAYBOOK_DEST,
   SKILL_DEST,
+  findPromptFile,
   findSkillDir,
   installAgents,
   installPlaybooks,

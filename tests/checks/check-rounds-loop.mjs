@@ -14,8 +14,20 @@ const skillPath = join(
   "heio-rounds",
   "SKILL.md",
 );
-const startPath = join(root, "ai", "prompts", "heio-rounds-start.md");
-const resumePath = join(root, "ai", "prompts", "heio-rounds-resume.md");
+const startPath = join(
+  root,
+  "ai",
+  "prompts",
+  "heio-stack",
+  "heio-rounds-start.md",
+);
+const resumePath = join(
+  root,
+  "ai",
+  "prompts",
+  "heio-stack",
+  "heio-rounds-resume.md",
+);
 const profiles = [
   join(root, "profiles", "agentic-core", "profile.yaml"),
   join(root, "profiles", "heio-stack", "profile.yaml"),
@@ -44,8 +56,11 @@ const skill = readOrError(
   skillPath,
   "ai/skills/heio-stack/heio-rounds/SKILL.md",
 );
-const start = readOrError(startPath, "ai/prompts/heio-rounds-start.md");
-readOrError(resumePath, "ai/prompts/heio-rounds-resume.md");
+const start = readOrError(
+  startPath,
+  "ai/prompts/heio-stack/heio-rounds-start.md",
+);
+readOrError(resumePath, "ai/prompts/heio-stack/heio-rounds-resume.md");
 
 if (skill !== null) {
   for (const status of STATUSES) {

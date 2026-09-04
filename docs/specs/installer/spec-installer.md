@@ -8,7 +8,7 @@ domain: pack
 area: installer
 tags: [spec]
 created_at: "2026-08-23"
-updated_at: "2026-09-03"
+updated_at: "2026-09-04"
 ---
 
 # Installer spec
@@ -95,7 +95,7 @@ Unknown agent or prompt ids fail in `resolveNamedIds` when the plan is built. Un
 
 ### Dest writes
 
-Selected skills copy from `ai/skills/` to `.pi/skills/<name>/`. `findSkillDir` walks with `walkSkillDirs`. A missing name fails with `Skill not found in source`. Overlay agents write `.pi/agents/<id>.md`. Overlay prompts write `.pi/prompts/<id>.md`. Each overlay updates listed ids. Extra dest markdown of that kind stays. Extra dest skill dirs, extra dest playbooks, and extra settings keys stay, except parked leftovers. Install does not write `.pi/playbooks/`.
+Selected skills copy from `ai/skills/` to `.pi/skills/<name>/`. `findSkillDir` walks with `walkSkillDirs`. A missing name fails with `Skill not found in source`. Overlay agents write `.pi/agents/<id>.md`. Overlay prompts write `.pi/prompts/<id>.md` from nested `ai/prompts/` markdown. `listPromptIds` walks with `walkPromptFiles`. Duplicate stems fail. Each overlay updates listed ids. Extra dest markdown of that kind stays. Extra dest skill dirs, extra dest playbooks, and extra settings keys stay, except parked leftovers. Install does not write `.pi/playbooks/`.
 
 Profile install then calls `writeRuntime`. That requires `ai/system-prompts/default.md`. It does not require or write `heio-models.md`. An existing dest `.pi/heio-models.md` stays. It calls `removeLeftovers`, which deletes `.pi/extensions`, `.pi/lib`, `.pi/roles`, installer-owned `.pi/vendor/@agentic-core`, parked dest copies of `heio-coms`, `heio-teams`, `heio-todo`, and `heio-coord`, and `.pi/skills/agent-teams`. Other dest extras stay. It writes `.pi/APPEND_SYSTEM.md` when missing or when the current file is a known legacy stub. The body is `ai/system-prompts/<stem>.md` when the profile sets `system-prompt: <stem>`, else `ai/system-prompts/default.md`. It writes `.pi/.gitignore` as `npm/\ngit/\n` when missing.
 

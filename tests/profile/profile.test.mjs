@@ -14,6 +14,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+	findPromptFile,
 	findSkillDir,
 	installAgents,
 	installPlaybooks,
@@ -687,10 +688,13 @@ test("installAgents writes selected files and keeps dest extras", () => {
 	);
 });
 
-test("installPrompts writes selected files from ai/prompts", () => {
+test("installPrompts writes selected files from nested ai/prompts", () => {
 	const root = tempRoot();
-	mkdirSync(join(root, "ai", "prompts"), { recursive: true });
-	writeFileSync(join(root, "ai", "prompts", "arena.md"), "arena body\n");
+	mkdirSync(join(root, "ai", "prompts", "workflow"), { recursive: true });
+	writeFileSync(
+		join(root, "ai", "prompts", "workflow", "arena.md"),
+		"arena body\n",
+	);
 	writeFileSync(join(root, "ai", "prompts", "swarm.md"), "swarm body\n");
 
 	const dest = mkdtempSync(join(tmpdir(), "pi-prompts-"));
@@ -705,6 +709,33 @@ test("installPrompts writes selected files from ai/prompts", () => {
 		readFileSync(join(dest, ".pi", "prompts", "arena.md"), "utf8"),
 		"arena body\n",
 	);
+});
+
+test("listPromptIds walks nested prompt markdown", () => {
+	const root = tempRoot();
+	mkdirSync(join(root, "ai", "prompts", "heio-stack"), { recursive: true });
+	writeFileSync(
+		join(root, "ai", "prompts", "heio-stack", "heio-slice.md"),
+		"slice\n",
+	);
+	writeFileSync(join(root, "ai", "prompts", "arena.md"), "arena\n");
+	writeFileSync(join(root, "ai", "prompts", "README.md"), "skip\n");
+	assert.deepEqual(listPromptIds(root), ["arena", "heio-slice"]);
+	assert.ok(
+		findPromptFile(root, "heio-slice").endsWith(
+			join("prompts", "heio-stack", "heio-slice.md"),
+		),
+	);
+	assert.equal(findPromptFile(root, "no-such-prompt"), null);
+});
+
+test("listPromptIds rejects duplicate prompt stems", () => {
+	const root = tempRoot();
+	mkdirSync(join(root, "ai", "prompts", "a"), { recursive: true });
+	mkdirSync(join(root, "ai", "prompts", "b"), { recursive: true });
+	writeFileSync(join(root, "ai", "prompts", "a", "arena.md"), "a\n");
+	writeFileSync(join(root, "ai", "prompts", "b", "arena.md"), "b\n");
+	assert.throws(() => listPromptIds(root), /Duplicate prompt id: arena/);
 });
 
 test("installPiRuntime removes leftover dest roles", () => {

@@ -13,3 +13,25 @@ export function walkSkillDirs(
     else walkSkillDirs(full, visit);
   }
 }
+
+export function walkPromptFiles(
+  root: string,
+  visit: (file: string) => void,
+): void {
+  if (!existsSync(root) || !statSync(root).isDirectory()) return;
+  for (const ent of readdirSync(root, { withFileTypes: true })) {
+    if (ent.name.startsWith(".")) continue;
+    const full = join(root, ent.name);
+    if (ent.isDirectory()) {
+      walkPromptFiles(full, visit);
+      continue;
+    }
+    if (
+      ent.isFile() &&
+      ent.name.endsWith(".md") &&
+      !/^readme\.md$/i.test(ent.name)
+    ) {
+      visit(full);
+    }
+  }
+}

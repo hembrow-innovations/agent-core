@@ -26,7 +26,7 @@ settings:
 Install writes `.pi/skills` and dest runtime files into `.pi/`:
 
 - first-party local packages from `profile.packages` into `.pi/npm/local/@agentic-core/`
-- every selected `ai/prompts/*.md` except README, into `.pi/prompts/`
+- every selected markdown under `ai/prompts/` except README, into `.pi/prompts/<id>.md`
 - `ai/system-prompts/<stem>.md` to dest `.pi/APPEND_SYSTEM.md` when `system-prompt: <stem>` is set, else `ai/system-prompts/default.md`, if that dest file is missing or a known legacy stub
 - `.pi/.gitignore` if that file is missing
 - package sources from `profile.packages` into `.pi/settings.json`

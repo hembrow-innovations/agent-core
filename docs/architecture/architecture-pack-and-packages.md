@@ -7,7 +7,7 @@ domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-09-03"
+updated_at: "2026-09-04"
 ---
 
 # Pack and packages
@@ -41,7 +41,7 @@ The folders are:
 - `ai/agents/` is the agent library.
 - `ai/skills/` is the skill library.
 - `ai/playbooks/` is the playbook library.
-- `ai/prompts/` is the prompt/command library.
+- `ai/prompts/` is the prompt/command library. Category folders like `ai/skills/`. Overlay dest is `.pi/prompts/<id>.md`.
 - `ai/system-prompts/` is the system-prompt library. Files are markdown. Required pack file is `default.md`. Other `*.md` stems are profile-selectable. Dest is `.pi/APPEND_SYSTEM.md`. There is no `ai/pi/` folder.
 - `profiles/` is the install profiles. Each profile is `profiles/<name>/profile.yaml`. See [[0016-profiles-are-directories]].
 - `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`.
@@ -97,11 +97,11 @@ The command is `pnpm exec agentic-core install`. The package lives in `packages/
 - **cli.ts**: parses argv and dispatches
 - **profile.ts**: reads `profiles/<name>/profile.yaml` into a `Profile`
 - **dest.ts**: dest `.pi/` reads and writes
-- **pack-walk.ts**: `walkSkillDirs` finds `SKILL.md` folders under `ai/skills/`
+- **pack-walk.ts**: `walkSkillDirs` finds `SKILL.md` folders under `ai/skills/`. `walkPromptFiles` finds prompt markdown under `ai/prompts/`
 - **skills.ts**, **playbooks.ts**, **agents.ts**, **prompts.ts**, **extensions.ts**, **runtime.ts**: one module per library or dest write. Playbook catalog rewrite stays in `playbooks.ts`. Install does not call the dest playbook writer.
 - **plan.ts**: merges the profile with CLI flags
 
-`installSkills` calls `findSkillDir`, which walks with `walkSkillDirs`. Duplicate basenames prefer `ai/skills/workflow/`, then `ai/skills/setup/`, then the first hit.
+`installSkills` calls `findSkillDir`, which walks with `walkSkillDirs`. Duplicate basenames prefer `ai/skills/workflow/`, then `ai/skills/setup/`, then the first hit. `writePrompts` walks with `walkPromptFiles`. Duplicate prompt stems fail. Dest stays `.pi/prompts/<id>.md`.
 
 ```ts
 // packages/installer/src/skills.ts findSkillDir

@@ -393,7 +393,10 @@ test("install --profile agentic-core keeps dest extras and updates listed files"
   );
   assert.equal(
     readFileSync(join(dest, ".pi", "prompts", "heio-slice.md"), "utf8"),
-    readFileSync(join(REPO, "ai", "prompts", "heio-slice.md"), "utf8"),
+    readFileSync(
+      join(REPO, "ai", "prompts", "heio-stack", "heio-slice.md"),
+      "utf8",
+    ),
   );
 });
 
