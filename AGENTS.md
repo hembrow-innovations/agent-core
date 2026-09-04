@@ -49,7 +49,7 @@ This checkout runs **heio-stack**. Live work lives under `.heio/planning/` (inte
 
 Session checklists stay on the `todo` tool (`@inobit/pi-todo`, session branch). Do not write `.heio/TODO.md` or `.heio/sessions/*/TODO.md`. Do not treat those files, `.heio/inbox/`, or `.heio/planning/plans/` as the tracker.
 
-Chart intent, locations, and sprints with **heio-wayfinder**. Plan a slice or ticket with **heio-planning**. Execute a frozen slice with **heio-slice**. Every output ends `VERDICT: TASK | TICKET | ESCALATE | VERIFY`.
+Plan a sprint with **heio-planning** (grill, then publish frozen slices and the ready task-pool). Chart fog with **heio-wayfinder**. Drain a frozen slice with **heio-slice**. Every output ends `VERDICT: TASK | TICKET | ESCALATE | VERIFY`. Architecture: `docs/architecture/architecture-heio-stack.md`. Guide: `docs/guides/guides-heio-stack.md`.
 
 The role skill is the pipeline; plain `pi` is not trapped.
 

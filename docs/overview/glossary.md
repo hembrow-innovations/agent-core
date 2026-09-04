@@ -7,7 +7,7 @@ domain: system
 area: overview
 tags: [glossary]
 created_at: "2026-08-23"
-updated_at: "2026-09-03"
+updated_at: "2026-09-04"
 ---
 
 # Glossary
@@ -136,6 +136,42 @@ _Avoid_: roadmap item, sprint goal
 **Sprint**:
 A grouping of slices and tasks. Named after a location or a timebox (`week-1`).
 _Avoid_: ordered bet, force-function destination
+
+**Slice**:
+One markdown file. Vertical cut, oracles on the file, durable `[[id]]` links to task-pool ids. `.heio/planning/sprints/<id>/slices/s-<slug>.md`.
+_Avoid_: layer (backend first), slice folder
+
+**Oracle**:
+The slice's done, made executable. `CHECK` / `EXPECT` / `EVIDENCE` / `ABANDON` on the slice file. `EXPECT:` freezes with the slice.
+_Avoid_: unit test as an oracle, separate oracles.md
+
+**Task**:
+One markdown file in the task-pool. Fluid work. Published `ready` after freeze. `.heio/planning/task-pool/<id>.md`.
+_Avoid_: treating the task list as the plan
+
+**Ticket**:
+Inbound product signal. Not automatically work. `.heio/tickets/ticket-<NN>-<slug>.md`.
+_Avoid_: map hygiene as a ticket
+
+**Planning sitting**:
+One grill until shared understanding, then publish frozen slices and a ready task-pool. **heio-planning**.
+_Avoid_: wayfinder session, per-slice interview
+
+**AFK**:
+A task-pool file an agent can take with no human. `mode: afk` plus `ready` plus unblocked `blocked-by`.
+_Avoid_: ready-for-agent (tracker label from another convention)
+
+**HITL**:
+A task-pool file that waits for a human. Drain skips it.
+_Avoid_: parked ticket (inbound product is a ticket; HITL is already tasked)
+
+**Drain**:
+Claim unblocked AFK tasks on a frozen slice. **heio-slice**. Does not publish the pool.
+_Avoid_: execute (as a second planning sitting)
+
+**Fog**:
+In-scope work that is not sharp enough to freeze. Stays off disk. **heio-wayfinder** charts it.
+_Avoid_: pre-slicing fog into tasks
 
 **Archive**:
 `.heio/archive/`, mirroring `planning/` and `tickets/`. Finished work moves here. `index.md` lists what landed.

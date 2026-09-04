@@ -50,6 +50,47 @@ if (existsSync(skillsDir)) {
       "heio-stack skills do not say completed task files move to .heio/archive/planning/task-pool/ or .heio/archive",
     );
   }
+
+  const planningPath = join(skillsDir, "heio-planning", "SKILL.md");
+  const slicePath = join(skillsDir, "heio-slice", "SKILL.md");
+  const wayfinderPath = join(skillsDir, "heio-wayfinder", "SKILL.md");
+  if (existsSync(planningPath)) {
+    const planning = readFileSync(planningPath, "utf8");
+    if (!/publish/i.test(planning) || !/task-pool/i.test(planning)) {
+      errors.push(
+        "heio-planning does not publish task-pool files in the planning sitting",
+      );
+    }
+    if (!/`ready`/.test(planning) && !/status `ready`/.test(planning)) {
+      errors.push("heio-planning does not publish tasks as ready");
+    }
+    if (!/mode: afk/.test(planning)) {
+      errors.push("heio-planning does not set mode: afk or hitl on tasks");
+    }
+  } else {
+    errors.push("missing heio-planning SKILL.md");
+  }
+  if (existsSync(slicePath)) {
+    const slice = readFileSync(slicePath, "utf8");
+    if (/heio-tasker/.test(slice)) {
+      errors.push(
+        "heio-slice still names heio-tasker; drain does not publish the pool",
+      );
+    }
+    if (!/drain/i.test(slice)) {
+      errors.push("heio-slice does not drain a frozen slice");
+    }
+  } else {
+    errors.push("missing heio-slice SKILL.md");
+  }
+  if (existsSync(wayfinderPath)) {
+    const wayfinder = readFileSync(wayfinderPath, "utf8");
+    if (!/fog/i.test(wayfinder)) {
+      errors.push("heio-wayfinder does not chart fog");
+    }
+  } else {
+    errors.push("missing heio-wayfinder SKILL.md");
+  }
 } else {
   errors.push("missing ai/skills/heio-stack");
 }

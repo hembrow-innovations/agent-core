@@ -8,7 +8,7 @@ domain: system
 area: decisions
 tags: [heio-stack]
 created_at: "2026-09-01"
-updated_at: "2026-09-01"
+updated_at: "2026-09-04"
 ---
 
 # ADR-0013: heio-stack is a location map
@@ -51,9 +51,11 @@ Ticket-first for every map edit. That is the ritual that blocked intended edits.
 
 ## Consequences
 
-Wayfinder charts locations, not ordered bets. A builder-shaped session must not rewrite sticky planning paths, and the stack does not enforce a single active slice. Status, claim, advance, and oracle must name a slice when more than one is in flight. Two builders on one dirty tree stay out. The live gate that used to do this in-session is parked ([[0017-park-heio-coord]]).
+Wayfinder charts locations, not ordered bets. A builder-shaped session must not rewrite sticky planning paths, and the stack does not enforce a single active slice. A planning sitting publishes the task-pool after freeze ([[0020-heio-planning-publishes-pool]]). Status, claim, advance, and oracle must name a slice when more than one is in flight. Two builders on one dirty tree stay out. The live gate that used to do this in-session is parked ([[0017-park-heio-coord]]).
 
 ## Relationships
 
 - [[glossary]]
+- [[architecture-heio-stack]]
 - [[0017-park-heio-coord]]
+- [[0020-heio-planning-publishes-pool]]

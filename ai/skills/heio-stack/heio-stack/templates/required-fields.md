@@ -34,4 +34,6 @@ labels: feature
 sprint: "week-1"
 slice: "s-login"
 references: ["ticket-01-slug"]
+mode: afk
+blocked-by: []
 ```

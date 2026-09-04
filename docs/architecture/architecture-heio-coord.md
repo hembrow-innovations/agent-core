@@ -18,7 +18,7 @@ Parked under `deprecated/packages/heio-coord`. Not in the workspace. Not install
 
 `@agentic-core/heio-coord` used to register `heio_stack` and `/heio`, fence builder writes, and claim, advance, oracle, and verdict on `.heio/` notes. That gate is not a product we maintain.
 
-Heio-stack is the skill pack and the working tree. See [[0017-park-heio-coord]].
+Heio-stack is the skill pack and the working tree. See [[architecture-heio-stack]] and [[0017-park-heio-coord]].
 
 ## Context
 

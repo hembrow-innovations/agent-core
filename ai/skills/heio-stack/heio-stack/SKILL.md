@@ -68,7 +68,8 @@ Work hangs off sprint grouping → slice → task-pool files.
 - **shape.md** lists which slices are in this grouping.
 - A slice is one file. Name `blocked-by` when it waits on another slice. Unblocked slices may run in parallel.
 - Oracles live on the slice file (`CHECK` / `EXPECT` / `EVIDENCE` / `ABANDON`).
-- Each unit of work is a task-pool file. The slice keeps durable `[[id]]` links to those ids.
+- A planning sitting freezes the in-slices and publishes their task-pool files in one pass. Each task is `ready` with `mode: afk` or `mode: hitl` and `blocked-by`.
+- The slice keeps durable `[[id]]` links to those ids. Drain claims unblocked AFK tasks. HITL waits.
 - Inbound product work is a ticket. Triage it into a task-pool file (and link it), park it, or escalate it to the map.
 - Completed work moves to archive. Completed task files move to `.heio/archive/planning/task-pool/`. Closed sprints, done locations, and closed tickets move under the matching archive path. Add a one-liner to `archive/index.md`.
 
