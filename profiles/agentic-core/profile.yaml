@@ -9,6 +9,8 @@ prompts:
   - heio-wayfinder
   - heio-planning
   - heio-slice
+  - heio-rounds-start
+  - heio-rounds-resume
 packages:
   - npm:pi-lens
   - npm:pi-web-access
@@ -38,6 +40,7 @@ skills:
   - heio-wayfinder
   - heio-planning
   - heio-slice
+  - heio-rounds
   - oracle
   - tdd
   - typescript-best-practices

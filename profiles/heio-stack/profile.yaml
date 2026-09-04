@@ -8,6 +8,8 @@ prompts:
   - heio-wayfinder
   - heio-planning
   - heio-slice
+  - heio-rounds-start
+  - heio-rounds-resume
 packages:
   - npm:pi-lens
   - npm:pi-subagents
@@ -29,6 +31,7 @@ skills:
   - heio-wayfinder
   - heio-planning
   - heio-slice
+  - heio-rounds
   - unpark
   - docs
   - domain-modeling

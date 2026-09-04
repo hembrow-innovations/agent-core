@@ -945,6 +945,30 @@ test("ported life-engine skills keep the management/docs split", () => {
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 });
 
+test("check-rounds-os prints check-rounds-os: ok", () => {
+	const r = spawnSync(
+		process.execPath,
+		[join(REPO, "tests", "checks", "check-rounds-os.mjs")],
+		{
+			encoding: "utf8",
+		},
+	);
+	assert.equal(r.status, 0, r.stderr || r.stdout);
+	assert.match(r.stdout, /check-rounds-os: ok/);
+});
+
+test("check-rounds-loop prints check-rounds-loop: ok", () => {
+	const r = spawnSync(
+		process.execPath,
+		[join(REPO, "tests", "checks", "check-rounds-loop.mjs")],
+		{
+			encoding: "utf8",
+		},
+	);
+	assert.equal(r.status, 0, r.stderr || r.stdout);
+	assert.match(r.stdout, /check-rounds-loop: ok/);
+});
+
 test("check-profile-dirs prints directory-profile oracle tokens", () => {
 	const r = spawnSync(
 		process.execPath,
