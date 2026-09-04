@@ -16,15 +16,17 @@ If `AGENTS.md` or `WORKSPACE.md` already names a tracker, that file wins.
 
 ## Rounds
 
-The frontier is every decision whose prerequisites are already settled. Ask the whole frontier in one round. Number each question and give your recommended answer. Wait for the user's answers before the next round.
+The frontier is every decision whose prerequisites are already settled. Ask the whole frontier in one round, at most 4 questions. Wait for the user's answers before the next round.
 
-```
-❓ **Q1** - **<question title>**: <question body>
+Talk to the user with `ask_user_question`. Do not dump questions in the transcript.
 
-➡️ <your recommended answer>
-```
+Each question is multiple choice:
 
-A question that depends on another still open in this round belongs later. Finding facts is your job. Decisions are the user's.
+- **2–4 options**: short label (1–5 words), plus what choosing it means
+- **recommended first**: append `(Recommended)` to that label
+- **one call**: do not stack `ask_user_question`
+
+A custom answer is always available. Do not add an "Other" option. A question that depends on another still open in this round belongs later. Finding facts is your job. Decisions are the user's.
 
 ## Chart
 

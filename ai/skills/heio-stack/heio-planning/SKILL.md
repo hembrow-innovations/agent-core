@@ -14,7 +14,7 @@ If `AGENTS.md` or `WORKSPACE.md` already names a tracker, that file wins.
 
 ## Rounds
 
-Same frontier format as **heio-wayfinder**. Ask the whole frontier. Recommend an answer. Wait.
+Same frontier as **heio-wayfinder**. Talk to the user with `ask_user_question`. Multiple choice, 2–4 options, recommended first with `(Recommended)`. At most 4 questions per round. One call. Wait.
 
 A slice you cannot demo or learn from in one sitting is two slices. Split before you write.
 
