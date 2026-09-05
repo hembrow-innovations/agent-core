@@ -1,6 +1,9 @@
 # Dest: /Users/jaredhembrow/workbench/draconic
 # Install: pnpm exec agentic-core install ../draconic --profile draconic
 agents:
+  - planner
+  - builder
+  - reviewer
   - heio-triage
   - heio-planner
   - heio-tasker
@@ -42,3 +45,4 @@ skills:
   - diagnose
   - oracle
   - draconic-loop
+  - gauntlet-loop
