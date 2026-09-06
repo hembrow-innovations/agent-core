@@ -1,6 +1,6 @@
 ---
 name: docs
-description: How to find, read, and write committed project documentation under `docs/`. Obsidian vault and the source of truth. ADRs, RFCs, specs, architecture, APIs, standards, guides. Not the day-to-day tracker. Use whenever you look for docs, add a durable note, or update existing docs. Use when writing a spec folder, purpose.md, contract.md, or test.md under docs/specs/.
+description: How to find, read, and write committed project documentation under `docs/`. Obsidian vault and the source of truth. ADRs, RFCs, architecture, APIs, standards, guides. Not the day-to-day tracker. Use whenever you look for docs, add a durable note, or update existing docs. Spec folders, purpose.md, and test.md: load **spec**.
 ---
 
 # Docs. The source of truth
@@ -18,7 +18,7 @@ If `AGENTS.md` already names a different docs layout, that file wins. Do not sta
 ## Before writing (always)
 
 1. Search `docs/` first. Update in place over near-dupes.
-2. Pick the kind. Copy the matching file from `templates/`.
+2. Pick the kind. Spec folder, purpose, contract, or test.md: load **spec**. Otherwise copy `templates/<kind>.md`.
 3. Place and name per `layout-vault` and the template convention.
 4. Ignore `docs/99_scribble/`.
 
@@ -27,7 +27,7 @@ Full steps: `rules/write-before.md`.
 ## When to apply
 
 - Finding or reading project docs under `docs/`
-- Adding or updating an ADR, RFC, spec folder, purpose, contract, test.md, architecture note, API, standard, style, or guide
+- Adding or updating an ADR, RFC, architecture note, API, standard, style, or guide
 - Moving or renaming notes
 - Choosing vault path, frontmatter, or wikilink style
 - Deciding whether a note belongs in `docs/` or `.heio/`
@@ -40,7 +40,7 @@ Full steps: `rules/write-before.md`.
 - **layout-vault** for path and naming
 - **obsidian-axi** for vault search, backlinks, tags, heading patch
 - **obsidian-standards** for frontmatter, tags, wikilinks, Tasks, Dataview
-- **spec-folder** when the note is a spec, purpose, contract, or test.md
+- **spec** when the note is a spec folder, purpose, contract, or test.md
 - **template-kinds** plus `templates/<kind>.md` for the skeleton
 - **link-wikilinks** for note-to-note links
 - **mgmt-boundary** when the note is still in-flight work
@@ -56,7 +56,7 @@ Full steps: `rules/write-before.md`.
 - Treat `docs/99_scribble/` as source of truth
 - Use relative `.md` paths between notes (use `[[wikilinks]]`)
 - Put a domain folder under `docs/` except `docs/specs/<domain>/` (path equals frontmatter `domain:`)
-- Flatten specs into `docs/specs/*.md` or one `spec-<slug>.md` when the folder shape applies
+- Flatten specs; **spec** owns the folder shape
 - Open a GitHub Issue for knowledge this vault already holds
 
 ## Rule categories by priority
@@ -85,7 +85,7 @@ Full steps: `rules/write-before.md`.
 
 ### 4. Spec folders (HIGH)
 
-- `spec-folder` Nested `docs/specs/<domain>/<area>/<feature>/` with purpose, contract, test.md
+- `spec-folder` Path reminder. Load **spec** for purpose, contracts, test.md, and how to work the ladder
 
 ### 5. Templates (HIGH)
 

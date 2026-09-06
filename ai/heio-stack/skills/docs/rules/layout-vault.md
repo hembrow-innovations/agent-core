@@ -33,7 +33,7 @@ There is no `planning/`, no `log/`, and no `reference/` under `docs/`. Planning 
 
 The folder under `docs/` is the doc kind. The domain the doc concerns rides in frontmatter as `domain:`. Do not invent `docs/<domain>/`.
 
-**Specs exception.** Product intent nests under `docs/specs/<domain>/<area>/` and optional `<feature>/`. Path `domain` equals frontmatter `domain:`. Skip a level when it would have a single child. Full files and write order: `spec-folder`.
+**Specs exception.** Product intent nests under `docs/specs/<domain>/<area>/` and optional `<feature>/`. Path `domain` equals frontmatter `domain:`. Skip a level when it would have a single child. Full files and write order: load **spec**.
 
 ## Numbers
 

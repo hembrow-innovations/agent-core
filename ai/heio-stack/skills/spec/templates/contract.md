@@ -13,7 +13,7 @@ updated_at: "YYYY-MM-DD"
 
 # Area — Contract
 
-> Standard: load **spec**. A promise with a `test:` pointer is **locked**; one without is **asserted**. Wikilink purpose and test.md after copy.
+> Standard: a promise with a `test:` pointer is **locked**; one without is **asserted**. See `contract-anatomy`. Wikilink purpose and test.md after copy.
 
 ## Behaviour
 

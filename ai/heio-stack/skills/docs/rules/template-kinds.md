@@ -13,10 +13,7 @@ Copy the template. Do not invent a new skeleton.
 - **system-design**: `templates/system-design.md` → `docs/architecture/` as `system-design-<slug>.md`
 - **adr**: `templates/adr.md` → `docs/decisions/adr/` as `NNNN-<slug>.md`
 - **rfc**: `templates/rfc.md` → `docs/decisions/rfc/` as `rfc<N>-<slug>.md`
-- **purpose**: `templates/purpose.md` → `docs/specs/<domain>/<area>/` as `purpose.md`
-- **contract**: `templates/contract.md` → `docs/specs/<domain>/<area>/` or `<feature>/` as `contract.md`
-- **test**: `templates/test.md` → beside the contract it covers as `test.md`
-- **spec**: `templates/spec.md` → `docs/specs/<domain>/<area>/` as `spec-<slug>.md` (optional narrative; not the living product spec)
+- **purpose**, **contract**, **test**, **spec**: load **spec** and copy from that skill's `templates/`
 - **api**: `templates/api.md` → `docs/api/` as `api-<slug>.md`
 - **schema**: `templates/schema.md` → `docs/api/schema/` as `schema-<slug>.md`
 - **non-functional**: `templates/non-functional.md` → `docs/non-functional/` as `<topic>.md`
@@ -24,7 +21,7 @@ Copy the template. Do not invent a new skeleton.
 - **style**: `templates/style.md` → `docs/style/` as `style-<slug>.md`
 - **guide**: `templates/guide.md` → `docs/guides/` as `guides-<slug>.md`
 
-Shared fields: `templates/required-fields.md`. Spec folders: `spec-folder`.
+Shared fields: `templates/required-fields.md`. Spec folders: load **spec**.
 
 Write an ADR only when the choice is hard to reverse, has real alternatives, or keeps getting re-litigated. Prefer a purpose, contract, standard, or system-design first.
 

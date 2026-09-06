@@ -20,6 +20,6 @@ If purpose and contracts do not answer the question, stop. Open an issue or asse
 
 **This overrides never-block-on-the-human for product direction.** Execution of a named promise proceeds. Inventing the promise does not.
 
-**Delegate:** load `behaviour-contracts` and `vault-pack` for the read order and the promise format. Do not restate them here.
+**Delegate:** load `spec` for the folder, read order, and promise format. Load `vault-pack` for the pack. Do not restate them here.
 
 **The test:** can you point at a promise id? If not, you are freestyling.
