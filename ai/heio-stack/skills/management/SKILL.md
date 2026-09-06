@@ -97,7 +97,7 @@ grep -l "^status: complete" .heio/planning/tasks/*.md
 
 ## 4. Review
 
-Write or update the day's journal at `docs/log/journal/<YYYY>/<MM>/YYYY-MM-DD.md` (template `journal-day.md` under **docs**). A self-contained dev-blog. Deep dives go in `docs/log/reporting/<YYYY>/<MM>/`. Verify acceptance. Capture leftovers as new tickets.
+Write or update the day's journal at `.heio/log/journal/<YYYY>/<MM>/YYYY-MM-DD.md` (template `journal-day.md` under **docs**). A self-contained dev-blog. Deep dives go in `.heio/log/reporting/<YYYY>/<MM>/`. Verify acceptance. Capture leftovers as new tickets.
 
 ## 5. New tickets
 
@@ -115,17 +115,15 @@ Status stays in frontmatter.
 
 ## Templates
 
-Copy the matching file from `templates/`. Shared fields: `templates/required-fields.md`.
 
 - **intent**: `templates/intent.md` → `.heio/planning/intent.md`
 - **roadmap**: `templates/roadmap.md` → `.heio/planning/roadmap.md`
-- **location**: `templates/location.md` → `.heio/planning/locations/<slug>.md`
+- **location**: `templates/location.md` → `.heio/planning/locations/location-<slug>.md`
 - **sprint**: `templates/sprint-shape.md` → `.heio/planning/sprints/<id>/shape.md`
-- **slice**: `templates/slice.md` → `.heio/planning/sprints/<id>/slices/s-<slug>.md`
+- **slice**: `templates/slice.md` → `.heio/planning/sprints/<id>/slices/slice-<NN>-<slug>.md`
 - **ticket**: `templates/ticket.md` → `.heio/tickets/ticket-<NN>-<slug>.md`
-- **task**: `templates/pool-task.md` → `.heio/planning/task-pool/<task>.md`
-- **round**: `templates/round.md` → `.heio/planning/rounds/<NN>-<slug>.md`
-- **archive index**: `templates/archive-index.md` → `.heio/archive/index.md`
+- **task**: `templates/pool-task.md` → `.heio/planning/tasks/task-<NN>-<task>.md`
+- **round**: `templates/round.md` → `.heio/planning/rounds/rounds-<NN>-<slug>.md`
 
 ## Allocating ids
 
