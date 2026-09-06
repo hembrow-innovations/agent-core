@@ -9,7 +9,7 @@ metadata:
 
 # Vercel React best practices
 
-Prefer **frontend-development** when that skill is installed. Upstream guide from Vercel. 45 rules across 8 categories. Full expanded text lives in [AGENTS.md](AGENTS.md). Per-rule detail lives in `rules/<prefix>-*.md`.
+45 rules across 8 categories. Full expanded text lives in [AGENTS.md](AGENTS.md). Per-rule detail lives in `rules/<prefix>-*.md`.
 
 ## Discover first
 

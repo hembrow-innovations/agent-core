@@ -5,7 +5,6 @@ description: TanStack Start, React, Tailwind CSS v4, and CVA UI for TypeScript m
 
 # TanStack UI
 
-Prefer **frontend-development** when that skill is installed. Production UI for a TypeScript monorepo on TanStack Start, React, Tailwind CSS v4, and CVA. Per-rule detail lives in `rules/<prefix>-*.md`.
 
 ## Discover first
 

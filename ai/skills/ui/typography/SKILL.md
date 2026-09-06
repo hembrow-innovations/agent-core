@@ -5,7 +5,7 @@ description: Product font face load and swap across web, desktop, and mobile. Us
 
 # Typography (product face)
 
-Prefer **frontend-development** when that skill is installed. Face load and swap only. Scales and tokens live in **docs**.
+Scales and tokens live in **docs**.
 
 ## Discover first
 
