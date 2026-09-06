@@ -10,6 +10,8 @@ This repo is the AI installer. It holds project profiles and copies a dest tree.
 - One git repo. Products stay separate by folder, profile, and nouns. Do not mix them in code or instructions. Do not split remotes from a session; that is a map decision.
 - Edit source under `ai/`, `profiles/`, and `packages/`. `.opencode/` is a generated dest. Do not treat it as source of truth.
 - `deprecated/` is parked. Not installed. Not in the workspace.
+- Commits as work packages: <type>(<scope>): <description> — feat | fix | test | refactor | chore
+- No Co-Authored-By lines
 
 ## Commands
 

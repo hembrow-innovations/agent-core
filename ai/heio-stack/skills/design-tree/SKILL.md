@@ -17,7 +17,7 @@ Load **management** before any write under `.heio/`. Load **docs** before any wr
 Name the **counterpart**. The **notebook** follows. Say both in one line before the first round.
 
 - **user** in this chat. Default.
-- **user** in a file. Copy the management plan template to `.heio/planning/plans/`. Status `draft`. Keep the template headings. Append `## Rounds`. Write every round there. Never rewrite an earlier round. Objectives hold the destination. Approach holds standing notes. Phases stay empty until persist.
+- **user** in a file. Copy the management round template to `.heio/planning/rounds/`. Status `draft`. Keep the template headings. Append `## Rounds`. Write every round there. Never rewrite an earlier round. Objectives hold the destination. Approach holds standing notes. Phases stay empty until persist.
 - **product** peer. Read [references/counterpart-product.md](references/counterpart-product.md) before round one.
 - **panel**. Read [references/counterpart-panel.md](references/counterpart-panel.md) before round one.
 - The tree will not fit in one sitting. Read [references/wayfinder.md](references/wayfinder.md) and follow that file instead of steps 2–3.
@@ -30,25 +30,55 @@ Finding facts is your job. Dispatch a lookup for anything you can observe. A run
 
 Ask the whole frontier in one **round**. Number each question. Give a recommended answer. A question that depends on another still open in this round waits for a later round.
 
+Use a subagent to research the web to find real world example of solutions to this question/problem.
+
 ```markdown
-❓ **Q1** - **<title>**: <body>
+❓ **Q1** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
 
 ➡️ <recommended answer>
+
+> <Real world example of how this problem was solve and why (1-2 sentence explaination). omit if none found>
+
 ```
 
 Wait for the counterpart. Record the answers in the notebook. Append the next frontier.
 
 Done when every open decision has a recorded answer, no lookup is in flight, and the counterpart has confirmed a shared understanding.
 
-## 3. Persist
+## Confirm
 
-**Promote** first. Then close.
+Stop. Summarize:
 
-- Durable knowledge. Load **docs**. Write an ADR, spec, architecture note, or guide. Kind must change. The interview stays in `.heio/`.
-- In-flight work. Load **management**. Copy the plan template if the notebook is not already that file. Status `draft` until child tasks exist, `active` while any child is open, `complete` after promote. Then close-move.
+- Destination, if this sitting touched it
+- Every in-slice Done + `EXPECT:`
+- The tracer-bullet list: title, slice, blocked-by, AFK or HITL, what it delivers
 
-A plan may go `complete` only when `docs/` holds the durable outcome, or the plan records `skip: no durable outcome`.
+Ask granularity, blockers, merge or split, HITL vs AFK. Prefer AFK. Each task is one sitting, vertical, sized for a fresh context window. Prefactoring is its own first task and blocks the rest.
 
-Execution slices. Load **to-issues** after the plan is `active`.
+Wait. Iterate the list until the user confirms the understanding and the breakdown. Auto already limited this to at most one confirm, or none when they said just create everything.
 
-Done when the promote gate has passed and any execution plan is a management plan note.
+Done when the user confirms both, or auto skipped confirm.
+
+
+## Publish
+
+Copy templates from **management**. Write the sessions's settled files in one pass. This session writes every slice/task file. Do not hand that off.
+
+load **to-tasks** and or **to-slices**
+
+## Ticket
+
+User names a ticket, or an inbound signal that is not yet a ticket.
+
+1. If no file exists, copy `templates/ticket.md` into `.heio/planningtickets/`.
+2. Interview only enough to triage. The solution does not live on the ticket.
+3. Same rule every time:
+   - Fits an unblocked active slice → **TASK**. Status `promoted`. Write the task-pool file (`ready`, mode, blocked-by) and the slice `[[id]]` link.
+   - Fits the project, not this slice → **TICKET**. Status `parked`.
+   - Would rewrite a location destination during a workflow → **ESCALATE**. Stop. The map needs a wayfinder sitting.
+
+Done when the ticket has a status and a verdict.
+
+## Loop
+
+End with `VERDICT: TASK | TICKET | ESCALATE | VERIFY`. Planning a slice is not VERIFY. VERIFY checks oracles on the slice file.

@@ -139,3 +139,5 @@ Never eyeball the highest number in an active folder. Re-run immediately before 
 
 - Search `.heio/planning/` and `.heio/planning/` before creating a note.
 - Never reach for `gh ticket`.
+- Commits as work packages: <type>(<scope>): <description> — feat | fix | test | refactor | chore
+- No Co-Authored-By lines

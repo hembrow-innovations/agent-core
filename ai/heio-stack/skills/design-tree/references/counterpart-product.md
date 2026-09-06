@@ -6,8 +6,8 @@ Load **management** before any write under `.heio/`.
 
 ## Seats
 
-- **Planner** owns the tree, the rounds, and **to-issues** when the frontier is empty.
-- **Product** answers every round from `GOAL.md`, committed `docs/`, and the current tree. `GOAL.md` is the product owner.
+- **Planner** owns the tree, the rounds, and **to-tickets** when the frontier is empty.
+- **Product** answers every round, committed `docs/`, and the current tree. `location-NN-slug.md` is the product owner.
 
 Planner messages product each round with `coms_send`, then `coms_await`. Product replies and stays ready.
 
