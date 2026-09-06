@@ -18,18 +18,12 @@ import {
 	findSkillDir,
 	installAgents,
 	installPlaybooks,
-	installPiRuntime,
 	installPrompts,
 	listAgentIds,
 	listProfiles,
 	listPromptIds,
 	loadProfile,
-	mergePiSettings,
-	mergePiSettingsPackages,
-	packageRefSource,
-	packageSource,
 	parseProfileYaml,
-	readPiPackages,
 	readPlaybookMeta,
 	renderPlaybookCatalog,
 	resolvePlaybookIds,
@@ -148,7 +142,7 @@ test("loadProfile: missing dies with available names", () => {
 	assert.throws(() => loadProfile(root, "nope"), /Unknown profile "nope".*core/);
 });
 
-test("loadProfile: defaults omit settings", () => {
+test("loadProfile: defaults omit agents and prompts", () => {
 	const root = tempRoot();
 	writeYaml(root, "bare", "skills: []\n");
 
@@ -158,8 +152,6 @@ test("loadProfile: defaults omit settings", () => {
 		skills: [],
 		agents: { kind: "omit" },
 		prompts: { kind: "omit" },
-		packages: [],
-		settings: null,
 	});
 });
 
@@ -177,32 +169,32 @@ test("loadProfile: leftover dest keys die", () => {
 	writeYaml(root, "mode", "mode: heio\nskills: []\n");
 	assert.throws(
 		() => loadProfile(root, "mode"),
-		/leftover "mode:". dest playbooks live at \.pi\/playbooks/,
+		/leftover "mode:". the installer does not copy playbooks/,
 	);
 	writeYaml(root, "harness", "harness: pi\nskills: []\n");
 	assert.throws(
 		() => loadProfile(root, "harness"),
-		/leftover "harness:". dest is always \.pi/,
+		/leftover "harness:". dest is always \.opencode/,
 	);
 	writeYaml(root, "old-pi", "pi: false\nskills: []\n");
 	assert.throws(
 		() => loadProfile(root, "old-pi"),
-		/leftover "pi:". dest is always \.pi/,
+		/leftover "pi:". dest is always \.opencode/,
 	);
 	writeYaml(root, "commands", "commands: true\nskills: []\n");
 	assert.throws(
 		() => loadProfile(root, "commands"),
-		/leftover "commands:". dest is always \.pi/,
+		/leftover "commands:". use prompts:/,
 	);
 	writeYaml(root, "extensions", "extensions:\n  - heio-todo\n");
 	assert.throws(
 		() => loadProfile(root, "extensions"),
-		/leftover "extensions:". use packages:/,
+		/leftover "extensions:". Pi packages are parked/,
 	);
 	writeYaml(root, "templates", "templates: true\nskills: []\n");
 	assert.throws(
 		() => loadProfile(root, "templates"),
-		/leftover "templates:". dest is always \.pi/,
+		/leftover "templates:". dest is always \.opencode/,
 	);
 	writeYaml(root, "playbooks", "playbooks: all\nskills: []\n");
 	assert.throws(() => loadProfile(root, "playbooks"), /leftover "playbooks:"/);
@@ -219,16 +211,13 @@ test("loadProfile: unknown key dies", () => {
 	assert.throws(() => loadProfile(root, "x"), /Unknown profile key "foo"/);
 });
 
-test("loadProfile: packages, agents, and prompts shapes", () => {
+test("loadProfile: agents and prompts shapes", () => {
 	const root = tempRoot();
 	writeYaml(root, "bare", "skills: []\n");
 	writeYaml(
 		root,
 		"listed",
-		`packages:
-  - npm:pi-lens
-  - local:@agentic-core/heio-boot
-agents:
+		`agents:
   - architect
   - coder
 prompts:
@@ -238,11 +227,6 @@ prompts:
 	writeYaml(root, "all", "agents: all\nprompts: all\n");
 	writeYaml(root, "bad-agents", "agents: true\n");
 	writeYaml(root, "bare-pkg", "packages:\n  - heio-todo\n");
-	assert.deepEqual(loadProfile(root, "bare").packages, []);
-	assert.deepEqual(loadProfile(root, "listed").packages, [
-		{ kind: "npm", source: "npm:pi-lens" },
-		{ kind: "local", name: "heio-boot" },
-	]);
 	assert.deepEqual(loadProfile(root, "listed").agents, {
 		kind: "list",
 		ids: ["architect", "coder"],
@@ -256,37 +240,22 @@ prompts:
 	assert.throws(() => loadProfile(root, "bad-agents"), /Invalid agents value/);
 	assert.throws(
 		() => loadProfile(root, "bare-pkg"),
-		/Invalid package source: heio-todo/,
+		/leftover "packages:". Pi packages are parked/,
 	);
-	assert.equal(loadProfile(root, "bare").settings, null);
 });
 
-test("loadProfile: settings is an untyped map", () => {
+test("loadProfile: leftover Pi runtime keys die", () => {
 	const root = tempRoot();
-	writeYaml(
-		root,
-		"ok",
-		`settings:
-  toolDescriptionMode: compact
-  retry: 2
-  packages:
-    - npm:extra
-  unknownKey: true
-`,
+	writeYaml(root, "set", "settings:\n  toolDescriptionMode: compact\n");
+	writeYaml(root, "sys", "system-prompt: default\n");
+	assert.throws(
+		() => loadProfile(root, "set"),
+		/leftover "settings:". Pi runtime is parked/,
 	);
-	writeYaml(root, "nullish", "settings: null\n");
-	writeYaml(root, "bad", "settings: all\n");
-	writeYaml(root, "list", "settings:\n  - nope\n");
-	const ok = loadProfile(root, "ok");
-	assert.deepEqual(ok.settings, {
-		toolDescriptionMode: "compact",
-		retry: 2,
-		packages: ["npm:extra"],
-		unknownKey: true,
-	});
-	assert.equal(loadProfile(root, "nullish").settings, null);
-	assert.throws(() => loadProfile(root, "bad"), /"settings" must be a map/);
-	assert.throws(() => loadProfile(root, "list"), /"settings" must be a map/);
+	assert.throws(
+		() => loadProfile(root, "sys"),
+		/leftover "system-prompt:". Pi runtime is parked/,
+	);
 });
 
 test("listProfiles sees directory stems and ignores leftover flat yaml", () => {
@@ -398,7 +367,7 @@ test("installPlaybooks: selected files only, second run converges", () => {
 	);
 
 	const dest = mkdtempSync(join(tmpdir(), "dest-"));
-	const pbDir = join(dest, ".pi", "playbooks");
+	const pbDir = join(dest, ".opencode", "playbooks");
 	mkdirSync(pbDir, { recursive: true });
 	writeFileSync(join(pbDir, "eval.md"), "stale\n");
 	writeFileSync(join(pbDir, "leftover.md"), "gone\n");
@@ -487,181 +456,6 @@ test("repo profiles resolve every listed skill from skills/", () => {
 		existsSync(join(REPO, "ai", "system-prompts", "heio-models.md")),
 		false,
 	);
-	assert.deepEqual(readPiPackages(join(REPO, "ai", "pi")), []);
-});
-
-test("installPiRuntime writes boot, does not write models, and leaves prompts alone", () => {
-	const root = tempRoot();
-	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
-	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "boot\n");
-
-	const dest = mkdtempSync(join(tmpdir(), "pi-rt-"));
-	installPiRuntime(root, dest, { skills: ["how"], playbooks: ["orchestrate"] });
-	assert.equal(
-		readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
-		"boot\n",
-	);
-	assert.equal(existsSync(join(dest, ".pi", "heio-models.md")), false);
-	assert.equal(existsSync(join(dest, ".pi", "prompts", "how.md")), false);
-
-	writeFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "custom\n");
-	writeFileSync(join(dest, ".pi", "heio-models.md"), "picked\n");
-	mkdirSync(join(dest, ".pi", "prompts"), { recursive: true });
-	writeFileSync(join(dest, ".pi", "prompts", "leftover.md"), "stale\n");
-	installPiRuntime(root, dest, { skills: ["how"], playbooks: ["orchestrate"] });
-	assert.equal(
-		readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
-		"custom\n",
-	);
-	assert.equal(
-		readFileSync(join(dest, ".pi", "heio-models.md"), "utf8"),
-		"picked\n",
-	);
-	assert.equal(existsSync(join(dest, ".pi", "prompts", "leftover.md")), true);
-});
-
-test("installPiRuntime does not write dest heio-models.md from the previous filename", () => {
-	const root = tempRoot();
-	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
-	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "boot\n");
-
-	const dest = mkdtempSync(join(tmpdir(), "pi-rt-models-mig-"));
-	mkdirSync(join(dest, ".pi"), { recursive: true });
-	writeFileSync(join(dest, ".pi", "draconic-models.md"), "picked\n");
-	installPiRuntime(root, dest);
-	assert.equal(existsSync(join(dest, ".pi", "draconic-models.md")), false);
-	assert.equal(existsSync(join(dest, ".pi", "heio-models.md")), false);
-});
-
-test("installPiRuntime does not merge pack packages into settings.json", () => {
-	const root = tempRoot();
-	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
-	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "boot\n");
-	writeFileSync(
-		join(root, "ai", "system-prompts", "packages.json"),
-		JSON.stringify(["npm:pi-lens", "npm:pi-web-access", "npm:pi-subagents"]),
-	);
-
-	const dest = mkdtempSync(join(tmpdir(), "pi-rt-pkg-"));
-	installPiRuntime(root, dest);
-	assert.equal(existsSync(join(dest, ".pi", "settings.json")), false);
-});
-
-test("readPiPackages rejects a bad pack list", () => {
-	const root = tempRoot();
-	mkdirSync(join(root, "ai", "pi"), { recursive: true });
-	writeFileSync(join(root, "ai", "pi", "packages.json"), "{}\n");
-	assert.throws(
-		() => readPiPackages(join(root, "ai", "pi")),
-		/must be a JSON array/,
-	);
-});
-
-test("mergePiSettingsPackages is idempotent and keeps object-form sources", () => {
-	const dest = join(mkdtempSync(join(tmpdir(), "pi-merge-")), "settings.json");
-	mergePiSettingsPackages(dest, ["npm:pi-lens"]);
-	mergePiSettingsPackages(dest, ["npm:pi-lens"]);
-	assert.deepEqual(JSON.parse(readFileSync(dest, "utf8")), {
-		packages: ["npm:pi-lens"],
-	});
-	assert.equal(packageSource({ source: "npm:pi-lens" }), "npm:pi-lens");
-});
-
-test("mergePiSettings deep-merges objects, set-unions arrays, keeps dest extras", () => {
-	const dest = join(
-		mkdtempSync(join(tmpdir(), "pi-settings-")),
-		"settings.json",
-	);
-	writeFileSync(
-		dest,
-		`${JSON.stringify(
-			{
-				keep: "dest",
-				nested: { a: 1, b: 2 },
-				defaultTools: ["custom", "read"],
-				retry: 1,
-			},
-			null,
-			2,
-		)}\n`,
-	);
-	mergePiSettings(dest, {
-		nested: { b: 9, c: 3 },
-		defaultTools: ["read", "bash"],
-		retry: 2,
-		toolDescriptionMode: "compact",
-	});
-	assert.deepEqual(JSON.parse(readFileSync(dest, "utf8")), {
-		keep: "dest",
-		nested: { a: 1, b: 9, c: 3 },
-		defaultTools: ["custom", "read", "bash"],
-		retry: 2,
-		toolDescriptionMode: "compact",
-	});
-	mergePiSettings(dest, {
-		defaultTools: ["read", "bash"],
-		retry: 2,
-	});
-	assert.deepEqual(JSON.parse(readFileSync(dest, "utf8")).defaultTools, [
-		"custom",
-		"read",
-		"bash",
-	]);
-});
-
-test("mergePiSettings creates dest settings and preserves number types", () => {
-	const dest = join(
-		mkdtempSync(join(tmpdir(), "pi-settings-new-")),
-		"settings.json",
-	);
-	mergePiSettings(dest, { retry: 2, nested: { timeout: 1.5 } });
-	const got = JSON.parse(readFileSync(dest, "utf8"));
-	assert.deepEqual(got, { retry: 2, nested: { timeout: 1.5 } });
-	assert.equal(typeof got.retry, "number");
-	assert.equal(typeof got.nested.timeout, "number");
-});
-
-test("installPiRuntime rewrites a dest APPEND_SYSTEM that still matches the old persona", () => {
-	const root = tempRoot();
-	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
-	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "new stub\n");
-
-	const dest = mkdtempSync(join(tmpdir(), "pi-rt-append-mig-"));
-	mkdirSync(join(dest, ".pi"), { recursive: true });
-	writeFileSync(
-		join(dest, ".pi", "APPEND_SYSTEM.md"),
-		"# Draconic\n\nYou are running draconic-mode on Pi for this project.\n",
-	);
-	installPiRuntime(root, dest);
-	assert.equal(
-		readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
-		"new stub\n",
-	);
-
-	writeFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "custom persona\n");
-	installPiRuntime(root, dest);
-	assert.equal(
-		readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
-		"custom persona\n",
-	);
-});
-
-test("installPiRuntime rewrites a dest APPEND_SYSTEM that still names the dest router", () => {
-	const root = tempRoot();
-	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
-	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "new stub\n");
-
-	const dest = mkdtempSync(join(tmpdir(), "pi-rt-append-variant-"));
-	mkdirSync(join(dest, ".pi"), { recursive: true });
-	writeFileSync(
-		join(dest, ".pi", "APPEND_SYSTEM.md"),
-		`# Draconic\n\nYou are running draconic-mode on Pi for this project.\n\n1. Read \`.pi/skills/draconic-mode/SKILL.md\` in full.\nWrite .draconic/TODO.md.\n`,
-	);
-	installPiRuntime(root, dest);
-	assert.equal(
-		readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8"),
-		"new stub\n",
-	);
 });
 
 test("installAgents writes selected files and keeps dest extras", () => {
@@ -674,16 +468,16 @@ test("installAgents writes selected files and keeps dest extras", () => {
 	);
 	writeFileSync(join(root, "ai", "agents", "coder", "coder.md"), "coder body\n");
 
-	const dest = mkdtempSync(join(tmpdir(), "pi-agents-"));
-	mkdirSync(join(dest, ".pi", "agents"), { recursive: true });
-	writeFileSync(join(dest, ".pi", "agents", "leftover.md"), "gone\n");
+	const dest = mkdtempSync(join(tmpdir(), "opencode-agents-"));
+	mkdirSync(join(dest, ".opencode", "agents"), { recursive: true });
+	writeFileSync(join(dest, ".opencode", "agents", "leftover.md"), "gone\n");
 	installAgents(root, dest, ["architect"]);
-	assert.deepEqual(readdirSync(join(dest, ".pi", "agents")).sort(), [
+	assert.deepEqual(readdirSync(join(dest, ".opencode", "agents")).sort(), [
 		"architect.md",
 		"leftover.md",
 	]);
 	assert.equal(
-		readFileSync(join(dest, ".pi", "agents", "architect.md"), "utf8"),
+		readFileSync(join(dest, ".opencode", "agents", "architect.md"), "utf8"),
 		"architect body\n",
 	);
 });
@@ -697,16 +491,16 @@ test("installPrompts writes selected files from nested ai/prompts", () => {
 	);
 	writeFileSync(join(root, "ai", "prompts", "swarm.md"), "swarm body\n");
 
-	const dest = mkdtempSync(join(tmpdir(), "pi-prompts-"));
-	mkdirSync(join(dest, ".pi", "prompts"), { recursive: true });
-	writeFileSync(join(dest, ".pi", "prompts", "leftover.md"), "gone\n");
+	const dest = mkdtempSync(join(tmpdir(), "opencode-prompts-"));
+	mkdirSync(join(dest, ".opencode", "commands"), { recursive: true });
+	writeFileSync(join(dest, ".opencode", "commands", "leftover.md"), "gone\n");
 	installPrompts(root, dest, ["arena"]);
-	assert.deepEqual(readdirSync(join(dest, ".pi", "prompts")).sort(), [
+	assert.deepEqual(readdirSync(join(dest, ".opencode", "commands")).sort(), [
 		"arena.md",
 		"leftover.md",
 	]);
 	assert.equal(
-		readFileSync(join(dest, ".pi", "prompts", "arena.md"), "utf8"),
+		readFileSync(join(dest, ".opencode", "commands", "arena.md"), "utf8"),
 		"arena body\n",
 	);
 });
@@ -738,29 +532,6 @@ test("listPromptIds rejects duplicate prompt stems", () => {
 	assert.throws(() => listPromptIds(root), /Duplicate prompt id: arena/);
 });
 
-test("installPiRuntime removes leftover dest roles", () => {
-	const root = tempRoot();
-	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
-	writeFileSync(join(root, "ai", "system-prompts", "default.md"), "boot\n");
-
-	const dest = mkdtempSync(join(tmpdir(), "pi-rt-roles-"));
-	mkdirSync(join(dest, ".pi", "roles"), { recursive: true });
-	writeFileSync(join(dest, ".pi", "roles", "architect.md"), "old role\n");
-	writeFileSync(join(dest, ".pi", "roles", "argv.mjs"), "old helper\n");
-	installPiRuntime(root, dest);
-	assert.equal(existsSync(join(dest, ".pi", "roles")), false);
-});
-
-test("installPiRuntime dies when the pack is incomplete", () => {
-	const root = tempRoot();
-	mkdirSync(join(root, "ai", "system-prompts"), { recursive: true });
-	const dest = mkdtempSync(join(tmpdir(), "pi-rt-missing-"));
-	assert.throws(
-		() => installPiRuntime(root, dest),
-		/Pi pack missing: expected ai\/system-prompts\/default.md/,
-	);
-});
-
 test("findSkillDir reads skills/ only", () => {
 	const playbooks = findSkillDir(REPO, "playbooks");
 	assert.ok(
@@ -770,8 +541,8 @@ test("findSkillDir reads skills/ only", () => {
 	assert.equal(findSkillDir(REPO, "no-such-skill"), null);
 });
 
-test("install --profile agentic-core writes the Pi runtime pack", () => {
-	const dest = mkdtempSync(join(tmpdir(), "install-pi-"));
+test("install --profile agentic-core writes the OpenCode dest pack", () => {
+	const dest = mkdtempSync(join(tmpdir(), "install-opencode-"));
 	const r = spawnSync(
 		process.execPath,
 		[INSTALLER, "install", dest, "--profile", "agentic-core"],
@@ -781,48 +552,23 @@ test("install --profile agentic-core writes the Pi runtime pack", () => {
 	assert.match(r.stdout, /Profile: agentic-core/);
 	assert.doesNotMatch(r.stdout, /Harness:/);
 	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "heio-mode", "SKILL.md")),
+		existsSync(join(dest, ".opencode", "skills", "heio-mode", "SKILL.md")),
 		false,
 	);
-	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
-	assert.equal(existsSync(join(dest, ".pi", "roles")), false);
-	assert.equal(existsSync(join(dest, ".pi", "agents", "heio.md")), false);
-	const profile = loadProfile(REPO, "agentic-core");
-	const npmRoot = join(dest, ".pi", "npm", "local", "@agentic-core");
-	for (const pkg of profile.packages) {
-		if (pkg.kind !== "local") continue;
-		assert.equal(
-			existsSync(join(npmRoot, pkg.name, "src", "index.ts")),
-			true,
-			pkg.name,
-		);
-	}
-	assert.equal(existsSync(join(npmRoot, "heio-coms")), false);
-	assert.equal(existsSync(join(npmRoot, "heio-teams")), false);
-	assert.equal(existsSync(join(dest, ".pi", "vendor", "@agentic-core")), false);
-	const append = readFileSync(join(dest, ".pi", "APPEND_SYSTEM.md"), "utf8");
-	assert.doesNotMatch(append, /running heio-mode on Pi/);
-	assert.doesNotMatch(
-		append,
-		/Read `\.pi\/skills\/heio-mode\/SKILL\.md` in full/,
+	assert.equal(
+		existsSync(join(dest, ".opencode", "playbooks", "feature.md")),
+		false,
 	);
-	assert.equal(existsSync(join(dest, ".pi", "heio-models.md")), false);
-	assert.deepEqual(
-		JSON.parse(readFileSync(join(dest, ".pi", "settings.json"), "utf8")),
-		expectedSettings(profile),
-	);
-	assert.match(
-		r.stdout,
-		/Pi installs project packages from \.pi\/settings\.json/,
-	);
+	assert.equal(existsSync(join(dest, ".pi")), false);
+	assert.equal(existsSync(join(dest, ".opencode", "agents", "heio.md")), false);
+	assert.equal(existsSync(join(dest, ".opencode", "settings.json")), false);
 	assert.equal(existsSync(join(dest, "AGENTS.md")), false);
-	assert.equal(existsSync(join(dest, ".opencode")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
 	assert.equal(existsSync(join(dest, ".agents")), false);
 	assert.equal(existsSync(join(dest, ".heio")), false);
 });
 
-test("install --profile agentic-core writes .pi only", () => {
+test("install --profile agentic-core writes .opencode only", () => {
 	const dest = mkdtempSync(join(tmpdir(), "install-agentic-core-"));
 	const r = spawnSync(
 		process.execPath,
@@ -833,17 +579,20 @@ test("install --profile agentic-core writes .pi only", () => {
 	assert.match(r.stdout, /Profile: agentic-core/);
 	assert.doesNotMatch(r.stdout, /Harness:/);
 	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "heio-mode", "SKILL.md")),
+		existsSync(join(dest, ".opencode", "skills", "heio-mode", "SKILL.md")),
 		false,
 	);
-	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
-	assert.equal(existsSync(join(dest, ".pi", "skills")), true);
-	assert.equal(existsSync(join(dest, ".opencode")), false);
+	assert.equal(
+		existsSync(join(dest, ".opencode", "playbooks", "feature.md")),
+		false,
+	);
+	assert.equal(existsSync(join(dest, ".opencode", "skills")), true);
+	assert.equal(existsSync(join(dest, ".pi")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
 	assert.equal(existsSync(join(dest, ".agents")), false);
 });
 
-test("install --profile life-engine writes .pi only", () => {
+test("install --profile life-engine writes .opencode only", () => {
 	const dest = mkdtempSync(join(tmpdir(), "install-life-engine-"));
 	const r = spawnSync(
 		process.execPath,
@@ -854,13 +603,15 @@ test("install --profile life-engine writes .pi only", () => {
 	assert.match(r.stdout, /Profile: life-engine/);
 	assert.doesNotMatch(r.stdout, /Harness:/);
 	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "heio-mode", "SKILL.md")),
+		existsSync(join(dest, ".opencode", "skills", "heio-mode", "SKILL.md")),
 		false,
 	);
-	assert.equal(existsSync(join(dest, ".pi", "playbooks", "feature.md")), false);
-	assert.equal(existsSync(join(dest, ".pi", "skills")), true);
-	assert.equal(existsSync(join(dest, ".pi", "vendor", "@agentic-core")), false);
-	assert.equal(existsSync(join(dest, ".opencode")), false);
+	assert.equal(
+		existsSync(join(dest, ".opencode", "playbooks", "feature.md")),
+		false,
+	);
+	assert.equal(existsSync(join(dest, ".opencode", "skills")), true);
+	assert.equal(existsSync(join(dest, ".pi")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
 	assert.equal(existsSync(join(dest, ".agents")), false);
 });
@@ -882,12 +633,12 @@ test("install --profile agentic-core --without diagnose omits the diagnose skill
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "diagnose", "SKILL.md")),
+		existsSync(join(dest, ".opencode", "skills", "diagnose", "SKILL.md")),
 		false,
 	);
 });
 
-test("install --profile agentic-core writes .pi/skills", () => {
+test("install --profile agentic-core writes .opencode/skills", () => {
 	const dest = mkdtempSync(join(tmpdir(), "install-core-"));
 	const r = spawnSync(
 		process.execPath,
@@ -904,11 +655,11 @@ test("install --profile agentic-core writes .pi/skills", () => {
 	);
 	assert.equal(r.status, 0, r.stderr || r.stdout);
 	assert.equal(
-		existsSync(join(dest, ".pi", "skills", "heio-stack", "SKILL.md")),
+		existsSync(join(dest, ".opencode", "skills", "heio-stack", "SKILL.md")),
 		true,
 	);
-	assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
-	assert.equal(existsSync(join(dest, ".opencode")), false);
+	assert.equal(existsSync(join(dest, ".opencode", "APPEND_SYSTEM.md")), false);
+	assert.equal(existsSync(join(dest, ".pi")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
 	assert.equal(existsSync(join(dest, ".agents")), false);
 });
@@ -948,8 +699,8 @@ test("install uses profiles yaml only and does not write preference stubs", () =
 		existsSync(join(dest, ".github", "copilot-instructions.md")),
 		false,
 	);
-	assert.equal(existsSync(join(dest, ".pi", "APPEND_SYSTEM.md")), true);
-	assert.equal(existsSync(join(dest, ".opencode")), false);
+	assert.equal(existsSync(join(dest, ".opencode", "skills")), true);
+	assert.equal(existsSync(join(dest, ".pi")), false);
 	assert.equal(existsSync(join(dest, ".claude")), false);
 	assert.equal(existsSync(join(REPO, "preferences")), false);
 });
@@ -1108,51 +859,27 @@ function expectedNamedIds(selection, available) {
 	return [...new Set(selection.ids)];
 }
 
-function expectedSettings(profile) {
-	const packages = profile.packages.map(packageRefSource);
-	if (packages.length === 0 && profile.settings == null) return null;
-	return {
-		...(packages.length > 0 ? { packages } : {}),
-		...(profile.settings ?? {}),
-	};
-}
-
 function assertInstallMatchesYaml(dest, profile) {
-	const skills = destDirNames(dest, ".pi/skills");
+	const skills = destDirNames(dest, ".opencode/skills");
 	assert.deepEqual(skills, [...new Set(profile.skills)].sort());
 	for (const name of skills) {
 		assert.equal(
-			existsSync(join(dest, ".pi", "skills", name, "SKILL.md")),
+			existsSync(join(dest, ".opencode", "skills", name, "SKILL.md")),
 			true,
 			name,
 		);
 	}
 
 	assert.deepEqual(
-		destMarkdownStems(dest, ".pi/agents"),
+		destMarkdownStems(dest, ".opencode/agents"),
 		expectedNamedIds(profile.agents, listAgentIds(REPO)).sort(),
 	);
 	assert.deepEqual(
-		destMarkdownStems(dest, ".pi/prompts"),
+		destMarkdownStems(dest, ".opencode/commands"),
 		expectedNamedIds(profile.prompts, listPromptIds(REPO)).sort(),
 	);
-
-	const localNames = profile.packages
-		.filter((pkg) => pkg.kind === "local")
-		.map((pkg) => pkg.name)
-		.sort();
-	assert.deepEqual(
-		destDirNames(dest, ".pi/npm/local/@agentic-core"),
-		localNames,
-	);
-
-	const settingsPath = join(dest, ".pi", "settings.json");
-	const expected = expectedSettings(profile);
-	if (expected == null) {
-		assert.equal(existsSync(settingsPath), false);
-		return;
-	}
-	assert.deepEqual(JSON.parse(readFileSync(settingsPath, "utf8")), expected);
+	assert.equal(existsSync(join(dest, ".pi")), false);
+	assert.equal(existsSync(join(dest, ".opencode", "settings.json")), false);
 }
 
 function tempRoot() {
@@ -1168,7 +895,7 @@ function writeYaml(root, name, body) {
 }
 
 function snapshotInstall(dest) {
-	const pbDir = join(dest, ".pi", "playbooks");
+	const pbDir = join(dest, ".opencode", "playbooks");
 	const out = { playbooks: {} };
 	for (const name of readdirSync(pbDir).sort()) {
 		out.playbooks[name] = readFileSync(join(pbDir, name), "utf8");

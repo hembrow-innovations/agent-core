@@ -13,7 +13,7 @@ This prompt orchestrates three others: an inline mining pass (see step 1), this 
 
 ### 0. Check for an existing skill
 
-Look recursively for `.pi/skills/**/*-mode/SKILL.md` and `~/.pi/skills/*-mode/SKILL.md` matching the user's handle. Mode skills can live in a personal category directory (`.pi/skills/<handle>/`), not only at the top level. If one exists, ask in prose (unless they already said "update my skill" or similar). Ask only for product or preference:
+Look recursively for `.opencode/skills/**/*-mode/SKILL.md` and `~/.opencode/skills/*-mode/SKILL.md` matching the user's handle. Mode skills can live in a personal category directory (`.opencode/skills/<handle>/`), not only at the top level. If one exists, ask in prose (unless they already said "update my skill" or similar). Ask only for product or preference:
 
 - Update the existing skill (default for repeat runs)
 - Start fresh (rare; ask why before doing it)
@@ -66,7 +66,7 @@ The **heio-mode** skill shows the shape. Read it for granularity. Don't copy its
 
 Use this pack skill `ai/skills/engineering/create-skill` to author the skill. Placement:
 
-- Path: preserve an existing mode skill's category. For a new mode, use `.pi/skills/<handle>/<handle>-mode/SKILL.md` when the repo has an established personal category for that handle; otherwise default to `.pi/skills/<handle>-mode/SKILL.md` in the project (or `~/.pi/skills/<handle>-mode/` if the user prefers a personal skill).
+- Path: preserve an existing mode skill's category. For a new mode, use `.opencode/skills/<handle>/<handle>-mode/SKILL.md` when the repo has an established personal category for that handle; otherwise default to `.opencode/skills/<handle>-mode/SKILL.md` in the project (or `~/.opencode/skills/<handle>-mode/` if the user prefers a personal skill).
 - Handle: the user's first name or chosen identifier.
 - Frontmatter `description`: trigger on their name + `/<handle>-mode` + "work in their style", not on generic keywords like "write code" or "review PR".
 - Frontmatter formatting: follow `create-skill`'s YAML rules. Keep `description` as one YAML scalar; quote it or use `description: >-` with indented continuation lines when punctuation or wrapping requires it.

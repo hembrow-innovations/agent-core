@@ -1,9 +1,4 @@
 import {
-  packageRefSource,
-  type FirstPartyExtension,
-  type ProfilePackage,
-} from "./extensions.ts";
-import {
   resolveNamedIds,
   type Profile,
   type SelectionResolveOpts,
@@ -15,13 +10,11 @@ export type InstallRequest = {
   profile: string | null;
   with: string[];
   without: string[];
-  extensions: FirstPartyExtension[];
 };
 
 export type AvailableIds = {
   agents: string[];
   prompts: string[];
-  systemPrompts: string[];
 };
 
 export type InstallPlan = {
@@ -30,9 +23,6 @@ export type InstallPlan = {
   overlayAgents: boolean;
   promptIds: string[];
   overlayPrompts: boolean;
-  packages: ProfilePackage[];
-  settings: Record<string, unknown> | null;
-  systemPrompt?: string;
 };
 
 const NO_SELECTION_OPTS: SelectionResolveOpts = {
@@ -40,25 +30,6 @@ const NO_SELECTION_OPTS: SelectionResolveOpts = {
   add: [],
   remove: [],
 };
-
-export function resolvePackages(
-  profilePackages: readonly ProfilePackage[],
-  cliNames: readonly FirstPartyExtension[],
-): ProfilePackage[] {
-  const out: ProfilePackage[] = [];
-  const seen = new Set<string>();
-  const cli: ProfilePackage[] = cliNames.map((name) => ({
-    kind: "local",
-    name,
-  }));
-  for (const pkg of [...profilePackages, ...cli]) {
-    const key = packageRefSource(pkg);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(pkg);
-  }
-  return out;
-}
 
 export function planFromProfile(
   profile: Profile,
@@ -68,13 +39,6 @@ export function planFromProfile(
   const set = new Set(profile.skills);
   for (const s of opts.with) set.add(s);
   for (const s of opts.without) set.delete(s);
-  const systemPrompt = profile["system-prompt"];
-  if (
-    systemPrompt !== undefined &&
-    !available.systemPrompts.includes(systemPrompt)
-  ) {
-    throw new Error(`Unknown system-prompt "${systemPrompt}"`);
-  }
   return {
     skills: [...set].sort(),
     agentIds: resolveNamedIds(
@@ -91,8 +55,5 @@ export function planFromProfile(
       "prompt",
     ),
     overlayPrompts: profile.prompts.kind !== "omit",
-    packages: resolvePackages(profile.packages, opts.extensions),
-    settings: profile.settings,
-    ...(systemPrompt === undefined ? {} : { systemPrompt }),
   };
 }

@@ -4,13 +4,20 @@ Parked until a final keep-or-delete call. Nothing here is in the pnpm workspace,
 
 ## Packages
 
+- **heio-boot**, **heio-footer**, **heio-onic**: in-session Pi plugins
 - **heio-coms**: living-session mailbox
 - **heio-teams**: tmux agent teams
+- **heio-todo**: session checklist
+- **heio-coord**: in-session heio-stack gate
 
 ## Skills
 
 - **agent-teams**: living Pi TUI panes in tmux
 - **how**, **why**, **unslop**: previously in `ai/deprecated/`
+
+## Tests
+
+- `deprecated/tests/pi`: parked Pi dest and agent-system checks
 
 ## Scripts
 

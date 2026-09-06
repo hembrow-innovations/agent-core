@@ -2,20 +2,16 @@
 import { existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { AGENT_DEST, openDestination, PROMPT_DEST } from "./dest.ts";
 import {
-  FIRST_PARTY_EXTENSIONS,
-  isFirstPartyExtension,
-  packageRefSource,
-  writeExtensions,
-  writeVendorTrees,
-  type FirstPartyExtension,
-} from "./extensions.ts";
+  AGENT_DEST,
+  DEST_ROOT,
+  openDestination,
+  PROMPT_DEST,
+} from "./dest.ts";
 import { planFromProfile, type InstallRequest } from "./plan.ts";
 import { listAgentIds, writeAgents } from "./agents.ts";
 import { listProfiles, loadProfile } from "./profile.ts";
 import { listPromptIds, writePrompts } from "./prompts.ts";
-import { listSystemPromptStems, writeRuntime } from "./runtime.ts";
 import { installSkills } from "./skills.ts";
 
 type CliRequest = { kind: "help" } | InstallRequest;
@@ -33,7 +29,6 @@ Usage:
 
 Options:
   --profile <name>         YAML profile in profiles/ (default: ${DEFAULT_PROFILE})
-  --extension <name>       first-party package (repeatable)
   --with <skills>          comma-separated skills to add
   --without <skills>       comma-separated skills to remove
   -h, --help               Show help
@@ -41,7 +36,7 @@ Options:
 Profiles (profiles/<name>/profile.yaml):
   ${listed}
 
-Dest is always .pi/. Agents, prompts, packages, and settings are selected in the YAML.
+Dest is always .opencode/. Agents, prompts, and skills are selected in the YAML.
 
 Examples:
   pnpm exec agentic-core install . --profile agentic-core
@@ -63,7 +58,6 @@ function parseArgs(argv: string[]): CliRequest {
     profile: null,
     with: [],
     without: [],
-    extensions: [],
   };
 
   while (args.length) {
@@ -73,15 +67,7 @@ function parseArgs(argv: string[]): CliRequest {
     else if (a === "--profile") out.profile = need(args, a);
     else if (a === "--with") out.with.push(...csv(need(args, a)));
     else if (a === "--without") out.without.push(...csv(need(args, a)));
-    else if (a === "--extension") {
-      const name = need(args, a);
-      if (!isFirstPartyExtension(name)) {
-        die(
-          `Unknown extension: ${name}. Choose: ${FIRST_PARTY_EXTENSIONS.join(", ")}`,
-        );
-      }
-      out.extensions.push(name);
-    } else if (a.startsWith("-")) die(`Unknown flag: ${a}`);
+    else if (a.startsWith("-")) die(`Unknown flag: ${a}`);
     else if (out.target) die(`Unexpected argument: ${a}`);
     else out.target = resolve(a);
   }
@@ -138,20 +124,6 @@ function run(argv: string[]): void {
   if (!existsSync(opts.target)) die(`Target does not exist: ${opts.target}`);
   const dest = openDestination(opts.target);
 
-  if (opts.profile == null && opts.extensions.length > 0) {
-    console.log(`Using local source: ${srcRoot}`);
-    console.log(`Installing into ${opts.target}`);
-    console.log("Profile: none");
-    dest.ensureGitignore();
-    try {
-      writeExtensions(srcRoot, dest, opts.extensions);
-    } catch (err) {
-      die(err instanceof Error ? err.message : String(err));
-    }
-    console.log("Done.");
-    return;
-  }
-
   const profileName = opts.profile ?? DEFAULT_PROFILE;
   let profile;
   try {
@@ -165,7 +137,6 @@ function run(argv: string[]): void {
     plan = planFromProfile(profile, opts, {
       agents: listAgentIds(srcRoot),
       prompts: listPromptIds(srcRoot),
-      systemPrompts: listSystemPromptStems(srcRoot),
     });
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));
@@ -176,6 +147,7 @@ function run(argv: string[]): void {
   console.log(`Skills (${plan.skills.length}): ${plan.skills.join(", ")}`);
 
   try {
+    dest.removeLeftovers();
     installSkills({ srcRoot, dest, names: plan.skills });
     if (plan.overlayAgents) {
       writeAgents(srcRoot, dest, plan.agentIds);
@@ -185,32 +157,13 @@ function run(argv: string[]): void {
       writePrompts(srcRoot, dest, plan.promptIds);
       console.log(`  prompts (${plan.promptIds.length}) → ${PROMPT_DEST}`);
     }
-    writeRuntime(srcRoot, dest, { systemPrompt: plan.systemPrompt });
-    console.log("  pi runtime → .pi");
-    const localNames: FirstPartyExtension[] = [];
-    for (const pkg of plan.packages) {
-      if (pkg.kind === "local") localNames.push(pkg.name);
-    }
-    if (localNames.length > 0) {
-      writeVendorTrees(srcRoot, dest, localNames);
-    } else {
-      dest.remove(".pi/vendor/@agentic-core");
-    }
-    if (plan.packages.length > 0) {
-      dest.mergePackages(plan.packages.map(packageRefSource));
-    }
-    if (plan.settings) {
-      dest.mergeSettings(plan.settings);
-    }
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));
   }
 
   console.log("Done.");
-  console.log("Next: run `pi` in the project and trust the folder.");
-  console.log(
-    "Pi installs project packages from .pi/settings.json after you trust the folder.",
-  );
+  console.log(`Dest is ${DEST_ROOT}/.`);
+  console.log("Restart OpenCode so it loads the dest files.");
 }
 
 void (() => {

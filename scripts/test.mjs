@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 // Repo checks and tests live under tests/. This file is the npm entrypoint.
-import { readdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,14 +16,8 @@ function run(command, args) {
 
 run("pnpm", ["-r", "--filter", "./packages/**", "test"]);
 
-const piTests = readdirSync(join(ROOT, "tests", "pi"))
-  .filter((name) => name.endsWith(".mjs"))
-  .sort()
-  .map((name) => join(ROOT, "tests", "pi", name));
-
 run("node", [
   "--test",
   join(ROOT, "tests", "profile", "profile.test.mjs"),
   join(ROOT, "tests", "oracle", "oracle-check.test.mjs"),
-  ...piTests,
 ]);

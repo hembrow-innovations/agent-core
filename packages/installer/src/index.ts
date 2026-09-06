@@ -1,31 +1,14 @@
 export { PACK_DIR, packRoot } from "./pack.ts";
 export {
   AGENT_DEST,
-  GITIGNORE_BODY,
-  GITIGNORE_PATH,
+  DEST_ROOT,
   PLAYBOOK_DEST,
   PROMPT_DEST,
-  SETTINGS_PATH,
   SKILL_DEST,
-  mergePiSettings,
-  mergePiSettingsPackages,
   openDestination,
-  packageSource,
 } from "./dest.ts";
 export {
-  FIRST_PARTY_EXTENSIONS,
-  installVendorExtensions,
-  isFirstPartyExtension,
-  localPackageSource,
-  packageRefSource,
-  parseProfilePackage,
-  writeVendorTrees,
-  type FirstPartyExtension,
-  type ProfilePackage,
-} from "./extensions.ts";
-export {
   planFromProfile,
-  resolvePackages,
   type AvailableIds,
   type InstallPlan,
   type InstallRequest,
@@ -39,11 +22,7 @@ export {
   rewriteSkillPlaybooks,
   type PlaybookMeta,
 } from "./playbooks.ts";
-export {
-  listAgentIds,
-  installAgents,
-  writeAgents,
-} from "./agents.ts";
+export { listAgentIds, installAgents, writeAgents } from "./agents.ts";
 export {
   findPromptFile,
   listPromptIds,
@@ -59,9 +38,4 @@ export {
   type PlaybookSelection,
   type Profile,
 } from "./profile.ts";
-export {
-  installPiRuntime,
-  listSystemPromptStems,
-  readPiPackages,
-} from "./runtime.ts";
 export { findSkillDir, installSkills } from "./skills.ts";

@@ -14,13 +14,13 @@ Create a key at [stitch.withgoogle.com/settings](https://stitch.withgoogle.com/s
 Install the SDK into this skill:
 
 ```
-npm install --prefix .pi/skills/stitch
+npm install --prefix .opencode/skills/stitch
 ```
 
 Confirm:
 
 ```
-node .pi/skills/stitch/scripts/stitch.mjs doctor
+node .opencode/skills/stitch/scripts/stitch.mjs doctor
 ```
 
 Done when doctor prints `"ok": true`. If `"apiKey": false`, stop and ask the user for the key.
@@ -30,7 +30,7 @@ Done when doctor prints `"ok": true`. If `"apiKey": false`, stop and ask the use
 Run from the dest root. JSON on stdout. Generation can take minutes — use a bash timeout of at least 360s.
 
 ```
-node .pi/skills/stitch/scripts/stitch.mjs <command> [flags]
+node .opencode/skills/stitch/scripts/stitch.mjs <command> [flags]
 ```
 
 - **doctor**: SDK + key present

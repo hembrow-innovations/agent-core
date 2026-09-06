@@ -15,6 +15,6 @@ A lead in tmux staffs living teammates to take a SaaS from idea to market.
 
 If one agent could finish inside the session budget, stop and run `run-autonomous` or `build-feature`.
 
-Library: `ai/playbooks/saas-company.md` (dest: `.pi/playbooks/saas-company.md`).
+Library: `ai/playbooks/saas-company.md` (dest: `.opencode/playbooks/saas-company.md`).
 
 Notes: A standing subagent program is `run-orchestrate`. Visible panes the human can type into are this rule. Company OS, RPC teammates, and nested teams stay out.

@@ -2,7 +2,7 @@
 
 Prefer `rules/` plus the `SKILL.md` router. This file is the skip rationale. It is not auto-injected on skill load.
 
-Twenty-six rules. One per file in `ai/playbooks/` except `README.md`. Each rule is the matcher and the contract. The ordered steps stay in the library file. Install copies those files into dest `.pi/playbooks/`.
+Twenty-six rules. One per file in `ai/playbooks/` except `README.md`. Each rule is the matcher and the contract. The ordered steps stay in the library file. Install copies those files into dest `.opencode/playbooks/`.
 
 This pack exists so a human can judge progressive disclosure over playbooks. It is not the source of truth for the steps.
 

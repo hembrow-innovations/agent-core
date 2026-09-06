@@ -3,7 +3,7 @@ id: "adr-5"
 title: "ADR-0005: dest is always Pi"
 kind: adr
 description: "Install writes .pi/ only. Profiles no longer name a dest."
-status: accepted
+status: superseded
 domain: pack
 area: decisions
 tags: [installer, pi]
@@ -32,6 +32,8 @@ The OpenCode pack under `ai/agents/` and `ai/prompts/` is gone. Pi identity stay
 Keep the dest switch and drop the unused dests later. That leaves a key every profile must set for no choice.
 
 Keep OpenCode source and stop installing it. Dead pack files would still look like a second dest.
+
+Superseded by [[0021-opencode-only-dest]]. Dest is `.opencode/`. Pi runtime and plugins are parked.
 
 ## Consequences
 

@@ -2,12 +2,12 @@
 id: "architecture-pack-and-packages"
 title: "Pack and packages"
 kind: architecture
-description: "Source pack, workspace packages, dest copy, and first-party npm copies stay apart."
+description: "Source pack, installer package, and dest .opencode/ copy stay apart."
 domain: pack
 area: architecture
 tags: [architecture]
 created_at: "2026-08-23"
-updated_at: "2026-09-04"
+updated_at: "2026-09-06"
 ---
 
 # Pack and packages
@@ -16,19 +16,17 @@ updated_at: "2026-09-04"
 
 This repo is a pnpm workspace. It is the only place you install from. A dest project never depends on this checkout at runtime. The installer copies a self-contained tree the dest can commit.
 
-The source pack is this checkout's agent, skill, playbook, prompt, and system-prompt libraries, plus profiles. `tests/` holds the checks and repo tests. `scripts/` is the npm entrypoints. The installer package owns profile parse and dest writes. Workspace packages are the TypeScript session products under `packages/`. The dest tree is the copied project layout after install. First-party packages land under `.pi/npm/local/@agentic-core/`.
+The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus profiles. `tests/` holds the checks and repo tests. `scripts/` is the npm entrypoints. The installer package owns profile parse and dest writes. The dest tree is the copied project layout after install.
 
 See [[glossary]] for the names used here.
 
 ## Context
 
-The old installer copied a profile into a dest tree. For harness pi it copied `pi/extensions/*.ts` into `.pi/extensions/` and merged package sources into `.pi/settings.json`. Third-party tools already arrive as Pi packages such as `npm:pi-lens`. First-party extensions were loose TypeScript files that shared `pi/lib/`.
+The old installer copied a profile into dest `.pi/` and merged Pi packages into `.pi/settings.json`. First-party Pi plugins landed under `.pi/npm/local/`.
 
-That mix left dest coupled to loose files. It also left a sibling lib that dest should not own.
+This repo is now only a profile installer. Dest is OpenCode. Pi runtime and plugins are parked under `deprecated/`.
 
-The settled layout keeps the markdown pack. It moves first-party extensions into workspace packages. Dest receives a local copy under `.pi/npm/local/`. Dest has no live path back to this checkout.
-
-[[0001-pnpm-workspace-pi-packages]], [[0002-standalone-vendor-install]], [[0010-local-packages-in-npm]], [[0011-local-packages-in-npm-local]], [[0004-source-pack-under-ai]], [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], and [[0008-todo-owns-checklist-store]] record those choices.
+[[0004-source-pack-under-ai]], [[0021-opencode-only-dest]], and [[0006-source-libraries-beside-pi-runtime]] record those choices.
 
 ## Design
 
@@ -40,55 +38,28 @@ The folders are:
 
 - `ai/agents/` is the agent library.
 - `ai/skills/` is the skill library.
-- `ai/playbooks/` is the playbook library.
-- `ai/prompts/` is the prompt/command library. Category folders like `ai/skills/`. Overlay dest is `.pi/prompts/<id>.md`.
-- `ai/system-prompts/` is the system-prompt library. Files are markdown. Required pack file is `default.md`. Other `*.md` stems are profile-selectable. Dest is `.pi/APPEND_SYSTEM.md`. There is no `ai/pi/` folder.
+- `ai/playbooks/` is the playbook library. Install does not copy it.
+- `ai/prompts/` is the prompt/command library. Category folders like `ai/skills/`. Overlay dest is `.opencode/commands/<id>.md`.
+- `ai/system-prompts/` is parked Pi runtime markdown. Install does not copy it.
 - `profiles/` is the install profiles. Each profile is `profiles/<name>/profile.yaml`. See [[0016-profiles-are-directories]].
 - `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`.
 - `tests/` is the repo checks and tests. See [[architecture-verify]].
 
 Leftover empty stub dirs under `ai/` are not libraries.
 
-Skills, prompts, and third-party `npm:pi-lens` sources still copy into dest `.pi/`. Playbooks stay in the source library. Install does not copy them.
-
 ### Workspace packages
 
-Session product code lives under `packages/`. Folder names stay unscoped. Package names are scoped.
+The only workspace package is `packages/installer`, the install CLI.
 
-The folders are:
-
-- `packages/heio-boot` is `@agentic-core/heio-boot`.
-- `packages/heio-footer` is `@agentic-core/heio-footer`.
-- `packages/heio-onic` is `@agentic-core/heio-onic`.
-- `packages/installer` is the install CLI.
-
-`heio-coms`, `heio-teams`, `heio-todo`, and `heio-coord` live under `deprecated/packages/`. They are not workspace packages and no profile installs them. See [[architecture-heio-coms]], [[spec-tmux-agent-teams]], [[architecture-heio-todo]], and [[architecture-heio-coord]].
-
-Session checklists are pinned `@inobit/pi-todo`. The questionnaire tool is pinned `@juicesharp/rpiv-ask-user-question`. There is no `packages/lib`. See [[0012-inobit-pi-todo]] and [[0014-rpiv-ask-user-question]].
-
-The TUI paints one footer line from the footer package. See [[architecture-heio-footer]].
+Parked Pi plugins live under `deprecated/packages/`. They are not workspace packages and no profile installs them.
 
 There is no npm publish. There is no git package source.
 
 ### Dest tree
 
-The dest tree is what a target project commits after install. It holds the copied agents, skills, and prompts under `.pi/`. Identity dest is only `.pi/agents/`. There is no dest roles tree. This repo's `.pi/` is a gitignored dest. It is not the source of truth.
+The dest tree is what a target project commits after install. It holds the copied agents, skills, and commands under `.opencode/`. This repo's `.opencode/` is a gitignored dest. It is not the source of truth.
 
 A dest project never depends on this checkout at runtime.
-
-### Local first-party copy
-
-Each first-party extension lands as a copied package at `.pi/npm/local/@agentic-core/<name>`. Settings gain a dest-relative path to that folder. Settings do not list `npm:@agentic-core/<name>`. Re-running install overwrites the copy. Dest extras stay. A dest rewrite removes installer-owned `.pi/vendor/@agentic-core` trees and leftover `.pi/npm/node_modules/@agentic-core/<name>` copies for names it writes. Pi npm install owns `.pi/npm/node_modules/` and must not own the first-party copies.
-
-The copy writes `package.json` and non-test `.ts` files from `packages/<name>/src` into that npm tree. First-party extensions do not copy from `pi/extensions/`. That folder is not part of the pack.
-
-```ts
-// packages/installer/src/extensions.ts writeVendorExtension
-const srcPkg = join(srcRoot, "packages", name);
-const destRel = join(".pi", "npm", "local", "@agentic-core", name);
-dest.copyFile(join(srcPkg, "package.json"), join(destRel, "package.json"));
-copyTsSources(join(srcPkg, "src"), dest, join(destRel, "src"));
-```
 
 ### Installer CLI
 
@@ -96,59 +67,35 @@ The command is `pnpm exec agentic-core install`. The package lives in `packages/
 
 - **cli.ts**: parses argv and dispatches
 - **profile.ts**: reads `profiles/<name>/profile.yaml` into a `Profile`
-- **dest.ts**: dest `.pi/` reads and writes
+- **dest.ts**: dest `.opencode/` reads and writes
 - **pack-walk.ts**: `walkSkillDirs` finds `SKILL.md` folders under `ai/skills/`. `walkPromptFiles` finds prompt markdown under `ai/prompts/`
-- **skills.ts**, **playbooks.ts**, **agents.ts**, **prompts.ts**, **extensions.ts**, **runtime.ts**: one module per library or dest write. Playbook catalog rewrite stays in `playbooks.ts`. Install does not call the dest playbook writer.
+- **skills.ts**, **playbooks.ts**, **agents.ts**, **prompts.ts**: one module per library. Playbook catalog rewrite stays in `playbooks.ts`. Install does not call the dest playbook writer.
 - **plan.ts**: merges the profile with CLI flags
-
-`installSkills` calls `findSkillDir`, which walks with `walkSkillDirs`. Duplicate basenames prefer `ai/skills/workflow/`, then `ai/skills/setup/`, then the first hit. `writePrompts` walks with `walkPromptFiles`. Duplicate prompt stems fail. Dest stays `.pi/prompts/<id>.md`.
-
-```ts
-// packages/installer/src/skills.ts findSkillDir
-walkSkillDirs(skillsRoot, (dir) => {
-  if (basename(dir) === name && existsSync(join(dir, "SKILL.md"))) {
-    candidates.push(dir);
-  }
-});
-```
 
 ```bash
 pnpm exec agentic-core install <target> --profile agentic-core
-pnpm exec agentic-core install <target> --extension heio-boot
 ```
 
-`--extension` can repeat. Dest is always `.pi/`.
+Dest is always `.opencode/`.
 
-A profile install copies the pack for that profile. It also installs that profile's `packages` list. Profiles `agentic-core` and `life-engine` list the third-party `npm:` sources plus `local:@agentic-core/` packages for boot, footer, and onic, pinned `npm:@inobit/pi-todo@0.1.1`, and pinned `npm:@juicesharp/rpiv-ask-user-question@2.8.0`. They do not install coms, teams, todo, coord, or the rest of `rpiv-*`. See [[0012-inobit-pi-todo]], [[0014-rpiv-ask-user-question]], and [[0017-park-heio-coord]].
-
-A leftover `playbooks:` or `mode:` key is an error. Install does not write `.pi/playbooks/`.
-
-An extension install names a first-party package for the dest npm tree.
+A leftover `playbooks:`, `packages:`, `settings:`, or `system-prompt:` key is an error. Install does not write `.opencode/playbooks/`.
 
 See [[schema-profile]] for the YAML. See [[spec-installer]] for flags and outputs. See [[guides-install-from-this-repo]] for how to run it.
 
 ### This checkout is not auto-wired
 
-This checkout's Pi is not wired to `packages/`. Nothing appears in this checkout's dest until you point the installer at a target. That target may be `.` if you choose.
+Nothing appears in this checkout's dest until you point the installer at a target. That target may be `.` if you choose.
 
 ## Trade-offs
 
-The design optimises for dest independence. Dest can keep a self-contained first-party copy under `.pi/npm/local/`. Re-install is overwrite, not a live link. Pi npm install can rebuild `node_modules` without deleting those copies.
-
-It sacrifices a short inner loop that would load `packages/` from this checkout without install. Developers must run the installer against `.` to use the extensions here.
-
-It also refuses a meta package that would install every extension as one unit. Profile `packages` lists stay the grouping mechanism.
+The design optimises for dest independence. Re-install is overwrite, not a live link.
 
 This cut has no uninstall.
 
 ## Consequences
 
-Install is the only path from workspace packages to a dest. A dest never keeps a live path back to this checkout.
+Install is the only path from the source pack to a dest. A dest never keeps a live path back to this checkout.
 
-Todo tests and imports stay in the workspace. Dest never sees a sibling lib package.
-
-The pack does not keep `ai/pi/`. System prompts live under `ai/system-prompts/`. Profiles list skills, agents, prompts, packages, optional settings, and optional `system-prompt`. They do not name a dest. See [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0016-profiles-are-directories]], [[0019-hivemind-own-repo]], and [[schema-profile]].
+Profiles list skills, agents, and prompts. They do not name a dest. See [[0021-opencode-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0016-profiles-are-directories]], [[0019-hivemind-own-repo]], and [[schema-profile]].
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.
-
-Installer tests write a temp dest and check settings plus the dest npm tree.

@@ -1,6 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { parseProfilePackage, type ProfilePackage } from "./extensions.ts";
 
 export type NamedSelection =
   | { kind: "all" }
@@ -14,28 +13,21 @@ export type Profile = {
   skills: string[];
   agents: NamedSelection;
   prompts: NamedSelection;
-  packages: ProfilePackage[];
-  settings: Record<string, unknown> | null;
-  "system-prompt"?: string;
 };
 
-const PROFILE_KEYS = new Set([
-  "skills",
-  "agents",
-  "prompts",
-  "packages",
-  "settings",
-  "system-prompt",
-]);
+const PROFILE_KEYS = new Set(["skills", "agents", "prompts"]);
 
 const LEFTOVER_KEYS = new Map([
-  ["mode", 'leftover "mode:". dest playbooks live at .pi/playbooks'],
+  ["mode", 'leftover "mode:". the installer does not copy playbooks'],
   ["playbooks", 'leftover "playbooks:". the installer does not copy playbooks'],
-  ["harness", 'leftover "harness:". dest is always .pi'],
-  ["pi", 'leftover "pi:". dest is always .pi'],
-  ["extensions", 'leftover "extensions:". use packages:'],
-  ["templates", 'leftover "templates:". dest is always .pi'],
-  ["commands", 'leftover "commands:". dest is always .pi'],
+  ["harness", 'leftover "harness:". dest is always .opencode'],
+  ["pi", 'leftover "pi:". dest is always .opencode'],
+  ["extensions", 'leftover "extensions:". Pi packages are parked'],
+  ["packages", 'leftover "packages:". Pi packages are parked'],
+  ["settings", 'leftover "settings:". Pi runtime is parked'],
+  ["system-prompt", 'leftover "system-prompt:". Pi runtime is parked'],
+  ["templates", 'leftover "templates:". dest is always .opencode'],
+  ["commands", 'leftover "commands:". use prompts:'],
   [
     "frameworks",
     'leftover "frameworks:". hivemind is not installed from this pack',
@@ -84,15 +76,11 @@ export function loadProfile(srcRoot: string, name: string): Profile {
       throw new Error(`Unknown profile key "${key}"`);
     }
   }
-  const systemPrompt = asOptionalString(raw["system-prompt"], "system-prompt");
   return {
     name,
     skills: asStringList(raw.skills, "skills"),
     agents: toSelection(raw.agents, "agents"),
     prompts: toSelection(raw.prompts, "prompts"),
-    packages: asStringList(raw.packages, "packages").map(parseProfilePackage),
-    settings: asSettings(raw.settings),
-    ...(systemPrompt !== undefined ? { "system-prompt": systemPrompt } : {}),
   };
 }
 
@@ -155,22 +143,6 @@ function asStringList(value: unknown, key: string): string[] {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) throw new Error(`"${key}" must be a list`);
   return value.map(String);
-}
-
-function asOptionalString(value: unknown, key: string): string | undefined {
-  if (value === undefined || value === null) return undefined;
-  if (typeof value !== "string") throw new Error(`"${key}" must be a string`);
-  return value;
-}
-
-function asSettings(value: unknown): Record<string, unknown> | null {
-  if (value === undefined || value === null) return null;
-  if (!isYamlMap(value)) throw new Error(`"settings" must be a map`);
-  return value;
-}
-
-function isYamlMap(value: unknown): value is YamlMap {
-  return value != null && typeof value === "object" && !Array.isArray(value);
 }
 
 function tokenizeYaml(text: string): YamlTok[] {

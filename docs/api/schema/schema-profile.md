@@ -8,30 +8,24 @@ area: installer
 tags: [schema, installer, profiles]
 source: "packages/installer/src/profile.ts"
 created_at: "2026-08-25"
-updated_at: "2026-09-04"
+updated_at: "2026-09-06"
 ---
 
 # Profile YAML schema
 
 A profile is a named install set. `--profile <name>` loads `profiles/<name>/profile.yaml`. The directory stem is the name. There is no `name:` key. Flat `profiles/<name>.yaml` is not a profile. See [[0016-profiles-are-directories]].
 
-`packages/installer/src/profile.ts` parses the file. It is a YAML subset, not a general YAML library. Dest is always `.pi/`. Profiles do not name a dest. See [[0005-pi-only-dest]].
+`packages/installer/src/profile.ts` parses the file. It is a YAML subset, not a general YAML library. Dest is always `.opencode/`. Profiles do not name a dest. See [[0021-opencode-only-dest]].
 
 ## Fields
 
-Allowed keys are `skills`, `agents`, `prompts`, `packages`, `settings`, and `system-prompt`. All six are optional. `PROFILE_KEYS` is that set.
+Allowed keys are `skills`, `agents`, and `prompts`. All three are optional. `PROFILE_KEYS` is that set.
 
-- **skills.** String list of skill folder names. Missing or `null` becomes `[]`. A present non-list is an error. Each name must be a directory under `ai/skills/` that holds `SKILL.md`. `findSkillDir` walks with `walkSkillDirs` from `pack-walk.ts`. If two directories share a basename, install prefers `ai/skills/workflow/`, then `ai/skills/setup/`, then the first walk hit. Install copies each name to `.pi/skills/<name>/`. A typo parses. Copy then fails with `Skill not found in source`. CLI `--with` and `--without` change the planned list. That overlay is [[spec-installer]].
+- **skills.** String list of skill folder names. Missing or `null` becomes `[]`. A present non-list is an error. Each name must be a directory under `ai/skills/` that holds `SKILL.md`. `findSkillDir` walks with `walkSkillDirs` from `pack-walk.ts`. If two directories share a basename, install prefers `ai/skills/workflow/`, then `ai/skills/setup/`, then the first walk hit. Install copies each name to `.opencode/skills/<name>/`. A typo parses. Copy then fails with `Skill not found in source`. CLI `--with` and `--without` change the planned list. That overlay is [[spec-installer]].
 
-- **agents.** One of three shapes. Missing, `null`, or `~` is omit. `all` selects every `ai/agents/<id>/` directory that holds `<id>.md`. The stem must match `^[a-z][a-z0-9-]{0,63}$`. A list selects those ids. Overlay writes `.pi/agents/<id>.md`. Extra dest agent markdown stays. Any other scalar, including `true` or `false`, is `Invalid agents value`.
+- **agents.** One of three shapes. Missing, `null`, or `~` is omit. `all` selects every `ai/agents/<id>/` directory that holds `<id>.md`. The stem must match `^[a-z][a-z0-9-]{0,63}$`. A list selects those ids. Overlay writes `.opencode/agents/<id>.md`. Extra dest agent markdown stays. Any other scalar, including `true` or `false`, is `Invalid agents value`.
 
-- **prompts.** Same three shapes as agents. `all` selects every markdown under `ai/prompts/` except `README.md`. `listPromptIds` walks with `walkPromptFiles` from `pack-walk.ts`. Duplicate stems fail. Overlay writes `.pi/prompts/<id>.md`. Extra dest prompt markdown stays.
-
-- **packages.** String list of Pi package sources. Missing or `null` becomes `[]`. A present non-list is an error. Each item is `npm:<name>` or `local:@agentic-core/<name>`. Local names must be `heio-boot`, `heio-footer`, or `heio-onic`. A bare first-party name is an error. Use the `local:` source. `vendor:` and `vendor/` sources fail at load. `npm:` with nothing after the prefix is `Invalid package source`. Install copies those trees to `.pi/npm/local/@agentic-core/<name>` and merges dest-relative `npm/local/@agentic-core/<name>` into `.pi/settings.json` `packages` in list order. Those copies stay outside `.pi/npm/node_modules/` so Pi npm install cannot delete them. Settings do not list `npm:@agentic-core/<name>`. `--extension` appends a local source. Profile order wins, then CLI, duplicates dropped.
-
-- **settings.** Untyped map merged into dest `.pi/settings.json`. Missing or `null` is omit. A present non-map is `"settings" must be a map`. There is no key allowlist. Unknown keys are not rejected. `settings.packages` is not a load error. `packages:` stays a sibling and keeps the package-source union. Install merges `packages:` first, then deep-merges `settings:`. Dest keys the profile does not name stay. Objects merge recursively. Profile wins scalar leaf conflicts and type mismatches. Arrays merge as sets. Dest order stays. Profile items append when not already present. Duplicates drop. Scalar equality is value equality. Nested array values compare with `JSON.stringify`.
-
-- **system-prompt.** Optional string stem. Missing or `null` omits the field. A present non-string is `"system-prompt" must be a string`. The stem names `ai/system-prompts/<stem>.md`. Unknown or missing stems fail at plan time, not at parse. Install copies that markdown to dest `.pi/APPEND_SYSTEM.md` with the same write-if-missing / legacy-stub replace as today. Omit the key and install still copies `ai/system-prompts/default.md`. Dest filename stays `.pi/APPEND_SYSTEM.md`. See [[spec-installer]].
+- **prompts.** Same three shapes as agents. `all` selects every markdown under `ai/prompts/` except `README.md`. `listPromptIds` walks with `walkPromptFiles` from `pack-walk.ts`. Duplicate stems fail. Overlay writes `.opencode/commands/<id>.md`. Extra dest command markdown stays.
 
 ```ts
 // packages/installer/src/profile.ts — loadProfile leftover keys
@@ -46,19 +40,19 @@ if (!PROFILE_KEYS.has(key)) {
 
 Unknown keys fail. These leftovers have their own messages because they used to mean something:
 
-- **playbooks.** The installer does not copy playbooks. Dest `.pi/playbooks/` is not pruned.
-- **mode.** Dest playbooks live at `.pi/playbooks`.
-- **extensions.** Use `packages:`.
-- **harness**, **pi**, **templates**, **commands.** Dest is always `.pi`.
+- **playbooks.** The installer does not copy playbooks. Dest `.opencode/playbooks/` is not pruned.
+- **mode.** The installer does not copy playbooks.
+- **packages**, **extensions.** Pi packages are parked.
+- **settings**, **system-prompt.** Pi runtime is parked.
+- **harness**, **pi**, **templates.** Dest is always `.opencode`.
+- **commands.** Use `prompts:`. Dest files land at `.opencode/commands/`.
 - **frameworks.** Hivemind is not installed from this pack. See [[0019-hivemind-own-repo]].
 
-`agents` and `prompts` are selection lists now. They are not dest keys. [[0005-pi-only-dest]] banned the old meaning.
+`agents` and `prompts` are selection lists. They are not dest keys.
 
 `listProfiles` reads `profiles/*/profile.yaml`, ignores names that start with `.`, and sorts the directory stems. A leftover flat `profiles/<name>.yaml` is not a profile. A missing directory or missing `profile.yaml` is `Unknown profile "<name>". Choose: ...`.
 
-Unknown agent or prompt ids fail when the plan is built, not at parse. Unknown `system-prompt` stems fail when the plan is built, not at parse. Invalid package sources fail at load.
-
-Profile `packages` is the install list. There is no `ai/pi/` pack folder. `writeRuntime` does not merge a `packages.json`. `readPiPackages` still parses that filename when a caller passes a dir that has one.
+Unknown agent or prompt ids fail when the plan is built, not at parse.
 
 CLI replace and add rules, and the default profile name, live in [[spec-installer]].
 
@@ -82,23 +76,17 @@ Scalars are `true`, `false`, `null`, `~`, `[]`, a flow list, a JSON-like number,
 
 ```yaml
 # profiles/agentic-core/profile.yaml
-# Develop this repo in Pi. Not an export profile.
-agents: all
-prompts: all
-packages:
-  - npm:pi-lens
-  - npm:@inobit/pi-todo@0.1.1
-settings:
-  toolDescriptionMode: compact
-  defaultTools:
-    - read
-    - bash
+# Develop this repo in OpenCode. Not an export profile.
+agents:
+  - heio-triage
+  - heio-tasker
+prompts:
+  - heio-planning
 skills:
   - diagnose
   - tdd
-# system-prompt: persona
 ```
 
-Shipped profiles are directories under `profiles/`: `agentic-core`, `life-engine`, `planning-hub`, and others. Each has `profile.yaml`. `agentic-core` is the skill list for developing this pack and ships example `settings:`. `life-engine` has no `settings:` key. `planning-hub` is skills-only (`planning`, `wayfinder`). `profiles/hivemind` installs this pack into the Hivemind dest. See [[0019-hivemind-own-repo]].
+Shipped profiles are directories under `profiles/`: `agentic-core`, `life-engine`, `planning-hub`, and others. Each has `profile.yaml`. `agentic-core` is the skill list for developing this pack. `planning-hub` is skills-only plus agents and prompts `all`. `profiles/hivemind` installs this pack into the Hivemind dest. See [[0019-hivemind-own-repo]].
 
 Install flags and dest writes live in [[spec-installer]]. Run install from [[guides-install-from-this-repo]].

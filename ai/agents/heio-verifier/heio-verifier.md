@@ -19,13 +19,13 @@ Load **heio-stack** oracle rules and **oracle**. The brief names the slice file 
 Lint first:
 
 ```
-node .pi/skills/oracle/scripts/oracle-check.mjs --status <slice-file>
+node .opencode/skills/oracle/scripts/oracle-check.mjs --status <slice-file>
 ```
 
 Then re-verify:
 
 ```
-node .pi/skills/oracle/scripts/oracle-check.mjs --reverify <slice-file>
+node .opencode/skills/oracle/scripts/oracle-check.mjs --reverify <slice-file>
 ```
 
 `--reverify` is the evidence. A paragraph is not. CHECK/EXPECT on the slice file are enough.

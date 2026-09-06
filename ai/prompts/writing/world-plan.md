@@ -20,7 +20,7 @@ Load **heio-stack** and **novel-craft** (brief branch). Read intent, roadmap, `s
 
 ```
 - [ ] O1: chapter holds as human prose
-  CHECK: node .pi/skills/human-prose/scripts/prose-check.mjs "50 Book/52 Chapters/ch-NN.md"
+  CHECK: node .opencode/skills/human-prose/scripts/prose-check.mjs "50 Book/52 Chapters/ch-NN.md"
   EXPECT: PROSE CLEAN
   EVIDENCE: pending
 ```

@@ -92,27 +92,19 @@ if (!existsSync(promptRoot)) {
     errors.push(`ai/system-prompts/ unexpected ${extra.join(", ")}`);
   }
 }
-for (const rel of [
-  "ai/agents/architect/architect.md",
-  "ai/agents/spec/spec.md",
-  "ai/agents/planner/planner.md",
-  "ai/agents/coder/coder.md",
-  "ai/agents/reviewer/reviewer.md",
-  "ai/agents/tester/tester.md",
-  "ai/agents/debugger/debugger.md",
-  "ai/agents/documenter/documenter.md",
-  "ai/agents/devops/devops.md",
-  "ai/agents/researcher/researcher.md",
-]) {
-  if (!existsSync(join(root, rel))) errors.push(`missing ${rel}`);
-}
-
 for (const name of listProfiles(root)) {
   const profile = loadProfile(root, name);
   const needed = new Set(profile.skills);
   for (const skill of [...needed].sort()) {
     if (!resolveSkill(skill))
       errors.push(`profile ${name}: missing skill ${skill}`);
+  }
+  if (profile.agents.kind === "list") {
+    for (const id of profile.agents.ids) {
+      const file = join(root, "ai", "agents", id, `${id}.md`);
+      if (!existsSync(file))
+        errors.push(`profile ${name}: missing agent ${id}`);
+    }
   }
 }
 
@@ -139,20 +131,24 @@ try {
     console.error(r.stderr);
     process.exit(1);
   }
-  const setupSkill = join(dest, ".pi", "skills", "heio-stack", "SKILL.md");
+  const setupSkill = join(dest, ".opencode", "skills", "heio-stack", "SKILL.md");
   if (!existsSync(setupSkill)) {
     console.error("agentic-core install did not copy heio-stack");
     process.exit(1);
   }
-  if (existsSync(join(dest, ".pi", "playbooks"))) {
-    console.error("agentic-core install still copied .pi/playbooks");
+  if (existsSync(join(dest, ".opencode", "playbooks"))) {
+    console.error("agentic-core install still copied .opencode/playbooks");
     process.exit(1);
   }
-  if (existsSync(join(dest, ".pi", "skills", "heio-mode"))) {
+  if (existsSync(join(dest, ".opencode", "skills", "heio-mode"))) {
     console.error("agentic-core install still copied heio-mode");
     process.exit(1);
   }
-  for (const extra of [".opencode", ".claude", ".agents"]) {
+  if (existsSync(join(dest, ".pi"))) {
+    console.error("agentic-core install wrote .pi");
+    process.exit(1);
+  }
+  for (const extra of [".claude", ".agents"]) {
     if (existsSync(join(dest, extra))) {
       console.error(`agentic-core install wrote ${extra}`);
       process.exit(1);

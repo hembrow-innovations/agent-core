@@ -12,7 +12,7 @@ Use this ledger when a false done report is expensive: long, multi-part, or AFK 
 
 ## 1. Write oracles before implementing
 
-Copy `.pi/skills/oracle/templates/oracles.md` to `.heio/oracles.md`. Replace every placeholder.
+Copy `.opencode/skills/oracle/templates/oracles.md` to `.heio/oracles.md`. Replace every placeholder.
 
 One **oracle** per independently required outcome. Every oracle has a `CHECK:` command and an `EXPECT:` success-only token. The command prints that token only after its assertions have passed.
 
@@ -21,7 +21,7 @@ One **oracle** per independently required outcome. Every oracle has a `CHECK:` c
 Lint without executing:
 
 ```
-node .pi/skills/oracle/scripts/oracle-check.mjs --status .heio/oracles.md
+node .opencode/skills/oracle/scripts/oracle-check.mjs --status .heio/oracles.md
 ```
 
 `--status` never runs `CHECK:`. Pending evidence is unmet.
@@ -33,13 +33,13 @@ Done when `--status` parses the ledger (exit 0 or 1, not 2) and every required o
 Work until the oracles can pass. Run:
 
 ```
-node .pi/skills/oracle/scripts/oracle-check.mjs .heio/oracles.md
+node .opencode/skills/oracle/scripts/oracle-check.mjs .heio/oracles.md
 ```
 
 That run skips oracles that already have met evidence. Re-run every non-abandoned check before reporting:
 
 ```
-node .pi/skills/oracle/scripts/oracle-check.mjs --reverify .heio/oracles.md
+node .opencode/skills/oracle/scripts/oracle-check.mjs --reverify .heio/oracles.md
 ```
 
 A runnable oracle is met only when the process exits 0 and combined output contains the `EXPECT:` token as a literal substring. Evidence records exit, match, a short hash, and byte count. Raw output is not kept.

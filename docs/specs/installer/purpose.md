@@ -2,70 +2,35 @@
 id: "purpose-installer"
 title: "Installer purpose"
 kind: purpose
-description: "Copy committable first-party packages into dest npm/local so the dest never depends on this checkout."
+description: "Copy profile-selected skills, agents, and prompts into dest .opencode/ so the dest never depends on this checkout."
 status: active
 domain: pack
 area: installer
 tags: [purpose]
 created_at: "2026-08-23"
-updated_at: "2026-09-03"
+updated_at: "2026-09-06"
 ---
 
 # Installer purpose
 
 ## Job
 
-Install self-contained first-party copies a dest project can commit and run without this checkout.
-
-```ts
-// packages/installer/src/extensions.ts — localPackageSource
-export function localPackageSource(name: FirstPartyExtension): string {
-  return `npm/local/@agentic-core/${name}`;
-}
-```
+Install a profile's skills, agents, and prompts into a dest OpenCode tree the dest can commit without this checkout.
 
 ## In scope
 
 - Install from this repo only
-- Profile install with that profile's `packages` list
-- One extension install with `--extension`
-- Repeatable `--extension`
-- Dest always `.pi/`
-- Local copy of each named first-party package
-- Local copy at `.pi/npm/local/@agentic-core/<name>`
-- Dest-relative paths written into dest settings
-- Overwrite of the local copy on re-run
+- Profile install of skills, agents, and prompts
+- Dest always `.opencode/`
+- Overwrite of listed dest files on re-run
 - Never prune dest extras
-- Merge of third-party `npm:` sources the way they merge today
-- Copy of agents, skills, playbooks, and prompts the way they copy today
-- Optional profile `system-prompt:` stem from `ai/system-prompts/<stem>.md` copied to dest `.pi/APPEND_SYSTEM.md`. Omit copies `default.md`
 
 ## Out of scope
 
 - Uninstall
 - npm publish
-- A `git:` package source for first-party extensions
+- First-party Pi plugins
 - A curl entry such as `curl | node scripts/install.mjs`
-- A dest other than `.pi/`
+- A dest other than `.opencode/`
 - A profile key that names a dest
-- A meta package that installs every extension
-- Skills turned into npm or Pi packages
-- Auto-wire of this checkout's Pi to `packages/`
-- A live path from dest back to this checkout
-- First-party copy from `pi/extensions/`
-
-## Surfaces
-
-The CLI is `pnpm exec agentic-core install`.
-The dest tree is `.pi/` plus dest settings.
-
-## Authority
-
-- Behaviour: [[spec-installer]]
-- Profile YAML: [[schema-profile]]
-- Decisions: [[0011-local-packages-in-npm-local]], [[0010-local-packages-in-npm]], [[0005-pi-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0008-todo-owns-checklist-store]], [[0016-profiles-are-directories]], and [[0019-hivemind-own-repo]]
-- Layout: [[architecture-pack-and-packages]]
-
-## Open product questions
-
-- (none)
+- Copy of playbooks or `ai/system-prompts/`

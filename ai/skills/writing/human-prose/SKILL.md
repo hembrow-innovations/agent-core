@@ -18,7 +18,7 @@ Read [`rules/tells.md`](rules/tells.md) before lining. Run the checker after.
 3. Run the checker on the file:
 
 ```
-node .pi/skills/human-prose/scripts/prose-check.mjs "<chapter-file>"
+node .opencode/skills/human-prose/scripts/prose-check.mjs "<chapter-file>"
 ```
 
 Completion: stdout contains `PROSE CLEAN`.

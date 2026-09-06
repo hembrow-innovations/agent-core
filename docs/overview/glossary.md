@@ -17,7 +17,7 @@ The language of this checkout. Source pack, dest copy, and the install path betw
 ## Language
 
 **Pack**:
-The source tree in this checkout. Agent, skill, playbook, prompt, and system-prompt libraries live under `ai/`. Profiles stay at the root as directories. Checks and repo tests live in `tests/`. `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`. First-party packages live under `packages/`. It is the only install source.
+The source tree in this checkout. Agent, skill, playbook, and prompt libraries live under `ai/`. Profiles stay at the root as directories. Checks and repo tests live in `tests/`. `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`. The installer lives under `packages/installer`. It is the only install source.
 _Avoid_: monorepo-of-skills
 
 **Repo check**:
@@ -29,29 +29,29 @@ A project that holds a committed, self-contained copy of pack output. It has no 
 _Avoid_: live path
 
 **Profile**:
-A named install set. `--profile <name>` loads `profiles/<name>/profile.yaml`. Skills, agents, prompts, packages, optional settings, optional `system-prompt`. Dest pack is always `.pi/`. Schema: [[schema-profile]]. Decision: [[0016-profiles-are-directories]].
+A named install set. `--profile <name>` loads `profiles/<name>/profile.yaml`. Skills, agents, prompts. Dest pack is always `.opencode/`. Schema: [[schema-profile]]. Decision: [[0016-profiles-are-directories]]. Dest: [[0021-opencode-only-dest]].
 _Avoid_: flat `profiles/<name>.yaml`
 
 **System prompt**:
-Markdown under `ai/system-prompts/<stem>.md`. Profile `system-prompt:` copies that file to dest `.pi/APPEND_SYSTEM.md`. Omit the key and install copies `default.md`. Dest filename is Pi's append file. It is not a persona.
-_Avoid_: persona, ai/pi, default agent
+Parked markdown under `ai/system-prompts/<stem>.md`. Install does not copy it. Leftover profile `system-prompt:` is an error.
+_Avoid_: persona, ai/pi, APPEND_SYSTEM
 
 **Workspace package**:
-A TypeScript package under `packages/`. Folders are `heio-boot`, `heio-footer`, `heio-onic`, and `installer`. Parked packages live under `deprecated/packages/`.
+A TypeScript package under `packages/`. The folder is `installer`. Parked Pi plugins live under `deprecated/packages/`.
 
 **First-party extension**:
-A product extension among the workspace packages. The three are `@agentic-core/heio-boot`, `@agentic-core/heio-footer`, and `@agentic-core/heio-onic`.
+Parked Pi plugins under `deprecated/packages/`. Not installed.
 _Avoid_: loose extension file
 
 **Local first-party copy**:
-The committed extension copy at `.pi/npm/local/@agentic-core/<name>`. Profile YAML marks the source as `local:@agentic-core/<name>`. Settings name the dest-relative path `npm/local/@agentic-core/<name>`. That folder is outside Pi's `.pi/npm/node_modules/` install tree.
+Parked. Install no longer writes `.pi/npm/local/@agentic-core/<name>`.
 
 **Installer**:
 The CLI in `packages/installer`, invoked as `pnpm exec agentic-core install`.
 _Avoid_: curl install
 
-**This-checkout Pi**:
-The gitignored `.pi/` dest in this repo. It is not auto-wired to `packages/`.
+**This-checkout dest**:
+The gitignored `.opencode/` dest in this repo. It is not auto-wired to `packages/`.
 
 **Coms**:
 The living-session mailbox formerly in `@agentic-core/heio-coms`. Bind, stamp, send, get, await. Parked under `deprecated/packages/heio-coms`. Architecture: [[architecture-heio-coms]].
@@ -76,15 +76,15 @@ _Avoid_: default Pi footer
 ## Agent identity
 
 **Agent definition**:
-A Pi markdown file under `ai/agents/` that names identity, behaviour, and constraints. Dest holds it at `.pi/agents/`.
-_Avoid_: persona, preset, OpenCode agent, role
+A markdown file under `ai/agents/` that names identity, behaviour, and constraints. Dest holds it at `.opencode/agents/`.
+_Avoid_: persona, preset, role
 
 **Primary switch**:
 The process-local control that appends one agent definition to the Pi system prompt. A new process attaches nothing. The last pick does not persist.
 _Avoid_: /heio-mode, APPEND_SYSTEM, sticky primary, default agent
 
 **Opt-in agent**:
-A dest `.pi/agents/` file boot appends only after `/agent` or `--agent`.
+A dest `.opencode/agents/` file.
 _Avoid_: default agent, sticky primary, APPEND_SYSTEM
 
 **Team**:

@@ -42,7 +42,7 @@ The Loop is complete when: claimed item is `done` or `blocked` with reason, work
 
 ## Pointers
 
-Installed dest path is `.pi/skills/draconic-loop/` (three `../` to repo root).
+Installed dest path is `.opencode/skills/draconic-loop/` (three `../` to repo root).
 
 - Roadmap: [`ROADMAP.md`](../../../ROADMAP.md)
 - Glossary: [`CONTEXT.md`](../../../CONTEXT.md)

@@ -41,7 +41,7 @@ Repo verification. Folders:
 
 - **checks/**: standalone integrity scripts. `check-no-pstack.mjs` and `check-ported-skills.mjs`. Spawned from `tests/profile/profile.test.mjs`
 - **lib/**: test helpers. `profile.mjs` re-exports the installer. Profile parse still lives in `packages/installer`
-- **profile/**, **pi/**, **oracle/**: `node --test` files
+- **profile/**, **oracle/**: `node --test` files. Parked Pi dest tests live under `deprecated/tests/pi/`
 
 Add a new repo check under `tests/checks/`. Add a new repo test under `tests/<area>/`. Do not add either under `scripts/`.
 
