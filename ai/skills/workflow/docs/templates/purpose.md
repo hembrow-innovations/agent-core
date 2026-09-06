@@ -33,8 +33,9 @@ Where this area shows up for a user.
 
 ## Authority
 
-- Behaviour: [[spec-slug]]
-- Decisions: [[adr-N]]
+- Behaviour: the area or feature contract notes
+- Tests: the matching test.md notes
+- Decisions: binding ADRs
 
 ## Open product questions
 

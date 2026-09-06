@@ -5,8 +5,8 @@ Every docs note includes these fields. Kind-specific fields follow on the kind t
 ```yaml
 id: "<filename stem, or adr-<N> for ADRs>"
 title: "<same string as the h1>"
-kind: overview | architecture | system-design | adr | rfc | purpose | spec | api | schema | non-functional | standard | style | guide
-domain: "<subject domain, not a folder>"
+kind: overview | architecture | system-design | adr | rfc | purpose | contract | test | spec | api | schema | non-functional | standard | style | guide
+domain: "<subject domain. under specs, also the path segment>"
 area: "<area slug>"
 tags: []
 created_at: "<ISO-8601 or YYYY-MM-DD>"

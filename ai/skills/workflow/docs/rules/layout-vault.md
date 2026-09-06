@@ -18,7 +18,7 @@ docs/
 ├─ non-functional/   security.md, performance.md, scalability.md, reliability.md
 ├─ api/              api-<slug>.md
 │  └─ schema/        schema-<slug>.md
-├─ specs/            <bucket>/<area>/{purpose,spec-<slug>}.md
+├─ specs/            <domain>/<area>/ and optional <feature>/ — see spec-folder
 ├─ standards/        standards-<slug>.md
 ├─ style/            style-<slug>.md
 ├─ guides/           guides-<slug>.md
@@ -33,7 +33,7 @@ There is no `planning/`, no `log/`, and no `reference/` under `docs/`. Planning 
 
 The folder under `docs/` is the doc kind. The domain the doc concerns rides in frontmatter as `domain:`. Do not invent `docs/<domain>/`.
 
-**Specs exception.** `docs/specs/<bucket>/<area>/` may use path buckets that match the project's package groups. Put the same value in `domain:`. `area:` is the per-area slug. If the project has no package groups, write `docs/specs/<area>/`.
+**Specs exception.** Product intent nests under `docs/specs/<domain>/<area>/` and optional `<feature>/`. Path `domain` equals frontmatter `domain:`. Skip a level when it would have a single child. Full files and write order: `spec-folder`.
 
 ## Numbers
 

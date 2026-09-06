@@ -1,6 +1,6 @@
 ---
 name: docs
-description: How to find, read, and write committed project documentation under `docs/`. Obsidian vault and the source of truth. ADRs, RFCs, specs, architecture, APIs, standards, guides. Not the day-to-day tracker. Use whenever you look for docs, add a durable note, or update existing docs.
+description: How to find, read, and write committed project documentation under `docs/`. Obsidian vault and the source of truth. ADRs, RFCs, specs, architecture, APIs, standards, guides. Not the day-to-day tracker. Use whenever you look for docs, add a durable note, or update existing docs. Use when writing a spec folder, purpose.md, contract.md, or test.md under docs/specs/.
 ---
 
 # Docs. The source of truth
@@ -27,7 +27,7 @@ Full steps: `rules/write-before.md`.
 ## When to apply
 
 - Finding or reading project docs under `docs/`
-- Adding or updating an ADR, RFC, spec, architecture note, API, standard, style, or guide
+- Adding or updating an ADR, RFC, spec folder, purpose, contract, test.md, architecture note, API, standard, style, or guide
 - Moving or renaming notes
 - Choosing vault path, frontmatter, or wikilink style
 - Deciding whether a note belongs in `docs/` or `.heio/`
@@ -40,6 +40,7 @@ Full steps: `rules/write-before.md`.
 - **layout-vault** for path and naming
 - **obsidian-axi** for vault search, backlinks, tags, heading patch
 - **obsidian-standards** for frontmatter, tags, wikilinks, Tasks, Dataview
+- **spec-folder** when the note is a spec, purpose, contract, or test.md
 - **template-kinds** plus `templates/<kind>.md` for the skeleton
 - **link-wikilinks** for note-to-note links
 - **mgmt-boundary** when the note is still in-flight work
@@ -54,7 +55,8 @@ Full steps: `rules/write-before.md`.
 - Create living `web/{requirements,design,tasks}.md` triad files under specs
 - Treat `docs/99_scribble/` as source of truth
 - Use relative `.md` paths between notes (use `[[wikilinks]]`)
-- Invent a domain folder under `docs/` (domain is frontmatter `domain:`)
+- Put a domain folder under `docs/` except `docs/specs/<domain>/` (path equals frontmatter `domain:`)
+- Flatten specs into `docs/specs/*.md` or one `spec-<slug>.md` when the folder shape applies
 - Open a GitHub Issue for knowledge this vault already holds
 
 ## Rule categories by priority
@@ -62,9 +64,10 @@ Full steps: `rules/write-before.md`.
 - **1 CRITICAL** - Before writing (`write-`)
 - **2 CRITICAL** - Vault layout (`layout-`)
 - **3 CRITICAL** - Obsidian standards (`obsidian-`)
-- **4 HIGH** - Templates (`template-`)
-- **5 HIGH** - Links (`link-`)
-- **6 HIGH** - Management boundary (`mgmt-`)
+- **4 HIGH** - Spec folders (`spec-`)
+- **5 HIGH** - Templates (`template-`)
+- **6 HIGH** - Links (`link-`)
+- **7 HIGH** - Management boundary (`mgmt-`)
 
 ## Quick reference
 
@@ -80,15 +83,19 @@ Full steps: `rules/write-before.md`.
 
 - `obsidian-standards` Frontmatter, wikilinks, tags, Tasks, Dataview
 
-### 4. Templates (HIGH)
+### 4. Spec folders (HIGH)
+
+- `spec-folder` Nested `docs/specs/<domain>/<area>/<feature>/` with purpose, contract, test.md
+
+### 5. Templates (HIGH)
 
 - `template-kinds` Kind to template file to destination. See `templates/`
 
-### 5. Links (HIGH)
+### 6. Links (HIGH)
 
 - `link-wikilinks` `[[note-name]]` only. Working tracker is the management skill
 
-### 6. Management boundary (HIGH)
+### 7. Management boundary (HIGH)
 
 - `mgmt-boundary` `docs/` is truth. `.heio/` is day-to-day
 
@@ -98,6 +105,7 @@ Full steps: `rules/write-before.md`.
 rules/write-before.md
 rules/layout-vault.md
 rules/obsidian-standards.md
+rules/spec-folder.md
 rules/template-kinds.md
 rules/link-wikilinks.md
 rules/mgmt-boundary.md
