@@ -13,6 +13,7 @@ const EXPECTED = [
 	"ai/skills/engineering/create-skill",
 	"ai/skills/engineering/thermo-review",
 	"ai/skills/ui/frontend-design",
+	"ai/skills/ui/frontend-development",
 	"ai/skills/ui/tanstack-ui",
 	"ai/skills/ui/typography",
 	"ai/skills/ui/vercel-react-best-practices",

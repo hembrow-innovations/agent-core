@@ -5,7 +5,7 @@ description: TanStack React Query 5 patterns for data hooks. Key factories, quer
 
 # TanStack Query
 
-Patterns for client data hooks. Discover the data layer first. Read only the rule files that match the task.
+Prefer **frontend-development** when that skill is installed. Patterns for client data hooks. Discover the data layer first. Read only the rule files that match the task.
 
 ## Discover first
 

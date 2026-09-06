@@ -5,7 +5,7 @@ description: Create distinctive, production-grade UI using CVA, Tailwind CSS v4,
 
 # Frontend design
 
-CVA, Tailwind CSS v4 theme tokens, and package conventions. Discover the repo first. Per-rule detail lives in `rules/<prefix>-*.md`.
+Prefer **frontend-development** when that skill is installed. CVA, Tailwind CSS v4 theme tokens, and package conventions. Discover the repo first. Per-rule detail lives in `rules/<prefix>-*.md`.
 
 ## Discover first
 

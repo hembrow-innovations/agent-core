@@ -28,7 +28,7 @@ skills:
   - diagnose
   - docs
   - domain-modeling
-  - frontend-design
+  - frontend-development
   - heio-planning
   - heio-slice
   - heio-stack
@@ -40,16 +40,12 @@ skills:
   - oracle
   - playwright-cli
   - stitch
-  - tanstack-query
-  - tanstack-ui
   - tdd
   - thermo-review
   - to-issues
   - triage
   - typescript-best-practices
   - tsdoc-reference
-  - typography
   - vault-pack
-  - vercel-react-best-practices
   - vitest
   - webapp-testing

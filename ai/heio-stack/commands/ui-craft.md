@@ -9,10 +9,10 @@ Polish UI/UX collaboratively with the user.
 
 ## Run
 
-1. Load skills as needed: **playwright-cli** (web/desktop), **frontend-design** (always before implement), **maestro** (mobile).
+1. Load skills as needed: **playwright-cli** (web/desktop), **frontend-development** (always before implement), **maestro** (mobile).
 2. Preflight env for that surface; sign in if needed.
 3. Open the target; snapshot + screenshot.
-4. Critique against frontend-design + design tokens; if feedback is visual, offer `playwright-cli show --annotate`.
+4. Critique against frontend-development + design tokens; if feedback is visual, offer `playwright-cli show --annotate`.
 5. Agree a small change set, implement in pure/client UI packages only, re-see.
 6. Stop when user accepts. Bulk multi-route defect hunt → tell them to use `/ui-audit` instead.
 

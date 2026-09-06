@@ -12,8 +12,7 @@ The repo already picked Next, Vite, TanStack Start, or Expo. It already picked a
 1. Discover the stack before any design. Done when you can name the framework, UI kit, data layer, test runner, and the three files you will copy.
    - Read root and package `package.json` for the app framework, UI packages, data library, and test scripts.
    - Open one neighboring route, one neighboring component, and one neighboring test. Copy their imports, folder shape, and runner.
-   - Pick the UI skill from what you found. TanStack Start uses **tanstack-ui**. Other React web uses **frontend-design** plus **vercel-react-best-practices**. Expo or React Native uses **frontend-design** plus **react-testing**. Do not load Next APIs, SWR, or a second kit the repo does not have.
-   - Load **typescript-best-practices** for every `.ts` / `.tsx` file. Load **typography** only when faces or swap are in scope.
+    - Load **frontend-development**. Do not load Next APIs, SWR, or a second kit the repo does not have. Native also loads **react-testing**.
 2. Name the data shape before anyone writes JSX. Component state, query keys, route params, and visual variants are the shape. A screen with `isLoading` / `isError` / `data` booleans is the missing shape. Discriminated unions, CVA variants, and Query key factories beat scattered flags. Run **how** over the affected route or package. If the shape crosses a function boundary, **architect**. A skip stays as `architect skipped: <reason>`.
 3. Write the throughput checkpoint as four todo items. A dimension that does not apply keeps its item with `n/a: <reason>` rather than being dropped:
    - **Blocking first steps.** Shared primitives, tokens, and query keys before screens that consume them.

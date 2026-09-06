@@ -11,7 +11,7 @@ The loop is **see → critique → patch → recapture**. Perception for new wor
 
 1. Discover the stack and the **surface** before any mockup or JSX. Done when you can name framework, UI kit, the three files you will copy, and the driver.
    - Web or React Native Web → **playwright-cli**. Native device, emulator, or simulator → **maestro**. The named platform wins. A product that ships both gets both; skip stays as `skip: <surface> not in dest`.
-   - Load **stitch**, **frontend-design**, and **typography** when faces or swap are in scope. React web also loads **vercel-react-best-practices**. TanStack Start loads **tanstack-ui**. Every `.ts` / `.tsx` file loads **typescript-best-practices**.
+    - Load **stitch** and **frontend-development**.
    - Copy the neighboring route, component, and token file. Do not invent a kit, palette, or font stack.
 
 2. Lock the **baseline**. Open look → Stitch first. Existing DESIGN.md plus a named mockup → implement that pull. Skip Stitch only as `skip: baseline is <path>`.
@@ -19,7 +19,7 @@ The loop is **see → critique → patch → recapture**. Perception for new wor
    - `ensure` the project. `generate` then `--pull`. Layout right and details wrong → `edit`, one change per call. After screen one, write `.stitch/DESIGN.md` from the stitch template.
    - The pulled `screen.png` is the spec. Do not paste Stitch HTML into product source. Implement in the discovered kit so the running app matches the pull.
 
-3. Implement the smallest route that can render. Tokens and CVA from **frontend-design**. Match the baseline; do not restyle the mockup to flatter the code.
+3. Implement the smallest route that can render. Tokens and CVA from **frontend-development**. Match the baseline; do not restyle the mockup to flatter the code.
 
 4. **Capture** on the matching surface. Done when a fresh artifact set exists for this tree, every named viewport, and every state this change owns (default, empty, loading, error; open overlay or focus when the change has one).
    - Playwright: snapshot to act, screenshot to prove. Maestro: drive the flow, then a device screenshot. Paths under the project's gitignored scratch (`.tmp/` if none).

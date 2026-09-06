@@ -14,7 +14,7 @@ Building or changing components, routes, data hooks, UI, or tests in a React web
 **Correct:** You own the stack match. Discover, copy the neighbor, name the data shape, red on public UI, delegate, verify in the running app, Opening a PR.
 
 1. Discover framework, UI kit, data layer, test runner, and three files to copy.
-2. Pick **tanstack-ui** or **frontend-design** plus **vercel-react-best-practices** from that discovery. **typescript-best-practices** on every `.tsx`.
+2. Load **frontend-development**. Native also loads **react-testing**.
 3. Name the data shape. `how`. `architect` if it crosses a function boundary.
 4. Throughput checkpoint.
 5. Red tests on public UI. **tdd** plus **react-testing**.
