@@ -23,9 +23,6 @@ Workflow (follow AGENTS.md and project conventions throughout):
 	- Web packages: `ui-components-web`/`ui-infra-web`,
 	- design tokens.
 4. Verify: run the checks the task lists (jest/vitest/playwright-cli/typecheck/biome as applicable) until green. 
-  <project-specific>
-  The web typecheck gate is `pnpm --filter @life-engine/web typecheck` — per-package web typecheck does not exist by design (tasks-152), so never cite or run `pnpm --filter <web-pkg> typecheck`.  If a Maestro flow is listed but no simulator is available headlessly, still author the flow file and note the manual-run requirement in the task, as well as creating a ticket for reviewing.
-  </project-specific>
 5. Spawn ONE subagent to adversarially review your diff for defects and convention violations; require it to check **diff vs named promise ids** (and purpose out-of-scope) when behaviour changed; fix what it confirms.
 6. Update docs: tick the matching checkboxes; add change to changelog. Then close by kind (use notesmd-cli move so links survive), git commit work:
    - **ready ticket** → set `status: closed`, move to `.heio/archive/planning/tickets/`, set frontmatter field `closed_at: <iso_date>`.
