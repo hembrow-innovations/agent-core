@@ -1,35 +1,60 @@
 ---
 name: management
-description: Tracker for Tickets under `.heio/planning/tickets`, Splits and Slices under `.heio/planning/sprints and Tasks under `.heio/planning/tasks`. Use when triaging work, picking up a ready slice, ticket or task, closing or filing a note, or allocating a slice id.
+description: Source of truth for `.heio` planning docs. Intent, roadmap, locations, sprints, slices, tasks, rounds, tickets, and archive. Use when finding, writing, claiming, closing, or filing those notes, or when another skill needs paths, status enums, or frontmatter keys.
 ---
 
 # Management
 
+`.heio/planning/` and `.heio/archive/` are the working tree. This skill owns layout, filenames, status enums, and frontmatter. Other skills in this stack follow it. Copy templates from `templates/`.
 
-A slice is `met` when every linked tasks id is `completed` and the oracles hold. Links are never dropped.
+Load **obsidian-axi** for file operations (`read`, `write`, `patch`, `mv`). This skill owns meaning. The CLI does not.
 
-There is no GitHub Issues.
-`docs/` is the committed source of truth. Load **docs** for vault standards. Do not put planning docs in `docs/`.
+There is no GitHub Issues. There is no plan file. `docs/` is the committed source of truth. Load **docs** for vault standards. Do not put planning docs in `docs/`.
 
+Search `.heio/` first, including `archive/`. Copy the matching template. Place it per the tree.
+
+## Working tree
+
+```text
+.heio/
+├─ archive/
+│  ├─ index.md
+│  └─ planning/
+│     ├─ tasks/
+│     ├─ sprints/
+│     ├─ locations/
+│     ├─ rounds/
+│     └─ tickets/
+└─ planning/
+   ├─ intent.md
+   ├─ roadmap.md
+   ├─ tasks/
+   │  └─ task-<NN>-<slug>.md
+   ├─ locations/
+   │  └─ location-<NN>-<slug>.md
+   ├─ rounds/
+   │  └─ rounds-<NN>-<slug>.md
+   ├─ tickets/
+   │  └─ ticket-<NN>-<slug>.md
+   └─ sprints/
+      └─ <sprint_name>/
+         ├─ shape.md
+         └─ slice-<NN>-<slug>.md
 ```
-ticket ──▶ (`status: promoted`, to slices/tasks).
-slice ──▶ task/s.
-task ──▶ execute ──▶ review ──▶ close or create new ticket
-```
 
-**Notes = independent work-units.** A single-unit task is the executable.
+Create a folder when the first file needs it.
 
+## Artifacts
 
-Planning docs live under `.heio/planning`:
-	- **intent**: why the project exists, success, non-goals. `.heio/planning/intent.md`
-	- **roadmap**: locations as destinations, not a schedule. `.heio/planning/roadmap.md`
-	- **location**: extra depth for one roadmap bullet. `.heio/planning/locations/location-N-<location_name>.md`.
-	- **sprint**: grouping of slices. `shape.md` is the grouping. `.heio/planning/sprints/<sprint_name>/shape.md`
-	- **slice**: one markdown file. Status, oracle checklist, durable links to tasks ids. `.heio/planning/sprints/<sprint_name>/slice-N-<slice-name>.md`
-	- **task**: one markdown file in the task pool. `.heio/planning/tasks/task-N-<task_name>.md`
-	- **round**: one sitting file. `kind: round`. `sitting-kind: planning` or `wayfinder` (frontmatter, not `mode`). Rounds append in that file. `.heio/planning/rounds/rounds-<NN>-<slug>.md`
-	- **ticket**: inbound product signal. `.heio/planning/tickets/ticket-<NN>-<slug>.md`
-	- **archive**: completed work, mirroring the live tree. `.heio/archive/index.md` plus `archive/planning/tasks/`, `archive/planning/sprints/`, `archive/planning/locations/`, `archive/planning/rounds/`, `archive/planning/tickets/`
+- **intent**: why the project exists, success, non-goals. `.heio/planning/intent.md`
+- **roadmap**: locations as destinations, not a schedule. `.heio/planning/roadmap.md`
+- **location**: extra depth for one roadmap bullet. `.heio/planning/locations/location-<NN>-<slug>.md`
+- **sprint**: grouping of slices. `shape.md` is the grouping. `.heio/planning/sprints/<sprint_name>/shape.md`
+- **slice**: one markdown file. Status, oracle checklist, durable links to task ids. `.heio/planning/sprints/<sprint_name>/slice-<NN>-<slug>.md`
+- **task**: one markdown file in the task pool. `.heio/planning/tasks/task-<NN>-<slug>.md`
+- **round**: one planning session file. `kind: round`. `sitting_kind: planning` or `wayfinder` (frontmatter, not `mode`). Rounds append in that file. `.heio/planning/rounds/rounds-<NN>-<slug>.md`
+- **ticket**: inbound product signal. `.heio/planning/tickets/ticket-<NN>-<slug>.md`
+- **archive**: completed work, mirroring the live tree. `.heio/archive/index.md` plus `archive/planning/tasks/`, `archive/planning/sprints/`, `archive/planning/locations/`, `archive/planning/rounds/`, `archive/planning/tickets/`
 
 ## Status
 
@@ -42,102 +67,114 @@ Planning docs live under `.heio/planning`:
 - **task**: `draft` → `ready` → `claimed` → `implemented` → `completed`
 - **round**: `awaiting-answers` → `ready-to-resume` → `awaiting-confirm` → `published`. `parked` is a side door
 
+A slice is `met` when every linked task id is `completed` and the oracles hold. Links are never dropped.
+
+Task `mode` is `afk` or `hitl`. It is not status.
+
+## Frontmatter
+
+Every note uses `templates/required-fields.md`. Kind-specific fields live on the kind template.
+
+Keys use `_`, never `-`. `blocked_by`, `sitting_kind`, `ticket_type`, `created_at`, `updated_at`.
+
+`blocked_by` is a list of ids this note waits on. Empty means unblocked.
 
 ## Workflow
 
-Work hangs off sprint grouping → slice → tasks files.
+Work hangs off sprint grouping → slice → task files.
 
 - **shape.md** lists which slices are in this grouping.
-- A slice is one file. Name `blocked-by` when it waits on another slice. Unblocked slices may run in parallel.
+- A slice is one file next to `shape.md`. Name `blocked_by` when it waits on another slice. Unblocked slices may run in parallel.
 - Oracles live on the slice file (`CHECK` / `EXPECT` / `EVIDENCE` / `ABANDON`).
-- A planning sitting freezes the in-slices and publishes their tasks files in one pass. Each task is `ready` with `mode: afk` or `mode: hitl` and `blocked-by`.
-- The slice keeps durable `[[id]]` links to those ids. Drain claims unblocked AFK tasks. HITL waits.
-- Inbound product work is a ticket. Triage it into a tasks file (and link it), park it, or escalate it to the map.
-- Completed work moves to archive. Completed task files move to `.heio/archive/planning/tasks/`. Closed sprints, done locations, and closed tickets move under the matching archive path. Add a one-liner to `archive/index.md`.
+- A planning sitting freezes the in-slices and publishes their task files in one pass. Each task is `ready` with `mode: afk` or `mode: hitl` and `blocked_by`.
+- The slice keeps durable `[[id]]` links to those ids. Drain claims unblocked AFK tasks (`status: ready`). HITL waits.
+- Inbound product work is a ticket. Triage it into a slice and tasks (and link it), park it, or escalate it to the map.
+- Completed work moves to archive. Completed task files move to `.heio/archive/planning/tasks/`. Closed sprints, done locations, published rounds, and closed or dropped tickets move under the matching archive path. Add a one-liner to `archive/index.md`. Use **obsidian-axi** `mv` so links survive.
 
-
-## Root and links
-
-Tickets: `.heio/planning/tickets/`. Sprints, slices and tasks: `.heio/planning/{sprints/<sprint_name>/slice-N-<slice_name>.md ,tasks}/`. Closed notes go in `.heio/archive` (File tree mirrors `.heio/`).
-
-`obsidian-axi` stays pinned at `docs/`. Do not use `obsidian-axi` for planning docs or `.heio/` operations. File with `mv`. Wikilinks inside this tree still resolve by basename.
-
-From a planning note into `docs/`, write a repo path. Example: `docs/guides/intent-system.md`. Do not use a obsidian-axi wikilink for that hop. The two trees are different roots.
-
-Templates live in this skill folder: `templates/ticket.md`, `templates/task.md`.
-
-## 1. Ticket — `.heio/planning/tickets/tickets-<N>-<slug>.md`
-
-Capture the problem. Template: `templates/ticket.md`.
-`status: open | reviewing | promoted | ready | active | closed | wontfix`. Triage facets ride on `tags` and optional `ticket-type` / `severity`. Capture what and why. Do not design inside the ticket.
-
-## 2. Make it executable
-
-Once an ticket is accepted, decide how many independent work-units it is:
-
-- **One unit** — tag `ready-for-agent` (`status: open` + that tag) and append `## Agent Brief` (scope / verification / acceptance). See **triage**. No task note. Behaviour change: the brief must list contract promise ids and a purpose link, or it is not ready.
-- **Multiple units** — set `status: promoted` and fan out:
-  - **Tasks** (`tasks-<N>-<slug>.md`, template `templates/task.md`) — one per independent unit. `status: hold | ready | active | complete`. Each `[[wikilink]]`s its ticket.
-  - **Plan** (`plans-<N>-<slug>.md`, template `templates/title-of-the-plan.md`) — the approach across those tasks, when sequencing or risk warrants it. Skip for a simple 2-task split.
-
-Need design first? Write an ADR or RFC under `docs/reference/decisions/` and link it with a repo path.
-
-## 3. Execute
-
-Pick the lowest-numbered ready unit. A ready task (`status: ready` + tag). One shared id sequence, lowest wins. Claim it: ticket → `status: reviewing`, task → `status: active`. On finish: a ready-for-agent ticket → `status: closed`. A task → `status: complete`, then close it.
-
-Closing is a status flip and a `mv` into the terminal folder. The flip alone leaves the note in the active backlog.
-
-After any close, this must print nothing:
-
-```sh
-grep -l "^status: \(closed\|wontfix\)" .heio/planning/tickets/*.md
-grep -l "^status: complete" .heio/planning/tasks/*.md
+```
+ticket ──▶ (`status: promoted`, to slices and tasks)
+slice ──▶ task/s
+task ──▶ execute ──▶ review ──▶ close or create a new ticket
 ```
 
-## 4. Review
+A task is the executable. A ticket is a signal. Do not execute from a ticket.
 
-Write or update the day's journal at `.heio/log/journal/<YYYY>/<MM>/YYYY-MM-DD.md` (template `journal-day.md` under **docs**). A self-contained dev-blog. Deep dives go in `.heio/log/reporting/<YYYY>/<MM>/`. Verify acceptance. Capture leftovers as new tickets.
+## Loop
 
-## 5. New tickets
+Every output is one of four. End with the block.
 
-Anything the review surfaces becomes a new ticket under `.heio/planning/tickets/`.
+- **TASK**: it fits an unblocked active slice. Do it now, or add a task file and link it from the slice.
+- **TICKET**: it belongs to the project, not this slice. File it under `.heio/planning/tickets/` and leave the slice alone.
+- **ESCALATE**: the change would rewrite a location destination. Stop and bump it to the map.
+- **VERIFY**: check the oracles on the slice file until they hold, or `ABANDON:` with a named home.
 
-## Filing done and rejected work
+```
+VERDICT: TASK | TICKET | ESCALATE | VERIFY
+EVIDENCE: <one line>
+```
 
-Move a note the moment it leaves the active set:
+A workflow loop must not rewrite intent success or non-goals, must not rewrite location destination sentences, must not write tasks before freeze, and must not patch frozen `EXPECT:`.
 
-- Ticket `status: closed` or `wontfix` → `.heio/arhive/planning/tickets/`
-- sprint/slice complete or closed → `.heio/arhive/planning/sprints/<slice>/`
-- Task `status: complete` or blocked → `.heio/planning/tasks/`
+## Naming
 
-Status stays in frontmatter.
+- **sprint_name**: short folder name (`week-1`, `auth-working`). The id is the folder.
+- **NN**: next unused integer in the global sequence, zero-padded to two digits.
+- **slug**: lowercase kebab-case. Keep it short.
+- **intent**: `intent`
+- **roadmap**: `roadmap`
+- **location**: `location-<NN>-<slug>`
+- **slice**: `slice-<NN>-<slug>`
+- **task**: `task-<NN>-<slug>`
+- **round**: `rounds-<NN>-<slug>`
+- **ticket**: `ticket-<NN>-<slug>`
+- **links**: `[[id]]`. The `id` is the file stem or sprint folder name.
 
 ## Templates
 
+Copy the matching file from `templates/`. Shared fields: `templates/required-fields.md`.
 
 - **intent**: `templates/intent.md` → `.heio/planning/intent.md`
 - **roadmap**: `templates/roadmap.md` → `.heio/planning/roadmap.md`
-- **location**: `templates/location.md` → `.heio/planning/locations/location-<slug>.md`
-- **sprint**: `templates/sprint-shape.md` → `.heio/planning/sprints/<id>/shape.md`
-- **slice**: `templates/slice.md` → `.heio/planning/sprints/<id>/slices/slice-<NN>-<slug>.md`
-- **ticket**: `templates/ticket.md` → `.heio/tickets/ticket-<NN>-<slug>.md`
-- **task**: `templates/pool-task.md` → `.heio/planning/tasks/task-<NN>-<task>.md`
+- **location**: `templates/location.md` → `.heio/planning/locations/location-<NN>-<slug>.md`
+- **sprint**: `templates/sprint-shape.md` → `.heio/planning/sprints/<sprint_name>/shape.md`
+- **slice**: `templates/slice.md` → `.heio/planning/sprints/<sprint_name>/slice-<NN>-<slug>.md`
+- **ticket**: `templates/ticket.md` → `.heio/planning/tickets/ticket-<NN>-<slug>.md`
+- **task**: `templates/task.md` → `.heio/planning/tasks/task-<NN>-<slug>.md`
 - **round**: `templates/round.md` → `.heio/planning/rounds/rounds-<NN>-<slug>.md`
+- **archive index**: `templates/archive-index.md` → `.heio/archive/index.md`
 
 ## Allocating ids
 
-One global sequence for tickets, tasks, and slices.
+One global sequence for tickets, tasks, slices, locations, and rounds.
 
-```sh
+```
 node scripts/planning-next-id.mjs
 ```
 
-Never eyeball the highest number in an active folder. Re-run immediately before writing the file. `pnpm check:planning-ids` fails if two live notes share an id.
+Run it from this skill folder. Never eyeball the highest number in an active folder. Re-run immediately before writing the file.
+
+## Filing
+
+Move a note the moment it leaves the active set. Keep the filename. Use **obsidian-axi** `mv`.
+
+- Ticket `closed` or `dropped` → `.heio/archive/planning/tickets/`
+- Task `completed` → `.heio/archive/planning/tasks/`
+- Sprint `closed` → `.heio/archive/planning/sprints/<sprint_name>/`
+- Location `done` → `.heio/archive/planning/locations/`
+- Round `published` (when the sitting is done) → `.heio/archive/planning/rounds/`
+
+Status stays in frontmatter. Add a one-liner to `.heio/archive/index.md`.
 
 ## Conventions
 
-- Search `.heio/planning/` and `.heio/planning/` before creating a note.
-- Never reach for `gh ticket`.
-- Commits as work packages: <type>(<scope>): <description> — feat | fix | test | refactor | chore
+- Search `.heio/planning/` and `.heio/archive/` before creating a note.
+- Never reach for `gh issue`.
+- Commits as work packages: `<type>(<scope>): <description>` — feat | fix | test | refactor | chore
 - No Co-Authored-By lines
+- Load **to-tickets**, **to-slices**, or **to-tasks** when publishing those kinds. This skill still owns path, id, status, and frontmatter.
+
+## When to apply
+
+- Finding or writing intent, roadmap, location, sprint shape, a slice, a task, a ticket, a round, or an archive entry
+- Classifying inbound work as TASK, TICKET, ESCALATE, or VERIFY
+- Closing a slice or a sprint, or moving finished work to archive

@@ -1,8 +1,8 @@
 # Panel
 
-The counterpart is a **panel**, not the user. Each frontier is one **round**. The session directory is the notebook.
+The counterpart is a **panel**, not the user. Each frontier is one **round**. The round file is the notebook.
 
-Load **management** before any write under `.heio/`. Load **pi-subagents** before any spawn.
+Load **management** before any write under `.heio/`. Spawn OpenCode subagents. Do not load Pi plugins.
 
 ## Personas
 
@@ -10,28 +10,24 @@ Load **management** before any write under `.heio/`. Load **pi-subagents** befor
 - **product** — customer, wedge, scope to cut
 - **coder** — cost, testability, reversibility
 
-`subagent({ action: "list" })` first. Use a dest agent only when that name is executable. Otherwise `oracle` with `context: "fresh"` and the persona in the task.
+Use a dest agent only when that name is executable. Otherwise a fresh subagent with the persona in the task.
 
 **round-orchestrator** may spawn. Panelists and **judge** do not.
 
 ## Notebook
 
-Session: `.heio/planning/arena/<arena-name>/`
+One round at `.heio/planning/rounds/rounds-<NN>-<slug>.md`. `sitting_kind: planning`.
 
-Rounds: `.heio/planning/arena/<arena-name>/rounds/round-<N>/`
-
-`<arena-name>` is a kebab-case slug. A name the user gives wins.
-
-Search `.heio/planning/arena/` and `closed/` for an existing session on this topic. Update that session if you find one.
+Search `.heio/planning/rounds/` and `.heio/archive/planning/rounds/` for an existing sitting on this topic. Update that file if you find one.
 
 ## Round
 
 Read [round-contracts.md](round-contracts.md) before spawning **round-orchestrator**.
 
-If that name is not executable with write and `subagent`, the parent runs the contracts itself.
+If that name is not executable, the parent runs the contracts itself.
 
 Wait for the round to return before the next frontier.
 
-Done when every round directory matches the contracts, the frontier is empty, and the user has confirmed a shared understanding. Then return to Persist on the parent skill.
+Done when every round in the file matches the contracts, the frontier is empty, and the user has confirmed a shared understanding. Then return to Confirm on the parent skill.
 
-On persist, copy the management plan template from the selected answers. The session directory stays the interview.
+On publish, load **to-slices** and **to-tasks** from the selected answers. The round file stays the interview.

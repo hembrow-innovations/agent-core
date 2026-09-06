@@ -36,21 +36,19 @@ Writing or debugging Maestro YAML. Device, emulator, or sim verification. "Run o
 
 ## Priority bands
 
-| Pri | Category | Impact | Prefix |
-|-----|----------|--------|--------|
-| 1 | Discover | CRITICAL | `disc-` |
-| 2 | Run | CRITICAL | `run-` |
-| 3 | Pitfalls | CRITICAL | `pitfall-` |
-| 4 | Selectors | CRITICAL | `sel-` |
-| 5 | Input and keyboard | HIGH | `input-` |
-| 6 | Sync | HIGH | `sync-` |
-| 7 | React Native | HIGH | `rn-` |
-| 8 | Flows | HIGH | `flow-` |
-| 9 | Debug and artifacts | HIGH | `artifact-` `debug-` `flake-` |
-| 10 | Env | MEDIUM-HIGH | `env-` |
-| 11 | Assert | MEDIUM | `assert-` |
-| 12 | Platform | MEDIUM | `plat-` |
-| 13 | Layer | LOW | `layer-` |
+- **1 Discover (CRITICAL)**: `disc-`
+- **2 Run (CRITICAL)**: `run-`
+- **3 Pitfalls (CRITICAL)**: `pitfall-`
+- **4 Selectors (CRITICAL)**: `sel-`
+- **5 Input and keyboard (HIGH)**: `input-`
+- **6 Sync (HIGH)**: `sync-`
+- **7 React Native (HIGH)**: `rn-`
+- **8 Flows (HIGH)**: `flow-`
+- **9 Debug and artifacts (HIGH)**: `artifact-` `debug-` `flake-`
+- **10 Env (MEDIUM-HIGH)**: `env-`
+- **11 Assert (MEDIUM)**: `assert-`
+- **12 Platform (MEDIUM)**: `plat-`
+- **13 Layer (LOW)**: `layer-`
 
 ## Quick reference
 

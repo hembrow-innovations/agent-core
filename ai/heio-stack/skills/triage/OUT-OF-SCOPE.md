@@ -84,9 +84,9 @@ The maintainer may:
 
 ## When to write
 
-Only when an **enhancement** (not a bug) is rejected as `wontfix`.
+Only when an **enhancement** (not a bug) is rejected as `dropped`.
 
-Do not write here when an ticket is closed `wontfix` because it's already implemented. That's a built feature, not a rejected one. Recording it would poison the dedup check with false rejections. Point at where the feature lives in the closing `## Comments` note instead.
+Do not write here when a ticket is `dropped` because it's already implemented. That's a built feature, not a rejected one. Recording it would poison the dedup check with false rejections. Point at where the feature lives in the closing `## Comments` note instead.
 
 The flow:
 
@@ -95,7 +95,7 @@ The flow:
 3. If yes: append the new ticket to the "Prior requests" list
 4. If no: create a new note via **docs** with the concept name, decision, reason, and first prior request
 5. Append a `## Comments` note on the ticket explaining the decision and `[[wikilink]]`-ing the rejection note
-6. Set the ticket `status: wontfix` and move it to `.heio/archive/planning/tickets/`
+6. Set the ticket `status: dropped` and move it to `.heio/archive/planning/tickets/`
 
 ## Updating or removing rejection notes
 

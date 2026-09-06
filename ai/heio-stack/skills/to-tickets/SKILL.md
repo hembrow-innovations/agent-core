@@ -1,70 +1,46 @@
 ---
 name: to-tickets
-description: Break a plan, spec, or PRD into independently-grabbable management tickets and tasks using tracer-bullet vertical slices. Use when the user wants to convert a plan into tickets, create implementation tickets, or break work into tickets.
+description: File inbound product signals as management tickets. Use when converting a complaint, request, or idea into a ticket, promoting a ticket into slices and tasks, or breaking a spec or PRD into tracker notes.
 ---
 
 # To tickets
 
-Break a plan into independently-grabbable notes using vertical slices (tracer bullets).
+File inbound work as tickets using **management** conventions. This skill does not invent layout, status, or frontmatter keys.
 
-Load **management** before any write under `.heio/`. Load **docs** for glossary terms and ADRs. Load **planning-workflow** if the loop is unclear.
+Load **management** before any write under `.heio/`. Load **docs** for glossary terms and ADRs. Load **to-slices** and **to-tasks** when promoting into executable work.
 
-If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, `docs/planning/`, GitHub tickets), that file wins. Do not start a second tree.
+A ticket is a signal. A task is the executable. Do not design the solution inside the ticket.
 
 ## Process
 
 ### 1. Gather context
 
-Work from conversation context. If the user passes a plan or issue id, read that note under `.heio/` (include `.heio/archive/planning/tickets`).
+Work from conversation context. If the user passes a ticket id, read that note under `.heio/planning/tickets/` and `.heio/archive/planning/tickets/`.
 
-### 2. Explore the codebase (optional)
+### 2. Explore (optional)
 
 Use glossary vocabulary discovered under `docs/`. Respect ADRs in the area.
 
-Look for prefactoring that makes the implementation easier. Make the change easy, then make the easy change.
+### 3. Choose outcome
 
-### 3. Draft vertical slices
+- Fits an unblocked active slice → **TASK**. Status `promoted`. Load **to-tasks** (and **to-slices** if the slice does not exist).
+- Fits the project, not this slice → **TICKET**. Status `parked` or leave `open` if triage is still running.
+- Fans into independent problems → one ticket per problem, then promote each that is ready.
+- Would rewrite a location destination → **ESCALATE**. Do not write a ticket as if it were a map change.
 
-Each unit is a thin vertical slice through all layers end to end, not one horizontal layer.
+### 4. Show, then publish
 
-Slices may be **HITL** (needs a human decision) or **AFK** (an agent can implement). Prefer AFK.
+Present the list. For each note: title, kind (ticket, slice, or task), `blocked_by`, AFK or HITL.
 
-- Each slice delivers a narrow but complete path (schema, API, UI, tests as needed)
-- A completed slice is demoable or verifiable alone
-- Each slice is sized to fit a single fresh context window
-- Any prefactoring comes first. It is its own first slice and blocks the rest
-- Prefer many thin slices over few thick ones
+Copy `templates/ticket.md` from **management**. **management** owns `<NN>`, placement, and frontmatter.
 
-#### Wide refactors are the exception
+- Path: `.heio/planning/tickets/ticket-<NN>-<slug>.md`
+- Status: `open` until triaged. Then `parked`, `promoted`, `dropped`, or `closed`
+- `ticket_type`: `bug` | `feature-request` | `observation` when known
+- `blocked_by` lists ids this ticket waits on
+- Publish blockers first so wikilinks are real
 
-A wide refactor is one mechanical change whose blast radius fans across the codebase. Do not force it into a tracer bullet. Sequence it as expand, then migrate, then contract.
-
-- **Expand** adds the new form beside the old. Nothing breaks. `blocked_by` is usually empty.
-- **Migrate** moves call sites in batches sized by blast radius (per package or directory). Each batch is its own note. `blocked_by` wikilinks the expand unit. Batches stay green because the old form still exists.
-- **Contract** deletes the old form once no caller remains. `blocked_by` wikilinks every migrate batch.
-
-If batches cannot be green alone, keep the sequence but land them on a shared integration branch, and have every batch block a final integrate-and-verify unit. Green is promised only there.
-
-### 4. Choose kind
-
-- Source is already a **plan**. Split into **tasks** on that plan.
-- Source is a **PRD or issue** that is one effort. Promote it. Create a plan and tasks.
-- Source fans into independent problems. Create **tickets**. Tag AFK slices `ready-for-agent`. Tag HITL slices `ready-for-human` or `needs-info`.
-
-Do not design the solution inside an issue. That belongs on the plan.
-
-### 5. Show the slices, then publish
-
-Present a numbered list. For each slice, give Title, Kind (issue or task), Type (HITL or AFK), Blocked by, and User stories covered.
-
-If the user is present, ask about granularity, dependencies, merge or split, and HITL vs AFK. If they already approved a breakdown, publish.
-
-Copy the matching **management** template. **management** owns `<N>`, placement, and frontmatter.
-
-- Publish blockers first so `blocked_by` can wikilink real ids
-- AFK-ready tickets: `status: open` + tag `ready-for-agent`
-- Tasks: `status: ready` when unblocked, `hold` when blocked
-- Do not close or rewrite a parent issue unless the user asks
+Do not tag a ticket as the AFK unit. Drain hunts tasks with `status: ready`.
 
 ## Body extras
 
@@ -73,20 +49,17 @@ Keep the management template headings. Add these sections when they carry inform
 ```markdown
 ## Parent
 
-Wikilink to the parent plan, issue, or PRD.
+Wikilink to the parent slice, ticket, or spec.
 
 ## What to build
 
-End-to-end behavior of this vertical slice, not layer-by-layer implementation.
-Avoid file paths and snippets. Exception: prototype-derived state machines,
-schemas, or type shapes that encode a decision more precisely than prose.
-
-## Acceptance criteria
-
-- [ ] Criterion 1
-- [ ] Criterion 2
+End-to-end behavior. Not layer-by-layer implementation.
 
 ## Blocked by
 
-- [[issue-N-slug]] or [[task-N-slug]] or "None. Can start immediately."
+- [[ticket-01-slug]] or [[slice-01-slug]] or none
 ```
+
+## Loop
+
+End with `VERDICT: TASK | TICKET | ESCALATE | VERIFY`.

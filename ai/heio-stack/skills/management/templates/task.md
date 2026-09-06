@@ -1,100 +1,37 @@
 ---
-id: architecture-26
-type: doc
-kind: task
-title: <task_title>
-domain: <domain>   # domain the doc concerns, e.g. system
-created_at: <iso_date>
-updated_at: <iso_date>
-completed_at: <iso_date> # Optional, added when task is completed
----
-### Task Model
-
-**Location**: `.heio/planning/tasks/`
-**Filename**: `tasks-<N>-<slug>.md`
-
-#### Frontmatter
-
-_Required frontmatter fields always included_
-
-```yaml
-...Required frontmatter fields
+id: "task-01-slug"
 title: "task title"
-description: "one sentence description"
-status: "hold" | "ready" | "active" | "complete"
-priority: "low" | "medium" | "high"
-tags: ["list of tags"]
-labels: "feature" | "bug" | "refactor" | etc
-created_at: <iso_date>
-updated_at: <iso_date>
+kind: task
+status: ready
+mode: afk
+blocked_by: []
+sprint: "week-1"
+slice: "slice-01-slug"
+tags: []
+created_at: "ISO-8601"
+updated_at: "ISO-8601"
+---
 
-```
+# task title
 
-Status is a 4-state machine enum. Everything else a task can "be" (priority,
-ready-for-agent, enhancement, bug…) rides on **tags**, not status.
+## Blocked by
 
-#### Body / Content
+None. Or `[[task-01-slug]]`: why this waits.
 
-```markdown
-# {Title}
+## Done
 
-## Description
-A clear, concise summary of what this task is about. Include the problem or opportunity it addresses.
+<one-line observable>
 
-## Goals / Objectives
-- Goal 1
-- Goal 2
-- ...
+## Context
 
-## Steps / Implementation Plan
-1. Step one
-2. Step two
-3. ...
+Current vs desired behavior, interfaces, out of scope. Durable enough that an AFK agent can take it.
 
-## Acceptance Criteria
-- [ ] Criterion 1 (measurable)
-- [ ] Criterion 2
-- [ ] Criterion 3
-- [ ] All edge cases considered
-- [ ] Tests pass / Documentation updated
+## Verify
 
-## Requirements / Specifications
-- Functional requirements
-- Non-functional requirements (performance, security, etc.)
-- Technical constraints
+How to know it held.
 
-## Dependencies
-- Blocking tasks: [[TASK-YYY]]
-- Related tasks: [[TASK-ZZZ]]
+scope: <paths this task may touch>
 
-## Risks & Mitigations
-- Risk 1 → Mitigation
-- Risk 2 → Mitigation
+## Links
 
-## Definition of Done (DoD)
-- [ ] Code written and reviewed
-- [ ] Unit & integration tests added and passing
-- [ ] Documentation updated
-- [ ] QA / stakeholder sign-off
-- [ ] Deployed to production (if applicable)
-
-## Additional Information
-- Links to designs, Figma, API docs, etc.
-- Screenshots(links/filepath/reference) / references
-
-```
-
-The h1 `Title` string must match the string of the `title` frontmatter field.
-
-**Required sections (advisory, i2):** the kind registry records `Description` and
-`Acceptance Criteria` as the required body sections for a `task`. They are
-scaffolded on create and reported by `doctor`/`lint` when missing — a SOFT
-advisory, never a write-time error. The remaining headings above are recommended
-but optional. Overridable per project via
-`[kinds.task] required-sections = [...]` in `config.toml`.
-
-### Struct
-
-```rust
-
-```
+Optional links. `[[slice-01-slug]]` or related task ids.

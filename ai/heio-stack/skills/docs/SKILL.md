@@ -1,13 +1,13 @@
 ---
 name: docs
-description: How to find, read, and write committed project documentation under `docs/`. Obsidian vault and the source of truth. ADRs, RFCs, architecture, APIs, standards, guides. Not the day-to-day tracker. Use whenever you look for docs, add a durable note, or update existing docs. Spec folders, purpose.md, and test.md: load **spec**.
+description: How to find, read, and write committed project documentation under `docs/`. Obsidian vault and the source of truth. ADRs, RFCs, architecture, APIs, standards, guides, and spec templates. Not the day-to-day tracker. Use whenever you look for docs, add a durable note, or update existing docs. Spec folder procedure: load **spec**.
 ---
 
 # Docs. The source of truth
 
 `docs/` is an Obsidian vault and the committed store for project knowledge that should survive a clone. Architecture, decisions, specs, APIs, standards, and guides live here.
 
-Day-to-day work does not. Issues, plans, tasks, the journal, and working reports live under `.heio/`. Load the **management** skill for that tree.
+Day-to-day work does not. Tickets, slices, tasks, and rounds live under `.heio/`. Load the **management** skill for that tree.
 
 When you need lasting context, look here first. When you produce durable knowledge, write it here.
 
@@ -18,7 +18,7 @@ If `AGENTS.md` already names a different docs layout, that file wins. Do not sta
 ## Before writing (always)
 
 1. Search `docs/` first. Update in place over near-dupes.
-2. Pick the kind. Spec folder, purpose, contract, or test.md: load **spec**. Otherwise copy `templates/<kind>.md`.
+2. Pick the kind. Copy `templates/<kind>.md`. Spec folder procedure (ladder, write order): load **spec**.
 3. Place and name per `layout-vault` and the template convention.
 4. Ignore `docs/99_scribble/`.
 
@@ -40,23 +40,23 @@ Full steps: `rules/write-before.md`.
 - **layout-vault** for path and naming
 - **obsidian-axi** for vault search, backlinks, tags, heading patch
 - **obsidian-standards** for frontmatter, tags, wikilinks, Tasks, Dataview
-- **spec** when the note is a spec folder, purpose, contract, or test.md
+- **spec** for spec-folder procedure. Templates for purpose, contract, test, and spec live in this skill
 - **template-kinds** plus `templates/<kind>.md` for the skeleton
 - **link-wikilinks** for note-to-note links
 - **mgmt-boundary** when the note is still in-flight work
 
 ### Careful
 
-- **mgmt-boundary.** A working plan is not a spec. Promote the durable outcome, then close the working file.
+- **mgmt-boundary.** A working slice is not a spec. Promote the durable outcome, then close the working file.
 
 ### Do not
 
-- Put issues, plans, tasks, journal days, or working reports in `docs/`
+- Put tickets, slices, tasks, rounds, or working reports in `docs/`
 - Create living `web/{requirements,design,tasks}.md` triad files under specs
 - Treat `docs/99_scribble/` as source of truth
 - Use relative `.md` paths between notes (use `[[wikilinks]]`)
 - Put a domain folder under `docs/` except `docs/specs/<domain>/` (path equals frontmatter `domain:`)
-- Flatten specs; **spec** owns the folder shape
+- Flatten specs; **spec** owns the folder procedure, this skill owns the templates
 - Open a GitHub Issue for knowledge this vault already holds
 
 ## Rule categories by priority
@@ -85,7 +85,7 @@ Full steps: `rules/write-before.md`.
 
 ### 4. Spec folders (HIGH)
 
-- `spec-folder` Path reminder. Load **spec** for purpose, contracts, test.md, and how to work the ladder
+- `spec-folder` Path reminder. Copy templates here. Load **spec** for the ladder
 
 ### 5. Templates (HIGH)
 
@@ -115,4 +115,4 @@ templates/<kind>.md
 
 Read only the rules for the current task. Do not bulk-read `rules/` or every template.
 
-Working lifecycle (issue to plan to task to close). Load the **management** skill.
+Working lifecycle (ticket to slice to task to close). Load the **management** skill.

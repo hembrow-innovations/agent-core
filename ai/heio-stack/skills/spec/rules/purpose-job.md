@@ -6,7 +6,7 @@ tags: [purpose]
 
 # Purpose is job and fences
 
-`purpose.md` is the product brief for one area. Copy `templates/purpose.md`. One per area. Nested purpose only when that folder has its own job.
+`purpose.md` is the product brief for one area. Copy **docs** `templates/purpose.md`. One per area. Nested purpose only when that folder has its own job.
 
 ## Job
 

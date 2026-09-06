@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Interview until you share an understanding. Map the work as a **design tree**. Every settled decision opens the decisions that hang off it. The **frontier** is every decision whose prerequisites are already settled.
 
-This skill plans. Stop at persist. Implementation is a later session.
+This skill plans. Confirm, then Publish. Implementation is a later session.
 
 Load **management** before any write under `.heio/`. Load **docs** before any write under `docs/`. Load **domain-modeling** when a term or ADR belongs in the vault.
 
@@ -17,7 +17,7 @@ Load **management** before any write under `.heio/`. Load **docs** before any wr
 Name the **counterpart**. The **notebook** follows. Say both in one line before the first round.
 
 - **user** in this chat. Default.
-- **user** in a file. Copy the management round template to `.heio/planning/rounds/`. Status `draft`. Keep the template headings. Append `## Rounds`. Write every round there. Never rewrite an earlier round. Objectives hold the destination. Approach holds standing notes. Phases stay empty until persist.
+- **user** in a file. Copy the management round template to `.heio/planning/rounds/rounds-<NN>-<slug>.md`. `sitting_kind: planning`. Status `awaiting-answers`. Keep the template headings. Append later rounds in that file. Never rewrite an earlier round.
 - **product** peer. Read [references/counterpart-product.md](references/counterpart-product.md) before round one.
 - **panel**. Read [references/counterpart-panel.md](references/counterpart-panel.md) before round one.
 - The tree will not fit in one sitting. Read [references/wayfinder.md](references/wayfinder.md) and follow that file instead of steps 2–3.
@@ -30,15 +30,14 @@ Finding facts is your job. Dispatch a lookup for anything you can observe. A run
 
 Ask the whole frontier in one **round**. Number each question. Give a recommended answer. A question that depends on another still open in this round waits for a later round.
 
-Use a subagent to research the web to find real world example of solutions to this question/problem.
+Use a subagent to research the web to find real world examples of solutions to this question.
 
 ```markdown
 ❓ **Q1** - **<question title>**: <question body, might be multiple paragraphs, including multiple choices>
 
 ➡️ <recommended answer>
 
-> <Real world example of how this problem was solve and why (1-2 sentence explaination). omit if none found>
-
+> <Real world example of how this problem was solved and why (1-2 sentence explanation). omit if none found>
 ```
 
 Wait for the counterpart. Record the answers in the notebook. Append the next frontier.
@@ -51,29 +50,28 @@ Stop. Summarize:
 
 - Destination, if this sitting touched it
 - Every in-slice Done + `EXPECT:`
-- The tracer-bullet list: title, slice, blocked-by, AFK or HITL, what it delivers
+- The tracer-bullet list: title, slice, `blocked_by`, AFK or HITL, what it delivers
 
 Ask granularity, blockers, merge or split, HITL vs AFK. Prefer AFK. Each task is one sitting, vertical, sized for a fresh context window. Prefactoring is its own first task and blocks the rest.
 
-Wait. Iterate the list until the user confirms the understanding and the breakdown. Auto already limited this to at most one confirm, or none when they said just create everything.
+Wait. Iterate the list until the user confirms the understanding and the breakdown.
 
 Done when the user confirms both, or auto skipped confirm.
 
-
 ## Publish
 
-Copy templates from **management**. Write the sessions's settled files in one pass. This session writes every slice/task file. Do not hand that off.
+Copy templates from **management**. Write the sitting's settled files in one pass. This session writes every slice and task file. Do not hand that off.
 
-load **to-tasks** and or **to-slices**
+Load **to-slices** and **to-tasks**.
 
 ## Ticket
 
 User names a ticket, or an inbound signal that is not yet a ticket.
 
-1. If no file exists, copy `templates/ticket.md` into `.heio/planningtickets/`.
+1. If no file exists, copy `templates/ticket.md` into `.heio/planning/tickets/`.
 2. Interview only enough to triage. The solution does not live on the ticket.
 3. Same rule every time:
-   - Fits an unblocked active slice → **TASK**. Status `promoted`. Write the task-pool file (`ready`, mode, blocked-by) and the slice `[[id]]` link.
+   - Fits an unblocked active slice → **TASK**. Status `promoted`. Write the task file (`ready`, mode, `blocked_by`) and the slice `[[id]]` link.
    - Fits the project, not this slice → **TICKET**. Status `parked`.
    - Would rewrite a location destination during a workflow → **ESCALATE**. Stop. The map needs a wayfinder sitting.
 

@@ -90,7 +90,7 @@ cd apps/web && pnpm exec playwright test e2e/tests/zz-audit.spec.ts \
 
 ## Phase 2 — verify (fresh agent, never the finder)
 
-For each finding: reproduce it, and **name the file that causes it**. Default to rejecting. Kill anything that doesn't reproduce, duplicates another finding, or already has an open issue (grep `.draconic/planning/issues/` first).
+For each finding: reproduce it, and **name the file that causes it**. Default to rejecting. Kill anything that doesn't reproduce, duplicates another finding, or already has an open ticket (search `.heio/planning/tickets/` first).
 
 The verify pass is the whole point — it is what stops a plausible-looking screenshot from becoming a wrong ticket. Non-negotiable checks:
 
@@ -101,22 +101,19 @@ The verify pass is the whole point — it is what stops a plausible-looking scre
 
 ## Phase 3 — file (orchestrator only)
 
-Only the orchestrator writes to the vault.
+Only the orchestrator writes tickets.
 
-Allocate each ID **before** writing with the helper — it reads the one global high-water mark across every folder (issues/tasks/plans, incl. `closed/` + `completed/`), so ids never collide (issues-209, tasks-268). Re-run it immediately before each `create`; it reports the next free id without reserving it.
+Allocate each ID **before** writing with the helper — it reads the one global high-water mark across tickets, tasks, slices, locations, and rounds, including archive, so ids never collide. Re-run it immediately before each write; it reports the next free id without reserving it.
 
-```sh
-node scripts/planning-next-id.mjs   # → the next free id in the ONE global sequence
+```
+node skills/management/scripts/planning-next-id.mjs
 ```
 
-Never pick the id by eye from `ls .draconic/planning/issues/`; closed notes move out of that listing and their ids look free. `pnpm check:planning-ids` (in `just js-gate`) red-lights any duplicate id among live notes.
+Never pick the id by eye from `ls .heio/planning/tickets/`; closed notes move to archive and their ids look free.
 
-```sh
-notesmd-cli create planning/issues/issues-<N>-<slug> --content "..."
-```
+Load **obsidian-axi**. Write `.heio/planning/tickets/ticket-<NN>-<slug>.md` with **management** `templates/ticket.md`. `status: open`. `ticket_type: bug`.
 
-Frontmatter: `id`, `created_at`, `updated_at`, `area: planning`, `domain`, `title`, `description`, `status: open`, `priority`, `issue-type: bug`, `tags: [planning, issue, <domain>, web, bug]`, `labels: bug`.
-Body: `## Description`, `## Affected` (route + file:line), `## Observed`, `## Impact`, `## Proposed Fix`.
+Body: `## Signal`, `## Fit`, `## Notes` plus observed route and file:line.
 
 Then clean up: delete the throwaway spec, `rm -rf .audit apps/web/test-results`, `playwright-cli close-all`, add the changelog line, commit with explicit paths, and report one line per issue.
 

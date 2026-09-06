@@ -27,13 +27,13 @@ docs/
 
 Create a folder when the first file needs it.
 
-There is no `planning/`, no `log/`, and no `reference/` under `docs/`. Planning and logs belong to `.heio/`.
+There is no `planning/`, no `log/`, and no `reference/` under `docs/`. Planning belongs to **management** under `.heio/`.
 
 ## Kind vs domain
 
 The folder under `docs/` is the doc kind. The domain the doc concerns rides in frontmatter as `domain:`. Do not invent `docs/<domain>/`.
 
-**Specs exception.** Product intent nests under `docs/specs/<domain>/<area>/` and optional `<feature>/`. Path `domain` equals frontmatter `domain:`. Skip a level when it would have a single child. Full files and write order: load **spec**.
+**Specs exception.** Product intent nests under `docs/specs/<domain>/<area>/` and optional `<feature>/`. Path `domain` equals frontmatter `domain:`. Skip a level when it would have a single child. Copy templates from this skill. Write order: load **spec**.
 
 ## Numbers
 

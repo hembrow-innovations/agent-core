@@ -36,12 +36,12 @@ docs/specs/
 
 ## Files
 
-- **purpose.md** — job and fences. Copy `templates/purpose.md`. See `purpose-job`.
-- **contract.md** — promises. Copy `templates/contract.md`. See `contract-anatomy`. One coherent unit per file.
-- **test.md** — which tests cover this unit, how, and why. Copy `templates/test.md`. Lives beside the `contract.md` it covers.
+- **purpose.md** — job and fences. Copy **docs** `templates/purpose.md`. See `purpose-job`.
+- **contract.md** — promises. Copy **docs** `templates/contract.md`. See `contract-anatomy`. One coherent unit per file.
+- **test.md** — which tests cover this unit, how, and why. Copy **docs** `templates/test.md`. Lives beside the `contract.md` it covers.
 - **index.md** — hub of wikilinks to purpose, contracts, tests, ADRs. No duplicated promises.
 - **data-map.md** — only when data topology is non-obvious.
 
-A `spec-<slug>.md` is optional extra narrative inside the folder when purpose and contract cannot hold a how/shape note (CLI surface, protocol). Copy `templates/spec.md`. It is not the living product spec.
+A `spec-<slug>.md` is optional extra narrative inside the folder when purpose and contract cannot hold a how/shape note (CLI surface, protocol). Copy **docs** `templates/spec.md`. It is not the living product spec.
 
 Stable filenames are the AI index. A glob for the kind is the catalog. The path is the human taxonomy. One concern per file so a task reads 1–3 notes, not a dump.

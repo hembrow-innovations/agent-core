@@ -98,5 +98,4 @@ Obsidian Sync reloads outside edits, but an unsaved open note can overwrite a CL
 
 - Vault is `docs/`
 - New durable notes go through the **docs** skill (kind, template, layout, frontmatter)
-- Issues, plans, tasks, tickets live under `.heio/` via **heio-stack**
 - Wikilinks stay `[[note-name]]` per **docs**

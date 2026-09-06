@@ -5,11 +5,11 @@ argument-hint: "<ticket-NN-slug>"
 
 # Verify ticket
 
-Forensic audit of exactly one tracker ticket under `.heio/planning/ticket`. Goal: surface what is true, false, incomplete, or unproven, so a suspicious ticket cannot survive on vibes. Evidence only. No edits unless the 100% sure it is right.
+Forensic audit of exactly one tracker ticket under `.heio/planning/tickets`. Goal: surface what is true, false, incomplete, or unproven, so a suspicious ticket cannot survive on vibes. Evidence only. No edits unless 100% sure it is right.
 
 Load **management** if layout is unclear. Load **docs** for committed truth. Do not load **triage** to change state. This prompt never flips status or tags.
 
-If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, `docs/planning/`, GitHub Issues), that file wins. Do not start a second tree.
+**management** owns layout and status. Do not start a second tree.
 
 ## Hard rules (anti-hallucination)
 
@@ -29,11 +29,11 @@ If `AGENTS.md` or `WORKSPACE.md` already names a tracker (`.scratch/`, `docs/pla
 `$ARGUMENTS` (from `/verify-ticket`) or the user message:
 
 - Ticket id (`657`, `ticket-657`), slug fragment, path, or `[[wikilink]]`
-- Empty → ask once for the target. Do not pick an ticket yourself
+- Empty → ask once for the target. Do not pick a ticket yourself
 
 Resolve the file under `.heio/planning/tickets/` and `.heio/archive/planning/tickets/`. Prefer exact id. Fall back to content search.
 
-If zero or many matches, stop and ask. Include `.heio/archive/planning/tickets/` in the search. A "suspicious" ticket may already be closed or wontfix.
+If zero or many matches, stop and ask. Include `.heio/archive/planning/tickets/` in the search. A "suspicious" ticket may already be closed or dropped.
 
 ## Process
 
@@ -57,8 +57,8 @@ Inventory:
 
 Check the note as a tracker artefact. Cite **management** and **triage** norms only when flagging.
 
-- Frontmatter vs body (status/tag contradictions, missing category, stale `ready-for-agent` without `## Agent Brief`)
-- Terminal status still living under `.heio/planning/tickets` (not moved to `closed/`)
+- Frontmatter vs body (status/tag contradictions, missing category, a `ready` task without `## Agent Brief`)
+- Terminal status still living under `.heio/planning/tickets` (not moved to `.heio/archive/planning/tickets/`)
 - Broken or empty wikilinks
 - Agent Brief quality against `AGENT-BRIEF.md` in **triage** if present: behavioural not procedural, testable AC, scope fences, intent/promise ids when behaviour changes, no stale path/line recipes
 - AC testability: each criterion independently verifiable or mark **vague**
@@ -96,7 +96,7 @@ Answer with evidence, not taste:
 4. **Conflicts?** Purpose out of scope, ADR, contract promise, or project defaults contradicted? Discover those defaults under `docs/` or `AGENTS.md`.
 5. **Scope disease?** Extras, multiple independent units smuggled in, untestable "make it nice" criteria?
 6. **Agent hazard?** Would an AFK run likely thrash (missing decisions, environment secrets, design judgment, external accounts)?
-7. **Cheaper alternative?** One-liner, config, docs-only, or close as duplicate/wontfix with pointer?
+7. **Cheaper alternative?** One-liner, config, docs-only, or close as duplicate/dropped with pointer?
 
 **Done when:** each question has a one-line answer + citation or UNKNOWN.
 
@@ -118,7 +118,7 @@ Cover at least, when applicable:
 - Timeout, retry, or status-signal races with a blocked follow-up ticket
 - Surfaces the brief out-scopes but AC still implies (desktop SPA, mobile, SSR vs CSR)
 
-If the ticket is docs-only or close/wontfix, write `None. Not an implementation unit.`
+If the ticket is docs-only or close/dropped, write `None. Not an implementation unit.`
 
 **Done when:** every hazard is specific to this codebase (no generic "tests might be weak") or the docs-only line is used.
 
@@ -127,9 +127,9 @@ If the ticket is docs-only or close/wontfix, write `None. Not an implementation 
 Emit exactly this structure. Keep prose tight. No preamble.
 
 ```markdown
-# Issue verification. <id>. <title>
+# Ticket verification. <id>. <title>
 
-**Target:** `.heio/planning/tickets/...` or `.heio/archive/tickets/...`
+**Target:** `.heio/planning/tickets/...` or `.heio/archive/planning/tickets/...`
 **Status/tags:** …
 **Verdict:** SOLID | WEAK | SUSPECT | FALSE | UNKNOWN
 <!-- SOLID = claims hold, shape is executable
@@ -167,7 +167,7 @@ Emit exactly this structure. Keep prose tight. No preamble.
 
 ## If you keep it. Minimum fixes to the note
 - Concrete edits to body/brief/AC (suggestions only; do not apply).
-- Or: "Close / wontfix because …" with evidence.
+- Or: "Close / drop because …" with evidence.
 
 ## Evidence index
 - Paths, commands, and notes actually read (bullet list). Proves the search happened.
@@ -181,7 +181,7 @@ Emit exactly this structure. Keep prose tight. No preamble.
 - Material ship hazards (false-green AC, wrong layer, silent incomplete fix) while claims hold → verdict ≤ **WEAK** even if the brief looks tidy
 - Do not use **SOLID** if the Evidence index is thin or ship-hazards section is missing / generic filler
 
-**Done when:** report is complete, every table cell filled, ship-hazards section present, no uncited assertions outside quotes of the ticket itself.
+**Done when:** report is complete, every section filled, ship-hazards section present, no uncited assertions outside quotes of the ticket itself.
 
 ## Optional write-back
 

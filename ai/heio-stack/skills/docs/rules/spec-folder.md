@@ -6,6 +6,6 @@ tags: [spec, layout]
 
 # Spec folders
 
-Load **spec**. That skill owns the folder, purpose, contracts, test.md, read order, and write order.
+Copy purpose, contract, test, and optional spec templates from this skill. Load **spec** for read order, write order, and the ladder.
 
-Vault path under this docs layout: `docs/specs/<domain>/<area>/`, optional `<feature>/`. `domain` and `area` in the path equal frontmatter. Templates and the rest of the procedure live on **spec**.
+Vault path under this docs layout: `docs/specs/<domain>/<area>/`, optional `<feature>/`. `domain` and `area` in the path equal frontmatter.

@@ -1,6 +1,6 @@
 # Writing agent briefs
 
-An agent brief is a structured `## Agent Brief` section appended to the ticket note when it moves to `ready-for-agent`. It is the authoritative specification that an AFK agent will work from. The original ticket body and discussion are context. The agent brief is the contract.
+An agent brief is a structured `## Agent Brief` section appended to the task note when it is published `status: ready` and `mode: afk`. It is the authoritative specification that an AFK agent will work from. The ticket body is context. The agent brief is the contract.
 
 Tickets live under `.heio/` via **management**. Do not write briefs into `docs/`.
 
@@ -8,7 +8,7 @@ Tickets live under `.heio/` via **management**. Do not write briefs into `docs/`
 
 ### Durability over precision
 
-The ticket may sit in `ready-for-agent` for days or weeks. The codebase will change in the meantime. Write the brief so it stays useful even as files are renamed, moved, or refactored.
+The task may sit `ready` for days or weeks. The codebase will change in the meantime. Write the brief so it stays useful even as files are renamed, moved, or refactored.
 
 - **Do** describe interfaces, types, and behavioral contracts
 - **Do** name specific types, function signatures, or config shapes that the agent should look for or modify
@@ -40,12 +40,12 @@ State what is out of scope. This prevents the agent from adding extras or making
 
 Living product intent lives under `docs/`. Load **docs** and discover purpose, contracts, and specs. Do not assume a life-engine path.
 
-When the work changes **what** the product must do, the brief is **incomplete** (do not tag `ready-for-agent`) unless it includes all of:
+When the work changes **what** the product must do, the brief is **incomplete** (do not publish `status: ready`) unless it includes all of:
 
 1. **Contract promise ids** (for example `tasks.crud:complete`) when the project has them
 2. **Purpose** wikilink for non-goals and scope fences
 3. **Contract-first** acceptance: edit or assert promise, then test, then code
-4. If the docs have no answer: "open an ticket / assert a promise". Never invent rules
+4. If the docs have no answer: "open a ticket / assert a promise". Never invent rules
 
 Data-placement-only work: cite the project's data-flow or architecture note under `docs/` instead of freestyling layers. Pure refactors with no behaviour change may omit promise ids but must say so explicitly (**No product behaviour change**).
 
@@ -133,7 +133,7 @@ and append "..." to indicate truncation.
 **Summary:** Add durable rejection notes for tracking rejected feature requests
 
 **Current behavior:**
-When a feature request is rejected, the ticket is closed as `wontfix`
+When a feature request is rejected, the ticket is set `dropped`
 and a comment is appended. There is no persistent record of the decision
 or reasoning. Future similar requests require the maintainer to recall
 or search for the prior discussion.
@@ -152,7 +152,7 @@ checked for matches.
   and match incoming tickets against them by concept similarity
 
 **Acceptance criteria:**
-- [ ] Closing a feature as wontfix creates or updates a rejection note under `docs/`
+- [ ] Dropping a feature creates or updates a rejection note under `docs/`
 - [ ] The note includes the decision, reasoning, and link to the closed ticket
 - [ ] If a matching rejection note already exists, the new ticket is
       appended to its prior-requests list rather than creating a duplicate

@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Intent Ladder Stop
 
-If purpose and contracts do not answer the question, stop. Open an issue or assert a promise. Do not invent product rules.
+If purpose and contracts do not answer the question, stop. Open a ticket or assert a promise. Do not invent product rules.
 
 **Why:** Prose that is not locked will drift. A plausible "just make it work" change is how agents invent a second product.
 

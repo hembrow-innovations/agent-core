@@ -12,7 +12,7 @@ Do not mix these.
 - **`test:` pointers** on `contract.md` — a substring of a real title. Present ⇒ the promise is **locked**. Absent ⇒ **asserted**. See `contract-anatomy`.
 - **`test.md`** — the human map. Paths, titles, how, why, honest gaps. It does not lock anything.
 
-Copy `templates/test.md`. Place it beside the `contract.md` it covers.
+Copy **docs** `templates/test.md`. Place it beside the `contract.md` it covers.
 
 ## Coverage
 

@@ -36,21 +36,19 @@ Click through Expo web. Fill a form. Capture a screenshot for a human. Inspect c
 
 ## Priority bands
 
-| Pri | Category | Impact | Prefix |
-|-----|----------|--------|--------|
-| 1 | Discover | CRITICAL | `disc-` |
-| 2 | Stack | CRITICAL | `stack-` |
-| 3 | Core loop | CRITICAL | `core-` |
-| 4 | Snapshot | CRITICAL | `snap-` |
-| 5 | Selectors | CRITICAL | `sel-` |
-| 6 | React Native Web | HIGH | `rn-` |
-| 7 | Pitfalls | HIGH | `pitfall-` |
-| 8 | Nav and sessions | HIGH | `nav-` `session-` |
-| 9 | Artifacts | HIGH | `artifact-` |
-| 10 | Network and storage | MEDIUM | `net-` `storage-` |
-| 11 | Inspect | MEDIUM | `inspect-` |
-| 12 | Examples | MEDIUM | `example-` |
-| 13 | Layer | LOW | `layer-` |
+- **1 Discover (CRITICAL)**: `disc-`
+- **2 Stack (CRITICAL)**: `stack-`
+- **3 Core loop (CRITICAL)**: `core-`
+- **4 Snapshot (CRITICAL)**: `snap-`
+- **5 Selectors (CRITICAL)**: `sel-`
+- **6 React Native Web (HIGH)**: `rn-`
+- **7 Pitfalls (HIGH)**: `pitfall-`
+- **8 Nav and sessions (HIGH)**: `nav-` `session-`
+- **9 Artifacts (HIGH)**: `artifact-`
+- **10 Network and storage (MEDIUM)**: `net-` `storage-`
+- **11 Inspect (MEDIUM)**: `inspect-`
+- **12 Examples (MEDIUM)**: `example-`
+- **13 Layer (LOW)**: `layer-`
 
 ## Quick reference
 

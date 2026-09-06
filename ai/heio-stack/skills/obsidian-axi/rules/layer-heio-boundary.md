@@ -1,16 +1,16 @@
 ---
-title: .heio is the tracker
+title: CLI does not own tracker meaning
 impact: LOW
 impactDescription: vault tasks are not tickets
-tags: [layer, heio]
+tags: [layer]
 ---
 
-## .heio is the tracker
+## CLI does not own tracker meaning
 
-This checkout runs **heio-stack**. Issues, plans, sprints, slices, the task-pool, tickets, and archive live under `.heio/`. Git ignores that tree.
+This skill is the filesystem CLI. It reads, writes, patches, and moves markdown. It does not define ticket, slice, or task meaning.
 
-**Incorrect:** Creating a `docs/` note or vault task as the working ticket.
+**Incorrect:** Creating a vault daily note or `docs/` scratch as if that were a ticket.
 
-**Correct:** Load **heio-stack** for working items. Use this CLI on `docs/` for committed knowledge.
+**Correct:** Use this CLI for file operations. Pass `--vault docs` for committed notes. Pass `--vault .heio` when moving or patching tracker files.
 
-Notes: Daily notes are also not the tracker (`ws-daily-not-tracker`). Promote a finished outcome into `docs/` with **docs**, then close the working file in heio.
+Notes: Daily notes are also not tickets (`ws-daily-not-tracker`).

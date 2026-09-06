@@ -1,6 +1,6 @@
 # Wayfinder
 
-The tree will not fit in one sitting. Chart it as a **plan** plus child **issues** under `.heio/`. Resolve one decision at a time until the route is clear.
+The tree will not fit in one sitting. Chart fog on a **round** file with `sitting_kind: wayfinder`. Tickets capture decisions that still need a sitting. Do not write slices or tasks from wayfinder.
 
 Load **management** before any write under `.heio/`. Load **docs** only when a settled decision should survive a clone. Placement, numbers, status, and close-moves live in **management**.
 
@@ -8,39 +8,22 @@ This branch plans. Each ticket resolves a decision. The map is done when nothing
 
 ## Refer by name
 
-Every map and ticket is a note with a `title`. In narration and in Decisions so far, refer to it by that title wrapped around `[[id]]`.
+Every note has a `title`. In narration, refer to it by that title wrapped around `[[id]]`.
 
-## The map is a plan
+## The notebook is a round
 
-One plan at `.heio/planning/plans/plan-<N>-<slug>.md`. Tag it `wayfinder`. Status `draft` while charting, `active` while tickets are open, `complete` when the way is clear.
+One round at `.heio/planning/rounds/rounds-<NN>-<slug>.md`. `sitting_kind: wayfinder`. Status `awaiting-answers` while charting, `awaiting-confirm` when the frontier is empty, `published` when a later sitting wrote the map artifacts.
 
-Copy the plan template. Then keep these extra sections.
+Copy the management round template. Keep these extra sections under Confirm:
 
 ```markdown
 ## Objectives
 
-<the destination. one or two lines. every session orients here before choosing a ticket.>
-
-## Phases
-
-This plan is a decision map. Do not list execution tasks here.
-
-## Approach
-
-<domain. skills every session should load. standing preferences for this effort.>
-
-## Acceptance
-
-- The way to the destination is clear. No open wayfinder issues remain on this plan.
-
-## Definition of done
-
-- [ ] Way is clear
-- [ ] Durable outcome written to `docs/` if it should survive a clone
+<the destination. one or two lines.>
 
 ## Decisions so far
 
-- [[issue-N-slug|title]]. <one-line gist of the answer>
+- [[ticket-01-slug|title]]. <one-line gist of the answer>
 
 ## Not yet specified
 
@@ -51,42 +34,32 @@ This plan is a decision map. Do not list execution tasks here.
 <work ruled beyond this destination>
 ```
 
-The map is an index. A decision lives in its issue. The map gists and links.
+The round is an index. A decision lives in its ticket. The round gists and links.
 
-Open tickets are not listed on the map. Find them by scanning `.heio/inbox/issues/` for `wayfinder` tags that `references` this plan.
+Find open wayfinder tickets by scanning `.heio/planning/tickets/` for `wayfinder` tags that `references` this round.
 
-## Tickets are issues
+## Tickets
 
-Each ticket is an issue at `.heio/inbox/issues/issue-<N>-<slug>.md`. Copy the issue template.
+Each ticket is `.heio/planning/tickets/ticket-<NN>-<slug>.md`. Copy the management ticket template.
 
-- `tags` include `wayfinder` and one type. `research`, `prototype`, `planning`, or `task`.
-- `labels` stays the nature of the work (`feature`, `bug`, `refactor`).
-- `references` lists the map id.
-- `blocked_by` lists blocking issue ids.
-- Put the question in Description. Leave Proposed fix blank.
+- `tags` include `wayfinder`
+- `references` lists the round id
+- `blocked_by` lists blocking ticket ids
+- Put the question in Signal. Leave the solution off the ticket
 
-```markdown
-## Description
+A ticket is unblocked when every id in `blocked_by` is `closed` or `dropped`. The frontier is open, unblocked children of this round. First by number wins.
 
-## Question
-
-<the decision or investigation this ticket resolves>
-```
-
-Claim before any work. Set `status: reviewing` and touch `updated_at`. An `open` unblocked issue is unclaimed. `reviewing` is the claim. `closed` is resolved. `wontfix` is out of scope.
-
-A ticket is unblocked when every id in `blocked_by` is `closed` or `wontfix`. The frontier is open, unblocked, unclaimed children of this map. First by number wins.
-
-Create issues first, then wire `blocked_by`.
+Create tickets first, then wire `blocked_by`.
 
 ## Ticket types
 
 Every ticket is HITL (worked with the human) or AFK (agent alone). A HITL ticket only resolves through that live exchange.
 
-- **research** (AFK). Load **research**. Write findings on the issue under `## Resolution`.
-- **prototype** (HITL). Load **prototype**. Link the artifact from the issue.
+- **research** (AFK). Load **research** if installed. Write findings on the ticket under `## Notes`.
+- **prototype** (HITL). Load **prototype** if installed. Link the artifact from the ticket.
 - **planning** (HITL). Return to the parent skill. Default type.
-- **task** (HITL or AFK). Manual work that unblocks a decision. Signing up for a service, granting access, moving data so its shape can be seen. This is still an issue, not a management task.
+
+Do not mint execution tasks from wayfinder. That is a later planning sitting.
 
 ## Fog of war
 
@@ -98,8 +71,8 @@ Ticket when you can state the question precisely, even if it is blocked. Leave i
 
 1. Name the destination. Run the parent skill's frontier once, and **domain-modeling**.
 2. Map the frontier, breadth-first. If this surfaces no fog, you do not need a map. Stop and ask how they want to proceed.
-3. Create the plan. Destination in Objectives. Notes in Approach. Fog in Not yet specified. Decisions so far empty.
-4. Create the issues you can specify now. Wire `blocked_by` in a second pass.
+3. Create the round. Destination in Objectives. Fog in Not yet specified. Decisions so far empty.
+4. Create the tickets you can specify now. Wire `blocked_by` in a second pass.
 5. Fire research tickets in parallel.
 6. Stop. Charting hand-resolves nothing.
 
@@ -107,17 +80,17 @@ Ticket when you can state the question precisely, even if it is blocked. Leave i
 
 Never resolve more than one ticket per session, except research tickets.
 
-1. Load the plan. Not every issue body.
-2. If the user named a ticket, use it. Otherwise take the first frontier issue. Claim it.
-3. Resolve it. Load the skills Approach names.
-4. Write `## Resolution` on the issue. Set `closed`. Append one gist line to Decisions so far.
-5. Add newly surfaced issues. Graduate fog that is now specifiable. If a ticket sits past the destination, set `wontfix`, move it to `closed/`, and add one line to Out of scope.
+1. Load the round. Not every ticket body.
+2. If the user named a ticket, use it. Otherwise take the first frontier ticket.
+3. Resolve it. Load the skills the round names.
+4. Write the answer on the ticket. Set `closed`. Append one gist line to Decisions so far.
+5. Add newly surfaced tickets. Graduate fog that is now specifiable. If a ticket sits past the destination, set `dropped`, move it to `.heio/archive/planning/tickets/`, and add one line to Out of scope.
 6. If the decision invalidates other tickets, update or close them.
 
-Move a terminal issue to `.heio/closed/` the day it closes. Keep the filename.
+Move a terminal ticket with **obsidian-axi** `mv` the day it closes. Keep the filename.
 
 ## When the way is clear
 
-The map is done when no open wayfinder issues remain and Not yet specified is empty.
+The map is done when no open wayfinder tickets remain and Not yet specified is empty.
 
-Return to Persist on the parent skill. If someone should now build, that is a new plan with tasks. Do not reuse this map as the execution plan.
+Return to Confirm on the parent skill. If someone should now build, that is a planning sitting that publishes slices and tasks. Do not reuse this round as the execution pool.

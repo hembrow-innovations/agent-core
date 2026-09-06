@@ -11,11 +11,11 @@ You can't lock prose. Lock **behaviour** in tests. `contract.md` states what/why
 
 This skill is the kernel for any project that uses that shape. It does not name this repo's features.
 
-Load **docs** for vault layout, frontmatter, and wikilinks when that skill is installed. Load **tdd** when writing the code test. Working tickets live in the project tracker, not here.
+Load **docs** for vault layout, frontmatter, wikilinks, and templates. Copy purpose, contract, test, and spec skeletons from the **docs** skill `templates/`. Load **tdd** when writing the code test. Working tickets live in **management**, not here.
 
 If `AGENTS.md` already names a different spec layout, that file wins. Do not start a second tree.
 
-Per-rule detail lives in `rules/<prefix>-*.md`. Copy-ready skeletons live in `templates/`.
+Per-rule detail lives in `rules/<prefix>-*.md`. Copy-ready skeletons live in the **docs** skill `templates/`.
 
 ## Before spec work (always)
 
@@ -42,7 +42,7 @@ Full steps: `rules/disc-first.md` and `rules/ladder-read.md`.
 - **purpose-job** when the note is purpose
 - **contract-anatomy** when the note is contract.md or a promise will move
 - **test-map** when listing or adding coverage
-- **docs** for vault path, frontmatter, and wikilinks
+- **docs** for vault path, frontmatter, wikilinks, and templates
 - **tdd** for the red test that locks a promise
 - **principle-intent-ladder-stop** if it is installed and the ladder is empty
 
@@ -129,10 +129,8 @@ rules/write-order.md
 rules/test-map.md
 rules/change-promise.md
 rules/port-kernel.md
-templates/required-fields.md
-templates/<kind>.md
 ```
 
-Read only the rules for the current task. Do not bulk-read `rules/` or every template.
+Read only the rules for the current task. Do not bulk-read `rules/`. Copy templates from **docs**.
 
 Vault kinds other than spec folders: load **docs**.

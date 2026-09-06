@@ -1,16 +1,16 @@
 ---
-title: Daily notes are not the tracker
+title: Daily notes are not tickets
 impact: MEDIUM
-impactDescription: journal days live in .heio, not the vault daily note
-tags: [ws, daily, heio]
+impactDescription: daily append is not a task
+tags: [ws, daily]
 ---
 
-## Daily notes are not the tracker
+## Daily notes are not tickets
 
-Some vaults have daily notes. This checkout's journal, issues, plans, tasks, and tickets live under `.heio/` via **heio-stack**. A vault daily note is not that tracker.
+Some vaults have daily notes. A vault daily note is not a ticket or a task.
 
-**Incorrect:** `obsidian-axi daily append --content "- [ ] ship it"` as a heio task.
+**Incorrect:** `obsidian-axi daily append --content "- [ ] ship it"` as project work.
 
-**Correct:** Load **heio-stack** for working items. Use this CLI on `docs/` notes only.
+**Correct:** Use this CLI on the note the user named. Do not treat daily notes as the work queue.
 
-Notes: The filesystem CLI may not even expose `daily`. If a dest vault uses daily notes as personal journal, still keep project work in `.heio/`.
+Notes: The filesystem CLI may not even expose `daily`. If a dest vault uses daily notes as a personal journal, still keep project work in its tracker files.

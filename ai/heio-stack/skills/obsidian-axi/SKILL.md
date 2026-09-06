@@ -26,7 +26,6 @@ If the path is not a vault of markdown notes, stop.
 - **search-** and **graph-** for vault find and links
 - **patch-*** for one heading, block, or frontmatter field
 - **docs** for kind, template, layout, and required frontmatter on a new durable note
-- **heio-stack** for issues, plans, tasks, tickets
 
 **Careful:**
 
@@ -115,9 +114,9 @@ If the path is not a vault of markdown notes, stop.
 - `list-fields` `--fields path`
 - `ws-active` last saved layout, not the screen
 - `ws-open` `open` asks the app
-- `ws-daily-not-tracker` daily notes are not heio-stack
+- `ws-daily-not-tracker` daily notes are not tickets
 - `layer-docs-create` new durable notes go through **docs**
-- `layer-heio-boundary` `.heio/` is the tracker
+- `layer-heio-boundary` this CLI does not own tracker meaning
 - `layer-no-mcp-plugin` filesystem CLI only
 - `layer-unsupported` Dataview / Templater / semantic search
 

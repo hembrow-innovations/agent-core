@@ -8,7 +8,7 @@ tags: [contract]
 
 You can't lock prose. Prose rots. Lock **behaviour** in tests. Keep one thin `contract.md` per unit stating what/why (not how), wired to those tests so it can't drift silently. Two jobs: **readable** (a human understands the promises) and **locked** (deviating takes a deliberate, visible edit, not a silent code change).
 
-Copy `templates/contract.md`. `tags: [contract]`. Wikilink purpose and test.md after copy.
+Copy **docs** `templates/contract.md`. `tags: [contract]`. Wikilink purpose and test.md after copy.
 
 ```md
 - `feature.section:promise-id`: One plain-language promise a human would state.
