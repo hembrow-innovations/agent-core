@@ -24,14 +24,15 @@ Dest is always `.opencode/`.
 - `pnpm install` at the repo root
 - The target directory already exists
 
-The CLI dies unless it can see `profiles/` and `ai/skills/` from this checkout.
+The CLI dies unless it can see `profiles/`, `ai/skills/`, and `stacks/` from this checkout.
 
 ```ts
 // packages/installer/src/cli.ts — repoRoot
 const root = resolve(here, "../../..");
 if (
   !existsSync(join(root, "profiles")) ||
-  !existsSync(join(root, "ai", "skills"))
+  !existsSync(join(root, "ai", "skills")) ||
+  !existsSync(join(root, "stacks"))
 ) {
   die("agentic-core must run from this checkout");
 }

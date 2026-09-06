@@ -8,24 +8,24 @@ const errors = [];
 
 const skillPath = join(
   root,
-  "ai",
-  "skills",
+  "stacks",
   "heio-stack",
+  "skills",
   "heio-rounds",
   "SKILL.md",
 );
 const startPath = join(
   root,
-  "ai",
-  "prompts",
+  "stacks",
   "heio-stack",
+  "prompts",
   "heio-rounds-start.md",
 );
 const resumePath = join(
   root,
-  "ai",
-  "prompts",
+  "stacks",
   "heio-stack",
+  "prompts",
   "heio-rounds-resume.md",
 );
 const profiles = [
@@ -54,13 +54,13 @@ function listItem(text, name) {
 
 const skill = readOrError(
   skillPath,
-  "ai/skills/heio-stack/heio-rounds/SKILL.md",
+  "stacks/heio-stack/skills/heio-rounds/SKILL.md",
 );
 const start = readOrError(
   startPath,
-  "ai/prompts/heio-stack/heio-rounds-start.md",
+  "stacks/heio-stack/prompts/heio-rounds-start.md",
 );
-readOrError(resumePath, "ai/prompts/heio-stack/heio-rounds-resume.md");
+readOrError(resumePath, "stacks/heio-stack/prompts/heio-rounds-resume.md");
 
 if (skill !== null) {
   for (const status of STATUSES) {
@@ -105,14 +105,8 @@ for (const profilePath of profiles) {
   const rel = profilePath.slice(root.length + 1);
   const profile = readOrError(profilePath, rel);
   if (profile === null) continue;
-  if (!listItem(profile, "heio-rounds")) {
-    errors.push(`${rel} does not list skill heio-rounds`);
-  }
-  if (!listItem(profile, "heio-rounds-start")) {
-    errors.push(`${rel} does not list prompt heio-rounds-start`);
-  }
-  if (!listItem(profile, "heio-rounds-resume")) {
-    errors.push(`${rel} does not list prompt heio-rounds-resume`);
+  if (!listItem(profile, "heio-stack")) {
+    errors.push(`${rel} does not name stack heio-stack`);
   }
 }
 

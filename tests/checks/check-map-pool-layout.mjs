@@ -6,9 +6,9 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const layoutPath = join(
   root,
-  "ai",
-  "skills",
+  "stacks",
   "heio-stack",
+  "skills",
   "heio-stack",
   "rules",
   "layout.md",
@@ -78,14 +78,14 @@ if (existsSync(layoutPath)) {
     errors.push("layout.md does not say links are never dropped");
   }
 } else {
-  errors.push("missing ai/skills/heio-stack/heio-stack/rules/layout.md");
+  errors.push("missing stacks/heio-stack/skills/heio-stack/rules/layout.md");
 }
 
 const templatesDir = join(
   root,
-  "ai",
-  "skills",
+  "stacks",
   "heio-stack",
+  "skills",
   "heio-stack",
   "templates",
 );
@@ -144,9 +144,9 @@ if (poolText !== null) {
 
 const kindsPath = join(
   root,
-  "ai",
-  "skills",
+  "stacks",
   "heio-stack",
+  "skills",
   "heio-stack",
   "rules",
   "template-kinds.md",
@@ -195,7 +195,7 @@ if (existsSync(kindsPath)) {
   }
 } else {
   errors.push(
-    "missing ai/skills/heio-stack/heio-stack/rules/template-kinds.md",
+    "missing stacks/heio-stack/skills/heio-stack/rules/template-kinds.md",
   );
 }
 

@@ -23,7 +23,7 @@ The tracker is already the markdown tree. Skills and agents can run the loop wit
 
 Park `@agentic-core/heio-coord` at `deprecated/packages/heio-coord`. It is not a workspace package. It is not a first-party extension. No profile lists it. `--extension heio-coord` is unknown. Profile install removes leftover dest copies the same way it removes `heio-coms`, `heio-teams`, and `heio-todo`.
 
-Heio-stack is `ai/skills/heio-stack/`, the `heio-*` agents, and `.heio/` notes. Agents read and write those files. They do not call `heio_stack`.
+Heio-stack is `stacks/heio-stack/`, the `heio-*` agents, and `.heio/` notes. Agents read and write those files. They do not call `heio_stack`.
 
 ## Alternatives considered
 

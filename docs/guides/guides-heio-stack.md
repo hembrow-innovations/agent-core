@@ -20,8 +20,7 @@ For humans in a dest that installed the heio-stack skills. Architecture: [[archi
 
 ## Prerequisites
 
-- Profile lists heio-stack skills (`heio-planning`, `heio-wayfinder`, `heio-slice`, `heio-stack`) and the `heio-*` agents
-- `pi` in that dest, folder trusted
+- Profile names stack `heio-stack`
 - After a source skill change in this pack: `pnpm exec agentic-core install . --profile agentic-core`
 
 Live notes are gitignored under `.heio/`. Durable outcomes go in `docs/`.
@@ -57,8 +56,8 @@ Every output ends `VERDICT: TASK | TICKET | ESCALATE | VERIFY`.
 
 ## Reference
 
-- Skills: `ai/skills/heio-stack/`
+- Stack: `stacks/heio-stack/`
 - Prompts: `/heio-planning`, `/heio-wayfinder`, `/heio-slice`
-- Templates: `ai/skills/heio-stack/heio-stack/templates/`
+- Templates: `stacks/heio-stack/skills/heio-stack/templates/`
 - Loop: [[architecture-heio-stack]]
 - Map grain: [[0013-heio-stack-location-map]]

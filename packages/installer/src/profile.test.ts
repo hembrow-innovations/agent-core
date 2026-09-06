@@ -44,6 +44,7 @@ test("loadProfile reads profiles/<name>/profile.yaml", () => {
   const got = loadProfile(root, "agentic-core");
   assert.deepEqual(got, {
     name: "agentic-core",
+    stacks: [],
     skills: [],
     agents: { kind: "omit" },
     prompts: { kind: "omit" },
@@ -70,23 +71,24 @@ test("loadProfile: leftover Pi keys die", () => {
   writeDirProfile(root, "pkg", "packages:\n  - npm:pi-lens\n");
   assert.throws(
     () => loadProfile(root, "pkg"),
-    /leftover "packages:". Pi packages are parked/,
+    /leftover "packages:". Pi packages are deprecated/,
   );
   writeDirProfile(root, "set", "settings:\n  toolDescriptionMode: compact\n");
   assert.throws(
     () => loadProfile(root, "set"),
-    /leftover "settings:". Pi runtime is parked/,
+    /leftover "settings:". Pi runtime is deprecated/,
   );
   writeDirProfile(root, "sys", "system-prompt: default\n");
   assert.throws(
     () => loadProfile(root, "sys"),
-    /leftover "system-prompt:". Pi runtime is parked/,
+    /leftover "system-prompt:". Pi runtime is deprecated/,
   );
 });
 
 function planProfile(over: Partial<Profile> = {}): Profile {
   return {
     name: "demo",
+    stacks: [],
     skills: [],
     agents: { kind: "omit" },
     prompts: { kind: "omit" },
@@ -113,4 +115,54 @@ test("planFromProfile overlays with and without skills", () => {
   assert.deepEqual(plan.skills, ["docs", "tdd"]);
   assert.equal(plan.overlayAgents, false);
   assert.equal(plan.overlayPrompts, false);
+});
+
+test("loadProfile reads stacks and rejects unknown stacks", () => {
+  const root = tempRoot();
+  mkdirSync(join(root, "stacks", "heio-stack"), { recursive: true });
+  writeDirProfile(
+    root,
+    "with-stack",
+    "stacks:\n  - heio-stack\nskills:\n  - tdd\n",
+  );
+  assert.deepEqual(loadProfile(root, "with-stack"), {
+    name: "with-stack",
+    stacks: ["heio-stack"],
+    skills: ["tdd"],
+    agents: { kind: "omit" },
+    prompts: { kind: "omit" },
+  });
+  writeDirProfile(root, "bad-stack", "stacks:\n  - missing\n");
+  assert.throws(
+    () => loadProfile(root, "bad-stack"),
+    /Unknown stack "missing". Choose: heio-stack/,
+  );
+});
+
+test("planFromProfile merges named stack contents", () => {
+  const plan = planFromProfile(
+    planProfile({
+      stacks: ["heio-stack"],
+      skills: ["tdd"],
+    }),
+    planRequest(),
+    {
+      packAgents: [],
+      packPrompts: [],
+      agents: ["heio-builder"],
+      prompts: ["heio-slice"],
+      stacks: {
+        "heio-stack": {
+          skills: ["heio-stack", "unpark"],
+          agents: ["heio-builder"],
+          prompts: ["heio-slice"],
+        },
+      },
+    },
+  );
+  assert.deepEqual(plan.skills, ["heio-stack", "tdd", "unpark"]);
+  assert.deepEqual(plan.agentIds, ["heio-builder"]);
+  assert.deepEqual(plan.promptIds, ["heio-slice"]);
+  assert.equal(plan.overlayAgents, true);
+  assert.equal(plan.overlayPrompts, true);
 });

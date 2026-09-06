@@ -9,9 +9,9 @@ import {
 } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
-import { basename, dirname, join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { loadProfile, listProfiles } from "../lib/profile.mjs";
+import { findAgentFile, findSkillDir, loadProfile, listProfiles } from "../lib/profile.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const errors = [];
@@ -51,58 +51,35 @@ for (const dir of scanRoots) {
   });
 }
 
-function walkSkillDirs(dir, visit) {
-  if (!existsSync(dir) || !statSync(dir).isDirectory()) return;
-  for (const ent of readdirSync(dir, { withFileTypes: true })) {
-    if (!ent.isDirectory() || ent.name.startsWith(".")) continue;
-    const full = join(dir, ent.name);
-    if (existsSync(join(full, "SKILL.md"))) visit(full);
-    else walkSkillDirs(full, visit);
-  }
-}
-
-function resolveSkill(name) {
-  const candidates = [];
-  walkSkillDirs(join(root, "ai", "skills"), (dir) => {
-    if (basename(dir) === name) candidates.push(dir);
-  });
-  const prefer = ["ai/skills/workflow", "ai/skills/setup"].map(
-    (rel) => join(root, rel) + "/",
-  );
-  for (const prefix of prefer) {
-    const hit = candidates.find((p) => p.startsWith(prefix));
-    if (hit) return hit;
-  }
-  return candidates[0] ?? null;
-}
-
 if (existsSync(join(root, "ai", "pi"))) {
-  errors.push("ai/pi/ leftover; system prompts live in ai/system-prompts/");
+  errors.push("ai/pi/ leftover; Pi runtime is deprecated");
 }
-const promptRoot = join(root, "ai", "system-prompts");
-if (!existsSync(promptRoot)) {
-  errors.push("ai/system-prompts/ missing");
-} else {
-  const names = readdirSync(promptRoot).filter((n) => !n.startsWith("."));
-  if (!names.includes("default.md")) {
-    errors.push("ai/system-prompts/ missing default.md");
-  }
-  const extra = names.filter((n) => !n.endsWith(".md")).sort();
-  if (extra.length) {
-    errors.push(`ai/system-prompts/ unexpected ${extra.join(", ")}`);
-  }
+if (existsSync(join(root, "ai", "system-prompts"))) {
+  errors.push(
+    "ai/system-prompts/ leftover; Pi runtime is deprecated under deprecated/system-prompts/",
+  );
+}
+if (!existsSync(join(root, "deprecated", "system-prompts", "default.md"))) {
+  errors.push("deprecated/system-prompts/ missing default.md");
+}
+if (existsSync(join(root, "ai", "skills", "heio-stack"))) {
+  errors.push(
+    "ai/skills/heio-stack leftover; heio-stack lives in stacks/heio-stack/",
+  );
+}
+if (!existsSync(join(root, "stacks", "heio-stack"))) {
+  errors.push("stacks/heio-stack missing");
 }
 for (const name of listProfiles(root)) {
   const profile = loadProfile(root, name);
   const needed = new Set(profile.skills);
   for (const skill of [...needed].sort()) {
-    if (!resolveSkill(skill))
+    if (!findSkillDir(root, skill))
       errors.push(`profile ${name}: missing skill ${skill}`);
   }
   if (profile.agents.kind === "list") {
     for (const id of profile.agents.ids) {
-      const file = join(root, "ai", "agents", id, `${id}.md`);
-      if (!existsSync(file))
+      if (!findAgentFile(root, id))
         errors.push(`profile ${name}: missing agent ${id}`);
     }
   }

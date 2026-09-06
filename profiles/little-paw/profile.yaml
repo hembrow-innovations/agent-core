@@ -1,26 +1,15 @@
 # Littlepaw dest: heio-stack + Godot MCP.
 # install . --profile little-paw
+stacks:
+  - heio-stack
 agents:
-  - heio-triage
-  - heio-planner
-  - heio-tasker
-  - heio-builder
-  - heio-verifier
   - littlepaw-builder
   - blender-mcp
   - godot-mcp
 prompts:
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
   - swarm
   - verify-littlepaw
 skills:
-  - heio-stack
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-  - unpark
   - docs
   - domain-modeling
   - tdd

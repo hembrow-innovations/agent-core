@@ -1,9 +1,5 @@
-agents:
-  - heio-builder
-  - heio-tasker
-  - heio-triage
-  - heio-verifier
-  - heio-visual
+stacks:
+  - heio-stack
 prompts:
   - afk-loop
   - arena
@@ -12,9 +8,6 @@ prompts:
   - bro
   - create-progressive-skill
   - figure-it-out
-  - heio-planning
-  - heio-slice
-  - heio-wayfinder
   - maintain-verification-skill
   - planning-arena
   - swarm
@@ -29,11 +22,6 @@ skills:
   - docs
   - domain-modeling
   - frontend-development
-  - heio-planning
-  - heio-slice
-  - heio-stack
-  - heio-wayfinder
-  - unpark
   - improve-codebase-architecture
   - maestro
   - management

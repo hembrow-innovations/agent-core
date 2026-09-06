@@ -4,7 +4,13 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const skillRoot = join(root, "ai", "skills", "heio-stack", "heio-stack");
+const skillRoot = join(
+  root,
+  "stacks",
+  "heio-stack",
+  "skills",
+  "heio-stack",
+);
 const errors = [];
 
 const layoutPath = join(skillRoot, "rules", "layout.md");
@@ -40,7 +46,7 @@ function namesArchiveRounds(text) {
 
 const layout = readOrError(
   layoutPath,
-  "ai/skills/heio-stack/heio-stack/rules/layout.md",
+  "stacks/heio-stack/skills/heio-stack/rules/layout.md",
 );
 if (layout !== null) {
   if (!layout.includes(LIVE_ROUNDS)) {
@@ -53,7 +59,7 @@ if (layout !== null) {
 
 const skill = readOrError(
   skillPath,
-  "ai/skills/heio-stack/heio-stack/SKILL.md",
+  "stacks/heio-stack/skills/heio-stack/SKILL.md",
 );
 if (skill !== null) {
   if (!skill.includes(LIVE_ROUNDS)) {
@@ -68,7 +74,7 @@ if (skill !== null) {
 
 const kinds = readOrError(
   kindsPath,
-  "ai/skills/heio-stack/heio-stack/rules/template-kinds.md",
+  "stacks/heio-stack/skills/heio-stack/rules/template-kinds.md",
 );
 if (kinds !== null) {
   const roundLine = kinds
@@ -85,7 +91,7 @@ if (kinds !== null) {
 
 const required = readOrError(
   requiredPath,
-  "ai/skills/heio-stack/heio-stack/templates/required-fields.md",
+  "stacks/heio-stack/skills/heio-stack/templates/required-fields.md",
 );
 if (required !== null) {
   const allowsRound =
@@ -97,7 +103,7 @@ if (required !== null) {
 
 const round = readOrError(
   roundPath,
-  "ai/skills/heio-stack/heio-stack/templates/round.md",
+  "stacks/heio-stack/skills/heio-stack/templates/round.md",
 );
 if (round !== null) {
   if (!/\bkind:\s*round\b/.test(round)) {

@@ -13,6 +13,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { catalogFromSource, planFromProfile } from "./plan.ts";
 import { loadProfile } from "./profile.ts";
 
 const SRC = dirname(fileURLToPath(import.meta.url));
@@ -82,9 +83,20 @@ test("install --profile agentic-core writes .opencode skills, agents, and comman
   assert.match(r.stdout, /Restart OpenCode/);
 
   const profile = loadProfile(REPO, "agentic-core");
+  const plan = planFromProfile(
+    profile,
+    {
+      kind: "install",
+      target: dest,
+      profile: "agentic-core",
+      with: [],
+      without: [],
+    },
+    catalogFromSource(REPO),
+  );
   const skillRoot = join(dest, ".opencode", "skills");
   const folders = readdirSync(skillRoot).sort();
-  assert.deepEqual(folders, [...new Set(profile.skills)].sort());
+  assert.deepEqual(folders, plan.skills);
   for (const name of folders) {
     assert.equal(existsSync(join(skillRoot, name, "SKILL.md")), true);
   }
@@ -133,6 +145,25 @@ test("install --profile agentic-core removes leftover Pi dest files", () => {
   );
   assert.equal(
     existsSync(join(dest, ".opencode", "agents", "heio-builder.md")),
+    true,
+  );
+});
+
+test("install --profile heio-stack copies the named stack unit", () => {
+  const dest = mkdtempSync(join(tmpdir(), "installer-stack-"));
+  const r = runCli(["install", dest, "--profile", "heio-stack"]);
+  assert.equal(r.status, 0, r.stderr || r.stdout);
+  assert.match(r.stdout, /Stacks \(1\): heio-stack/);
+  assert.equal(
+    existsSync(join(dest, ".opencode", "skills", "heio-stack", "SKILL.md")),
+    true,
+  );
+  assert.equal(
+    existsSync(join(dest, ".opencode", "agents", "heio-builder.md")),
+    true,
+  );
+  assert.equal(
+    existsSync(join(dest, ".opencode", "commands", "heio-slice.md")),
     true,
   );
 });
@@ -223,7 +254,7 @@ test("install --profile agentic-core keeps dest extras and updates listed files"
   assert.equal(
     readFileSync(join(dest, ".opencode", "agents", "heio-builder.md"), "utf8"),
     readFileSync(
-      join(REPO, "ai", "agents", "heio-builder", "heio-builder.md"),
+      join(REPO, "stacks", "heio-stack", "agents", "heio-builder", "heio-builder.md"),
       "utf8",
     ),
   );
@@ -233,14 +264,14 @@ test("install --profile agentic-core keeps dest extras and updates listed files"
       "utf8",
     ),
     readFileSync(
-      join(REPO, "ai", "skills", "heio-stack", "heio-stack", "SKILL.md"),
+      join(REPO, "stacks", "heio-stack", "skills", "heio-stack", "SKILL.md"),
       "utf8",
     ),
   );
   assert.equal(
     readFileSync(join(dest, ".opencode", "commands", "heio-slice.md"), "utf8"),
     readFileSync(
-      join(REPO, "ai", "prompts", "heio-stack", "heio-slice.md"),
+      join(REPO, "stacks", "heio-stack", "prompts", "heio-slice.md"),
       "utf8",
     ),
   );

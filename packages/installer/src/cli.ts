@@ -8,10 +8,10 @@ import {
   openDestination,
   PROMPT_DEST,
 } from "./dest.ts";
-import { planFromProfile, type InstallRequest } from "./plan.ts";
-import { listAgentIds, writeAgents } from "./agents.ts";
+import { catalogFromSource, planFromProfile, type InstallRequest } from "./plan.ts";
+import { writeAgents } from "./agents.ts";
 import { listProfiles, loadProfile } from "./profile.ts";
-import { listPromptIds, writePrompts } from "./prompts.ts";
+import { writePrompts } from "./prompts.ts";
 import { installSkills } from "./skills.ts";
 
 type CliRequest = { kind: "help" } | InstallRequest;
@@ -36,7 +36,7 @@ Options:
 Profiles (profiles/<name>/profile.yaml):
   ${listed}
 
-Dest is always .opencode/. Agents, prompts, and skills are selected in the YAML.
+Dest is always .opencode/. Stacks, agents, prompts, and skills are selected in the YAML.
 
 Examples:
   pnpm exec agentic-core install . --profile agentic-core
@@ -99,7 +99,8 @@ function repoRoot(): string {
   const root = resolve(here, "../../..");
   if (
     !existsSync(join(root, "profiles")) ||
-    !existsSync(join(root, "ai", "skills"))
+    !existsSync(join(root, "ai", "skills")) ||
+    !existsSync(join(root, "stacks"))
   ) {
     die("agentic-core must run from this checkout");
   }
@@ -134,16 +135,16 @@ function run(argv: string[]): void {
 
   let plan;
   try {
-    plan = planFromProfile(profile, opts, {
-      agents: listAgentIds(srcRoot),
-      prompts: listPromptIds(srcRoot),
-    });
+    plan = planFromProfile(profile, opts, catalogFromSource(srcRoot));
   } catch (err) {
     die(err instanceof Error ? err.message : String(err));
   }
   console.log(`Using local source: ${srcRoot}`);
   console.log(`Installing into ${opts.target}`);
   console.log(`Profile: ${profileName}`);
+  if (profile.stacks.length) {
+    console.log(`Stacks (${profile.stacks.length}): ${profile.stacks.join(", ")}`);
+  }
   console.log(`Skills (${plan.skills.length}): ${plan.skills.join(", ")}`);
 
   try {

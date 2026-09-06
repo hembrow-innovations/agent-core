@@ -1,21 +1,8 @@
 # Dest: heio-stack for onic.
 # Install: pnpm exec agentic-core install ../core-onic --profile core-onic
-agents:
-  - heio-triage
-  - heio-planner
-  - heio-tasker
-  - heio-builder
-  - heio-verifier
-prompts:
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-skills:
+stacks:
   - heio-stack
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-  - unpark
+skills:
   - docs
   - domain-modeling
   - tdd

@@ -30,7 +30,7 @@ const STATUS_CHAIN =
 const BUILDER_CLAIM_STOP =
   /builder(?: skill)? claims and stops at [`']?implemented[`']? unless the invoked prompt is through-to-complete/i;
 
-const skillsDir = join(root, "ai", "skills", "heio-stack");
+const skillsDir = join(root, "stacks", "heio-stack", "skills");
 if (existsSync(skillsDir)) {
   const skillsText = readAll(walkMarkdown(skillsDir));
   if (!STATUS_CHAIN.test(skillsText)) {
@@ -92,15 +92,18 @@ if (existsSync(skillsDir)) {
     errors.push("missing heio-wayfinder SKILL.md");
   }
 } else {
-  errors.push("missing ai/skills/heio-stack");
+  errors.push("missing stacks/heio-stack/skills");
 }
 
 const roleAgents = [
   [
     "heio-builder",
-    join(root, "ai", "agents", "heio-builder", "heio-builder.md"),
+    join(root, "stacks", "heio-stack", "agents", "heio-builder", "heio-builder.md"),
   ],
-  ["heio-triage", join(root, "ai", "agents", "heio-triage", "heio-triage.md")],
+  [
+    "heio-triage",
+    join(root, "stacks", "heio-stack", "agents", "heio-triage", "heio-triage.md"),
+  ],
 ];
 
 for (const [name, path] of roleAgents) {
@@ -135,17 +138,14 @@ for (const [name, path] of roleAgents) {
   }
 }
 
-const ROLE_SKILL_PIPELINE = /role skill(?: is|=) (?:the )?pipeline/i;
-const PLAIN_PI_NOT_TRAPPED = /plain [`']?pi[`']? is not trapped/i;
-
 const agentsPath = join(root, "AGENTS.md");
 if (existsSync(agentsPath)) {
   const agentsText = readFileSync(agentsPath, "utf8");
-  if (!ROLE_SKILL_PIPELINE.test(agentsText)) {
-    errors.push("AGENTS.md does not say role skill is the pipeline");
+  if (!agentsText.includes("stacks/")) {
+    errors.push("AGENTS.md does not name stacks/");
   }
-  if (!PLAIN_PI_NOT_TRAPPED.test(agentsText)) {
-    errors.push("AGENTS.md does not say plain pi is not trapped");
+  if (!agentsText.includes("heio-stack")) {
+    errors.push("AGENTS.md does not name heio-stack");
   }
 } else {
   errors.push("missing AGENTS.md");

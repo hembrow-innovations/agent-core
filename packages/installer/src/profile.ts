@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { listStacks } from "./stacks.ts";
 
 export type NamedSelection =
   | { kind: "all" }
@@ -10,22 +11,23 @@ export type PlaybookSelection = NamedSelection;
 
 export type Profile = {
   name: string;
+  stacks: string[];
   skills: string[];
   agents: NamedSelection;
   prompts: NamedSelection;
 };
 
-const PROFILE_KEYS = new Set(["skills", "agents", "prompts"]);
+const PROFILE_KEYS = new Set(["stacks", "skills", "agents", "prompts"]);
 
 const LEFTOVER_KEYS = new Map([
   ["mode", 'leftover "mode:". the installer does not copy playbooks'],
   ["playbooks", 'leftover "playbooks:". the installer does not copy playbooks'],
   ["harness", 'leftover "harness:". dest is always .opencode'],
   ["pi", 'leftover "pi:". dest is always .opencode'],
-  ["extensions", 'leftover "extensions:". Pi packages are parked'],
-  ["packages", 'leftover "packages:". Pi packages are parked'],
-  ["settings", 'leftover "settings:". Pi runtime is parked'],
-  ["system-prompt", 'leftover "system-prompt:". Pi runtime is parked'],
+  ["extensions", 'leftover "extensions:". Pi packages are deprecated'],
+  ["packages", 'leftover "packages:". Pi packages are deprecated'],
+  ["settings", 'leftover "settings:". Pi runtime is deprecated'],
+  ["system-prompt", 'leftover "system-prompt:". Pi runtime is deprecated'],
   ["templates", 'leftover "templates:". dest is always .opencode'],
   ["commands", 'leftover "commands:". use prompts:'],
   [
@@ -76,8 +78,17 @@ export function loadProfile(srcRoot: string, name: string): Profile {
       throw new Error(`Unknown profile key "${key}"`);
     }
   }
+  const stacks = uniqueNames(asStringList(raw.stacks, "stacks"));
+  const availableStacks = new Set(listStacks(srcRoot));
+  for (const stack of stacks) {
+    if (!availableStacks.has(stack)) {
+      const listed = [...availableStacks].sort().join(", ") || "(none)";
+      throw new Error(`Unknown stack "${stack}". Choose: ${listed}`);
+    }
+  }
   return {
     name,
+    stacks,
     skills: asStringList(raw.skills, "skills"),
     agents: toSelection(raw.agents, "agents"),
     prompts: toSelection(raw.prompts, "prompts"),
@@ -143,6 +154,17 @@ function asStringList(value: unknown, key: string): string[] {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value)) throw new Error(`"${key}" must be a list`);
   return value.map(String);
+}
+
+function uniqueNames(ids: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const id of ids) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
 }
 
 function tokenizeYaml(text: string): YamlTok[] {

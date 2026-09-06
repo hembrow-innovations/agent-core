@@ -14,16 +14,17 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import {
+	catalogFromSource,
 	findPromptFile,
 	findSkillDir,
 	installAgents,
 	installPlaybooks,
 	installPrompts,
-	listAgentIds,
 	listProfiles,
 	listPromptIds,
 	loadProfile,
 	parseProfileYaml,
+	planFromProfile,
 	readPlaybookMeta,
 	renderPlaybookCatalog,
 	resolvePlaybookIds,
@@ -149,6 +150,7 @@ test("loadProfile: defaults omit agents and prompts", () => {
 	const bare = loadProfile(root, "bare");
 	assert.deepEqual(bare, {
 		name: "bare",
+		stacks: [],
 		skills: [],
 		agents: { kind: "omit" },
 		prompts: { kind: "omit" },
@@ -189,7 +191,7 @@ test("loadProfile: leftover dest keys die", () => {
 	writeYaml(root, "extensions", "extensions:\n  - heio-todo\n");
 	assert.throws(
 		() => loadProfile(root, "extensions"),
-		/leftover "extensions:". Pi packages are parked/,
+		/leftover "extensions:". Pi packages are deprecated/,
 	);
 	writeYaml(root, "templates", "templates: true\nskills: []\n");
 	assert.throws(
@@ -240,7 +242,7 @@ prompts:
 	assert.throws(() => loadProfile(root, "bad-agents"), /Invalid agents value/);
 	assert.throws(
 		() => loadProfile(root, "bare-pkg"),
-		/leftover "packages:". Pi packages are parked/,
+		/leftover "packages:". Pi packages are deprecated/,
 	);
 });
 
@@ -250,11 +252,11 @@ test("loadProfile: leftover Pi runtime keys die", () => {
 	writeYaml(root, "sys", "system-prompt: default\n");
 	assert.throws(
 		() => loadProfile(root, "set"),
-		/leftover "settings:". Pi runtime is parked/,
+		/leftover "settings:". Pi runtime is deprecated/,
 	);
 	assert.throws(
 		() => loadProfile(root, "sys"),
-		/leftover "system-prompt:". Pi runtime is parked/,
+		/leftover "system-prompt:". Pi runtime is deprecated/,
 	);
 });
 
@@ -428,7 +430,7 @@ for (const name of listProfiles(REPO)) {
 
 test("always-on text does not dump dest heio-mode", () => {
 	const append = readFileSync(
-		join(REPO, "ai", "system-prompts", "default.md"),
+		join(REPO, "deprecated", "system-prompts", "default.md"),
 		"utf8",
 	);
 	assert.doesNotMatch(
@@ -448,12 +450,13 @@ test("repo profiles resolve every listed skill from skills/", () => {
 		}
 	}
 	assert.equal(existsSync(join(REPO, "ai", "pi")), false);
+	assert.equal(existsSync(join(REPO, "ai", "system-prompts")), false);
 	assert.equal(
-		existsSync(join(REPO, "ai", "system-prompts", "default.md")),
+		existsSync(join(REPO, "deprecated", "system-prompts", "default.md")),
 		true,
 	);
 	assert.equal(
-		existsSync(join(REPO, "ai", "system-prompts", "heio-models.md")),
+		existsSync(join(REPO, "deprecated", "system-prompts", "heio-models.md")),
 		false,
 	);
 });
@@ -539,6 +542,14 @@ test("findSkillDir reads skills/ only", () => {
 		playbooks,
 	);
 	assert.equal(findSkillDir(REPO, "no-such-skill"), null);
+});
+
+test("findSkillDir reads stack skills", () => {
+	const unpark = findSkillDir(REPO, "unpark");
+	assert.ok(
+		unpark.endsWith(join("stacks", "heio-stack", "skills", "unpark")),
+		unpark,
+	);
 });
 
 test("install --profile agentic-core writes the OpenCode dest pack", () => {
@@ -853,15 +864,20 @@ function destMarkdownStems(dest, rel) {
 		.sort();
 }
 
-function expectedNamedIds(selection, available) {
-	if (selection.kind === "omit") return [];
-	if (selection.kind === "all") return [...available];
-	return [...new Set(selection.ids)];
-}
-
 function assertInstallMatchesYaml(dest, profile) {
+	const plan = planFromProfile(
+		profile,
+		{
+			kind: "install",
+			target: dest,
+			profile: profile.name,
+			with: [],
+			without: [],
+		},
+		catalogFromSource(REPO),
+	);
 	const skills = destDirNames(dest, ".opencode/skills");
-	assert.deepEqual(skills, [...new Set(profile.skills)].sort());
+	assert.deepEqual(skills, plan.skills);
 	for (const name of skills) {
 		assert.equal(
 			existsSync(join(dest, ".opencode", "skills", name, "SKILL.md")),
@@ -870,13 +886,10 @@ function assertInstallMatchesYaml(dest, profile) {
 		);
 	}
 
-	assert.deepEqual(
-		destMarkdownStems(dest, ".opencode/agents"),
-		expectedNamedIds(profile.agents, listAgentIds(REPO)).sort(),
-	);
+	assert.deepEqual(destMarkdownStems(dest, ".opencode/agents"), plan.agentIds);
 	assert.deepEqual(
 		destMarkdownStems(dest, ".opencode/commands"),
-		expectedNamedIds(profile.prompts, listPromptIds(REPO)).sort(),
+		plan.promptIds,
 	);
 	assert.equal(existsSync(join(dest, ".pi")), false);
 	assert.equal(existsSync(join(dest, ".opencode", "settings.json")), false);

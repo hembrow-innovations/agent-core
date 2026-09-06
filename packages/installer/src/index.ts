@@ -8,8 +8,10 @@ export {
   openDestination,
 } from "./dest.ts";
 export {
+  catalogFromSource,
   planFromProfile,
   type AvailableIds,
+  type InstallCatalog,
   type InstallPlan,
   type InstallRequest,
 } from "./plan.ts";
@@ -22,13 +24,29 @@ export {
   rewriteSkillPlaybooks,
   type PlaybookMeta,
 } from "./playbooks.ts";
-export { listAgentIds, installAgents, writeAgents } from "./agents.ts";
+export {
+  findAgentFile,
+  listAgentIds,
+  listResolvableAgentIds,
+  installAgents,
+  writeAgents,
+} from "./agents.ts";
 export {
   findPromptFile,
   listPromptIds,
+  listResolvablePromptIds,
   installPrompts,
   writePrompts,
 } from "./prompts.ts";
+export {
+  STACKS_DIR,
+  listStacks,
+  loadAllStacks,
+  readStack,
+  stackRoot,
+  stacksRoot,
+  type StackContents,
+} from "./stacks.ts";
 export {
   listProfiles,
   loadProfile,

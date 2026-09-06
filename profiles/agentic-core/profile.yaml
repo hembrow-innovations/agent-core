@@ -1,16 +1,6 @@
 # Develop this repo in OpenCode. Not an export profile.
-agents:
-  - heio-triage
-  - heio-tasker
-  - heio-builder
-  - heio-verifier
-  - heio-visual
-prompts:
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-  - heio-rounds-start
-  - heio-rounds-resume
+stacks:
+  - heio-stack
 skills:
   - behaviour-contracts
   - diagnose
@@ -19,16 +9,10 @@ skills:
   - domain-modeling
   - codebase-design
   - improve-codebase-architecture
-  - heio-stack
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-  - heio-rounds
   - oracle
   - tdd
   - typescript-best-practices
   - tsdoc-reference
-  - unpark
   - frontend-development
   - maestro
   - playwright-cli

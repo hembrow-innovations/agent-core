@@ -1,6 +1,6 @@
 # Deprecated
 
-Parked until a final keep-or-delete call. Nothing here is in the pnpm workspace, `ai/skills/`, or any profile. The installer cannot see it.
+Parked until a final keep-or-delete call. Nothing here is in the pnpm workspace, `ai/skills/`, `stacks/`, or any profile. The installer cannot see it. Pi is deprecated in this repo.
 
 ## Packages
 
@@ -14,6 +14,10 @@ Parked until a final keep-or-delete call. Nothing here is in the pnpm workspace,
 
 - **agent-teams**: living Pi TUI panes in tmux
 - **how**, **why**, **unslop**: previously in `ai/deprecated/`
+
+## System prompts
+
+Parked Pi runtime markdown. Used to live under `ai/system-prompts/`. Install does not copy it.
 
 ## Tests
 

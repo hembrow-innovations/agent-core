@@ -1,21 +1,8 @@
 # Dest demo: heio-stack building a web todo app.
 # Install: pnpm exec agentic-core install ../todo-app --profile todo-app
-agents:
-  - heio-triage
-  - heio-tasker
-  - heio-builder
-  - heio-verifier
-  - heio-visual
-prompts:
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-skills:
+stacks:
   - heio-stack
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-  - unpark
+skills:
   - docs
   - domain-modeling
   - tdd

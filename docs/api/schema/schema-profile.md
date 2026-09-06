@@ -19,13 +19,15 @@ A profile is a named install set. `--profile <name>` loads `profiles/<name>/prof
 
 ## Fields
 
-Allowed keys are `skills`, `agents`, and `prompts`. All three are optional. `PROFILE_KEYS` is that set.
+Allowed keys are `stacks`, `skills`, `agents`, and `prompts`. All four are optional. `PROFILE_KEYS` is that set.
 
-- **skills.** String list of skill folder names. Missing or `null` becomes `[]`. A present non-list is an error. Each name must be a directory under `ai/skills/` that holds `SKILL.md`. `findSkillDir` walks with `walkSkillDirs` from `pack-walk.ts`. If two directories share a basename, install prefers `ai/skills/workflow/`, then `ai/skills/setup/`, then the first walk hit. Install copies each name to `.opencode/skills/<name>/`. A typo parses. Copy then fails with `Skill not found in source`. CLI `--with` and `--without` change the planned list. That overlay is [[spec-installer]].
+- **stacks.** String list of folder names under `stacks/`. Missing or `null` becomes `[]`. A present non-list is an error. Each name must be a directory under `stacks/`. An unknown name fails at load with `Unknown stack`. Install copies everything in that stack: skills, agents, and prompts. Decision: [[0022-stacks-are-units]].
 
-- **agents.** One of three shapes. Missing, `null`, or `~` is omit. `all` selects every `ai/agents/<id>/` directory that holds `<id>.md`. The stem must match `^[a-z][a-z0-9-]{0,63}$`. A list selects those ids. Overlay writes `.opencode/agents/<id>.md`. Extra dest agent markdown stays. Any other scalar, including `true` or `false`, is `Invalid agents value`.
+- **skills.** String list of skill folder names. Missing or `null` becomes `[]`. A present non-list is an error. Each name must be a directory under `ai/skills/` or `stacks/<stack>/skills/` that holds `SKILL.md`. `findSkillDir` walks pack skills first, then stack skills. If two pack directories share a basename, install prefers `ai/skills/workflow/`, then `ai/skills/setup/`, then the first walk hit. Install copies each name to `.opencode/skills/<name>/`. A typo parses. Copy then fails with `Skill not found in source`. CLI `--with` and `--without` change the planned list, including skills that came from a stack. That overlay is [[spec-installer]].
 
-- **prompts.** Same three shapes as agents. `all` selects every markdown under `ai/prompts/` except `README.md`. `listPromptIds` walks with `walkPromptFiles` from `pack-walk.ts`. Duplicate stems fail. Overlay writes `.opencode/commands/<id>.md`. Extra dest command markdown stays.
+- **agents.** One of three shapes. Missing, `null`, or `~` is omit. `all` selects every `ai/agents/<id>/` directory that holds `<id>.md`. Stack agents are not in `all` unless the profile names that stack. The stem must match `^[a-z][a-z0-9-]{0,63}$`. A list selects those ids from the pack or from a stack. Overlay writes `.opencode/agents/<id>.md`. Extra dest agent markdown stays. Any other scalar, including `true` or `false`, is `Invalid agents value`.
+
+- **prompts.** Same three shapes as agents. `all` selects every markdown under `ai/prompts/` except `README.md`. Stack prompts are not in `all` unless the profile names that stack. `listPromptIds` walks pack prompts with `walkPromptFiles` from `pack-walk.ts`. Duplicate stems fail. Overlay writes `.opencode/commands/<id>.md`. Extra dest command markdown stays.
 
 ```ts
 // packages/installer/src/profile.ts — loadProfile leftover keys
@@ -42,8 +44,8 @@ Unknown keys fail. These leftovers have their own messages because they used to 
 
 - **playbooks.** The installer does not copy playbooks. Dest `.opencode/playbooks/` is not pruned.
 - **mode.** The installer does not copy playbooks.
-- **packages**, **extensions.** Pi packages are parked.
-- **settings**, **system-prompt.** Pi runtime is parked.
+- **packages**, **extensions.** Pi packages are deprecated.
+- **settings**, **system-prompt.** Pi runtime is deprecated.
 - **harness**, **pi**, **templates.** Dest is always `.opencode`.
 - **commands.** Use `prompts:`. Dest files land at `.opencode/commands/`.
 - **frameworks.** Hivemind is not installed from this pack. See [[0019-hivemind-own-repo]].
@@ -77,16 +79,13 @@ Scalars are `true`, `false`, `null`, `~`, `[]`, a flow list, a JSON-like number,
 ```yaml
 # profiles/agentic-core/profile.yaml
 # Develop this repo in OpenCode. Not an export profile.
-agents:
-  - heio-triage
-  - heio-tasker
-prompts:
-  - heio-planning
+stacks:
+  - heio-stack
 skills:
   - diagnose
   - tdd
 ```
 
-Shipped profiles are directories under `profiles/`: `agentic-core`, `life-engine`, `planning-hub`, and others. Each has `profile.yaml`. `agentic-core` is the skill list for developing this pack. `planning-hub` is skills-only plus agents and prompts `all`. `profiles/hivemind` installs this pack into the Hivemind dest. See [[0019-hivemind-own-repo]].
+Shipped profiles are directories under `profiles/`: `agentic-core`, `life-engine`, `planning-hub`, and others. Each has `profile.yaml`. `agentic-core` develops this pack and names stack `heio-stack`. `planning-hub` is pack skills plus agents and prompts `all`. `profiles/hivemind` installs this pack into the Hivemind dest. See [[0019-hivemind-own-repo]].
 
 Install flags and dest writes live in [[spec-installer]]. Run install from [[guides-install-from-this-repo]].

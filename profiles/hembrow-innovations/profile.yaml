@@ -1,14 +1,7 @@
-agents:
-  - heio-builder
-  - heio-tasker
-  - heio-triage
-  - heio-verifier
-  - heio-visual
+stacks:
+  - heio-stack
 prompts:
   - bro
-  - heio-planning
-  - heio-slice
-  - heio-wayfinder
   - swarm
 skills:
   - architect
@@ -19,11 +12,6 @@ skills:
   - docs
   - domain-modeling
   - frontend-development
-  - heio-planning
-  - heio-slice
-  - heio-stack
-  - heio-wayfinder
-  - unpark
   - improve-codebase-architecture
   - maestro
   - management

@@ -46,7 +46,7 @@ Treat `ai/agents/` and `ai/prompts/` as a second dest. Dest is `.pi/`. Those fol
 
 Edit agents in `ai/agents/`, prompts in `ai/prompts/`, skills in `ai/skills/`, playbooks in `ai/playbooks/`, system prompts in `ai/system-prompts/`. There is no `ai/pi/` folder. A profile `system-prompt:` stem copies `ai/system-prompts/<stem>.md` to dest `.pi/APPEND_SYSTEM.md`. Omit the key and install copies `ai/system-prompts/default.md`.
 
-The folder list inside [[0004-source-pack-under-ai]] is stale. The claim in [[0005-pi-only-dest]] that source identity lives under `ai/pi/agents/` is superseded.
+The folder list inside [[0004-source-pack-under-ai]] is stale. The claim in [[0005-pi-only-dest]] that source identity lives under `ai/pi/agents/` is superseded. Dest is `.opencode/` ([[0021-opencode-only-dest]]). Stacks live under `stacks/` ([[0022-stacks-are-units]]). Pi is deprecated ([[0023-pi-is-deprecated]]).
 
 Dest identity is only `.pi/agents/`. There is no dest `.pi/roles/` tree. Install deletes a leftover dest roles directory. Spawn uses `--agent`. Dest prompts are still `.pi/prompts/`.
 

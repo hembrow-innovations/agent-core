@@ -1,22 +1,7 @@
 # Heio-stack: intent, roadmap, sprint, slice, ticket, task.
-agents:
-  - heio-triage
-  - heio-tasker
-  - heio-builder
-  - heio-verifier
-prompts:
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-  - heio-rounds-start
-  - heio-rounds-resume
-skills:
+stacks:
   - heio-stack
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-  - heio-rounds
-  - unpark
+skills:
   - docs
   - domain-modeling
   - tdd

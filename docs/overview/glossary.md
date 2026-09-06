@@ -17,8 +17,12 @@ The language of this checkout. Source pack, dest copy, and the install path betw
 ## Language
 
 **Pack**:
-The source tree in this checkout. Agent, skill, playbook, and prompt libraries live under `ai/`. Profiles stay at the root as directories. Checks and repo tests live in `tests/`. `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`. The installer lives under `packages/installer`. It is the only install source.
+The shared source tree in this checkout. Agent, skill, playbook, and prompt libraries live under `ai/`. Profiles stay at the root as directories. Checks and repo tests live in `tests/`. `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`. The installer lives under `packages/installer`. It is the only install source.
 _Avoid_: monorepo-of-skills
+
+**Stack**:
+A product unit under `stacks/<name>/`. It comes with the agents, skills, and prompts inside that folder. A profile names the stack and install copies it. Shared libraries stay in `ai/`. Decision: [[0022-stacks-are-units]].
+_Avoid_: listing every stack file on the profile
 
 **Repo check**:
 A standalone integrity script under `tests/checks/`. Run by `pnpm test`. Not an npm entrypoint. Layout: [[architecture-verify]].
@@ -29,11 +33,11 @@ A project that holds a committed, self-contained copy of pack output. It has no 
 _Avoid_: live path
 
 **Profile**:
-A named install set. `--profile <name>` loads `profiles/<name>/profile.yaml`. Skills, agents, prompts. Dest pack is always `.opencode/`. Schema: [[schema-profile]]. Decision: [[0016-profiles-are-directories]]. Dest: [[0021-opencode-only-dest]].
+A named install set. `--profile <name>` loads `profiles/<name>/profile.yaml`. Stacks, skills, agents, prompts. Dest pack is always `.opencode/`. Schema: [[schema-profile]]. Decision: [[0016-profiles-are-directories]]. Dest: [[0021-opencode-only-dest]].
 _Avoid_: flat `profiles/<name>.yaml`
 
 **System prompt**:
-Parked markdown under `ai/system-prompts/<stem>.md`. Install does not copy it. Leftover profile `system-prompt:` is an error.
+Deprecated Pi runtime markdown under `deprecated/system-prompts/<stem>.md`. Install does not copy it. Leftover profile `system-prompt:` is an error. Decision: [[0023-pi-is-deprecated]].
 _Avoid_: persona, ai/pi, APPEND_SYSTEM
 
 **Workspace package**:
@@ -76,7 +80,7 @@ _Avoid_: default Pi footer
 ## Agent identity
 
 **Agent definition**:
-A markdown file under `ai/agents/` that names identity, behaviour, and constraints. Dest holds it at `.opencode/agents/`.
+A markdown file under `ai/agents/` or `stacks/<name>/agents/` that names identity, behaviour, and constraints. Dest holds it at `.opencode/agents/`.
 _Avoid_: persona, preset, role
 
 **Primary switch**:

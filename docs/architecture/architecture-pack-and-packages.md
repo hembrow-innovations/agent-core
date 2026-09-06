@@ -16,7 +16,7 @@ updated_at: "2026-09-06"
 
 This repo is a pnpm workspace. It is the only place you install from. A dest project never depends on this checkout at runtime. The installer copies a self-contained tree the dest can commit.
 
-The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus profiles. `tests/` holds the checks and repo tests. `scripts/` is the npm entrypoints. The installer package owns profile parse and dest writes. The dest tree is the copied project layout after install.
+The source pack is this checkout's agent, skill, playbook, and prompt libraries, plus stacks and profiles. `tests/` holds the checks and repo tests. `scripts/` is the npm entrypoints. The installer package owns profile parse and dest writes. The dest tree is the copied project layout after install.
 
 See [[glossary]] for the names used here.
 
@@ -24,7 +24,7 @@ See [[glossary]] for the names used here.
 
 The old installer copied a profile into dest `.pi/` and merged Pi packages into `.pi/settings.json`. First-party Pi plugins landed under `.pi/npm/local/`.
 
-This repo is now only a profile installer. Dest is OpenCode. Pi runtime and plugins are parked under `deprecated/`.
+This repo is now only a profile installer for markdown libraries, stacks, and profiles. Dest is OpenCode. Pi is deprecated. Pi runtime and plugins are parked under `deprecated/`.
 
 [[0004-source-pack-under-ai]], [[0021-opencode-only-dest]], and [[0006-source-libraries-beside-pi-runtime]] record those choices.
 
@@ -32,7 +32,7 @@ This repo is now only a profile installer. Dest is OpenCode. Pi runtime and plug
 
 ### Source pack
 
-The source pack stays in this checkout, under `ai/`. Skills do not become packages. `profiles/`, `scripts/`, and `tests/` stay at the checkout root.
+The shared pack stays in this checkout, under `ai/`. Product stacks stay under `stacks/`. Skills do not become packages. `profiles/`, `scripts/`, and `tests/` stay at the checkout root.
 
 The folders are:
 
@@ -40,7 +40,8 @@ The folders are:
 - `ai/skills/` is the skill library.
 - `ai/playbooks/` is the playbook library. Install does not copy it.
 - `ai/prompts/` is the prompt/command library. Category folders like `ai/skills/`. Overlay dest is `.opencode/commands/<id>.md`.
-- `ai/system-prompts/` is parked Pi runtime markdown. Install does not copy it.
+- `stacks/` is product units. Each stack is `stacks/<name>/` with `agents/`, `skills/`, and `prompts/`. A profile names a stack and install copies that unit. See [[0022-stacks-are-units]].
+- `deprecated/system-prompts/` is parked Pi runtime markdown. Install does not copy it. See [[0023-pi-is-deprecated]].
 - `profiles/` is the install profiles. Each profile is `profiles/<name>/profile.yaml`. See [[0016-profiles-are-directories]].
 - `scripts/` is the npm entrypoints. Profile parse lives in `packages/installer`.
 - `tests/` is the repo checks and tests. See [[architecture-verify]].
@@ -68,9 +69,10 @@ The command is `pnpm exec agentic-core install`. The package lives in `packages/
 - **cli.ts**: parses argv and dispatches
 - **profile.ts**: reads `profiles/<name>/profile.yaml` into a `Profile`
 - **dest.ts**: dest `.opencode/` reads and writes
-- **pack-walk.ts**: `walkSkillDirs` finds `SKILL.md` folders under `ai/skills/`. `walkPromptFiles` finds prompt markdown under `ai/prompts/`
+- **pack-walk.ts**: `walkSkillDirs` finds `SKILL.md` folders. `walkPromptFiles` finds prompt markdown
+- **stacks.ts**: lists `stacks/<name>/` and reads everything in a stack
 - **skills.ts**, **playbooks.ts**, **agents.ts**, **prompts.ts**: one module per library. Playbook catalog rewrite stays in `playbooks.ts`. Install does not call the dest playbook writer.
-- **plan.ts**: merges the profile with CLI flags
+- **plan.ts**: merges the profile, named stacks, and CLI flags
 
 ```bash
 pnpm exec agentic-core install <target> --profile agentic-core
@@ -96,6 +98,6 @@ This cut has no uninstall.
 
 Install is the only path from the source pack to a dest. A dest never keeps a live path back to this checkout.
 
-Profiles list skills, agents, and prompts. They do not name a dest. See [[0021-opencode-only-dest]], [[0006-source-libraries-beside-pi-runtime]], [[0016-profiles-are-directories]], [[0019-hivemind-own-repo]], and [[schema-profile]].
+Profiles name stacks plus pack skills, agents, and prompts. They do not name a dest. See [[0021-opencode-only-dest]], [[0022-stacks-are-units]], [[0023-pi-is-deprecated]], [[0016-profiles-are-directories]], [[0019-hivemind-own-repo]], and [[schema-profile]].
 
 There is no curl installer. The CLI is `pnpm exec agentic-core install`.

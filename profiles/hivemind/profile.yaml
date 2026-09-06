@@ -1,15 +1,8 @@
 # Dest: same cut as this pack's agentic-core profile.
 # Install: pnpm exec agentic-core install ../hivemind --profile hivemind
-agents:
-  - heio-triage
-  - heio-tasker
-  - heio-builder
-  - heio-verifier
-  - heio-visual
+stacks:
+  - heio-stack
 prompts:
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
   - swarm
 skills:
   - behaviour-contracts
@@ -18,10 +11,6 @@ skills:
   - domain-modeling
   - codebase-design
   - improve-codebase-architecture
-  - heio-stack
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
   - oracle
   - frontend-development
   - maestro
@@ -30,4 +19,3 @@ skills:
   - tdd
   - typescript-best-practices
   - tsdoc-reference
-  - unpark

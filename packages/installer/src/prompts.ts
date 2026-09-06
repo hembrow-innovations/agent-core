@@ -2,9 +2,9 @@ import { basename, join } from "node:path";
 import { openDestination, PROMPT_DEST, type Destination } from "./dest.ts";
 import { packRoot } from "./pack.ts";
 import { walkPromptFiles } from "./pack-walk.ts";
+import { listStacks, stackRoot } from "./stacks.ts";
 
-function promptFiles(srcRoot: string): Map<string, string> {
-  const dir = join(packRoot(srcRoot), "prompts");
+function promptFilesIn(dir: string): Map<string, string> {
   const found = new Map<string, string>();
   walkPromptFiles(dir, (file) => {
     const id = basename(file).slice(0, -3);
@@ -14,12 +14,32 @@ function promptFiles(srcRoot: string): Map<string, string> {
   return found;
 }
 
+function packPromptFiles(srcRoot: string): Map<string, string> {
+  return promptFilesIn(join(packRoot(srcRoot), "prompts"));
+}
+
+function resolvablePromptFiles(srcRoot: string): Map<string, string> {
+  const found = packPromptFiles(srcRoot);
+  for (const name of listStacks(srcRoot)) {
+    walkPromptFiles(join(stackRoot(srcRoot, name), "prompts"), (file) => {
+      const id = basename(file).slice(0, -3);
+      if (found.has(id)) throw new Error(`Duplicate prompt id: ${id}`);
+      found.set(id, file);
+    });
+  }
+  return found;
+}
+
 export function findPromptFile(srcRoot: string, id: string): string | null {
-  return promptFiles(srcRoot).get(id) ?? null;
+  return resolvablePromptFiles(srcRoot).get(id) ?? null;
 }
 
 export function listPromptIds(srcRoot: string): string[] {
-  return [...promptFiles(srcRoot).keys()].sort();
+  return [...packPromptFiles(srcRoot).keys()].sort();
+}
+
+export function listResolvablePromptIds(srcRoot: string): string[] {
+  return [...resolvablePromptFiles(srcRoot).keys()].sort();
 }
 
 export function installPrompts(
@@ -36,7 +56,7 @@ export function writePrompts(
   ids: string[],
 ): void {
   dest.ensureDir(PROMPT_DEST);
-  const files = promptFiles(srcRoot);
+  const files = resolvablePromptFiles(srcRoot);
   for (const id of ids) {
     const src = files.get(id);
     if (!src) throw new Error(`Prompt not found: ${id}`);

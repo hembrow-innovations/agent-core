@@ -27,7 +27,7 @@ Install copies:
 - agents to `.opencode/agents/<id>.md`
 - prompts to `.opencode/commands/<id>.md`
 
-Pi runtime is parked. Leftover `packages:`, `settings:`, `system-prompt:`, `extensions:`, `harness:`, and `pi:` keys are errors. `--extension` is gone. First-party Pi plugins live under `deprecated/packages/`. `ai/system-prompts/` stays in source and is not copied.
+Pi runtime is deprecated. Leftover `packages:`, `settings:`, `system-prompt:`, `extensions:`, `harness:`, and `pi:` keys are errors. `--extension` is gone. First-party Pi plugins live under `deprecated/packages/`. Pi system prompts live under `deprecated/system-prompts/` and are not copied. See [[0023-pi-is-deprecated]].
 
 This note supersedes [[0005-pi-only-dest]].
 
@@ -49,3 +49,4 @@ Every profile install writes `.opencode/`. A dest OpenCode project loads skills,
 - [[schema-profile]]
 - [[spec-installer]]
 - [[guides-install-from-this-repo]]
+- [[0023-pi-is-deprecated]]

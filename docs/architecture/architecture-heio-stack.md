@@ -16,7 +16,7 @@ updated_at: "2026-09-04"
 
 Heio-stack is the working tracker for this checkout. Live notes sit under `.heio/planning/`, `.heio/tickets/`, and `.heio/archive/`. Git ignores `.heio/`. `docs/` is the committed source of truth.
 
-The OS is skills under `ai/skills/heio-stack/` plus `heio-*` agents. There is no in-session gate. Parked coord: [[architecture-heio-coord]], [[0017-park-heio-coord]].
+The OS is the `heio-stack` stack under `stacks/heio-stack/`: skills, `heio-*` agents, and prompts. A profile names that stack to install it. There is no in-session gate. Parked coord: [[architecture-heio-coord]], [[0017-park-heio-coord]].
 
 Terms: [[glossary]]. Map grain: [[0013-heio-stack-location-map]]. Planning write: [[0020-heio-planning-publishes-pool]]. How to run a sitting: [[guides-heio-stack]].
 

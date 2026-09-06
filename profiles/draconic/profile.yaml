@@ -1,27 +1,12 @@
 # Dest: /Users/jaredhembrow/workbench/draconic
 # Install: pnpm exec agentic-core install ../draconic --profile draconic
+stacks:
+  - heio-stack
 agents:
   - planner
   - builder
   - reviewer
-  - heio-triage
-  - heio-planner
-  - heio-tasker
-  - heio-builder
-  - heio-verifier
-prompts:
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-  - heio-rounds-start
-  - heio-rounds-resume
 skills:
-  - heio-stack
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-  - heio-rounds
-  - unpark
   - docs
   - domain-modeling
   - tdd

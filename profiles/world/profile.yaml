@@ -1,8 +1,9 @@
 # Dest: science fiction novel in the world vault. heio-stack.
 # Install: pnpm exec agentic-core install ../world --profile world
 # Unattended. No ask-user-question. Lanes never interview.
+stacks:
+  - heio-stack
 agents:
-  - heio-planner
   - world-tasker
   - world-scribe
   - world-line
@@ -11,9 +12,6 @@ agents:
   - world-verifier
   - world-improve
 prompts:
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
   - world-plan
   - world-tasker
   - world-draft
@@ -28,11 +26,6 @@ prompts:
   - write-chapter
   - create-script
 skills:
-  - heio-stack
-  - heio-wayfinder
-  - heio-planning
-  - heio-slice
-  - unpark
   - human-prose
   - novel-craft
   - world-vault
