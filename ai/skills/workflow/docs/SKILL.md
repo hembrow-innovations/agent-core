@@ -38,6 +38,7 @@ Full steps: `rules/write-before.md`.
 
 - **write-before** before any new note
 - **layout-vault** for path and naming
+- **obsidian-axi** for vault search, backlinks, tags, heading patch
 - **obsidian-standards** for frontmatter, tags, wikilinks, Tasks, Dataview
 - **template-kinds** plus `templates/<kind>.md` for the skeleton
 - **link-wikilinks** for note-to-note links
