@@ -9,6 +9,7 @@ skills:
   - create-skill
   - design-tree
   - diagnose
+  - how
   - docs
   - domain-modeling
   - frontend-development
@@ -27,3 +28,4 @@ skills:
   - vault-pack
   - vitest
   - webapp-testing
+  - why

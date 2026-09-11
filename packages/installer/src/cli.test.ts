@@ -183,7 +183,8 @@ test("install --profile agentic-core does not wire this checkout", () => {
   const folders = readdirSync(skillRoot);
   assert.ok(folders.includes("heio-stack"), folders.join(", "));
   assert.equal(existsSync(join(skillRoot, "heio-stack", "SKILL.md")), true);
-  assert.equal(folders.includes("how"), false, folders.join(", "));
+  assert.equal(folders.includes("how"), true, folders.join(", "));
+  assert.equal(folders.includes("why"), true, folders.join(", "));
   assert.equal(folders.includes("unslop"), false, folders.join(", "));
   assert.equal(folders.includes("agent-teams"), false, folders.join(", "));
 

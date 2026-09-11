@@ -13,7 +13,7 @@ Parked until a final keep-or-delete call. Nothing here is in the pnpm workspace,
 ## Skills
 
 - **agent-teams**: living Pi TUI panes in tmux
-- **how**, **why**, **unslop**: previously in `ai/deprecated/`
+- **unslop**: previously in `ai/deprecated/`
 
 ## System prompts
 

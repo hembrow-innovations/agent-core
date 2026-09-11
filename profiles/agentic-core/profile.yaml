@@ -4,6 +4,7 @@ stacks:
 skills:
   - behaviour-contracts
   - diagnose
+  - how
   - docs
   - obsidian-axi
   - domain-modeling
@@ -18,3 +19,4 @@ skills:
   - maestro
   - playwright-cli
   - stitch
+  - why

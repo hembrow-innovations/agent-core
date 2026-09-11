@@ -7,9 +7,9 @@ description: "Use for \"how does X work\", code walkthroughs before changing som
 
 Explore the codebase to answer "how does X work?" questions. Produce clear architectural explanations at the level of a senior engineer onboarding onto a subsystem. Enough to build a working mental model, not annotated source code.
 
-## Pi runtime
+## Runtime
 
-Prefer `read`, `grep`, and `find` in this session. Use `subagents` for bulk explorers or critique reviewers when you need isolation. If spawn is missing, explore and explain yourself. Critique mode without distinct models is a same-session second pass, and you must say so.
+Prefer Read, Grep, and Glob in this session. Use Task with `subagent_type` `explore` for bulk explorers and `general` for explainer or critic isolation. If spawn is missing, explore and explain yourself. Critique mode without distinct models is a same-session second pass, and you must say so.
 
 Two modes:
 
@@ -48,9 +48,9 @@ The right decomposition depends on the question. Use your judgment. Narrow quest
 
 Spawn all explorers in a single message:
 
-- `subagent_type`: `generalPurpose`
+- `subagent_type`: `explore`
 - `model`: your configured how-explorer model (default `grok-4.6-fast-xhigh`)
-- `readonly`: `true`
+- Explorers must not write files
 
 Each explorer gets the same base prompt from `references/explorer-prompt.md` plus a specific exploration angle naming its slice. Each explorer should:
 
@@ -68,9 +68,9 @@ Then proceed to Step 3.
 
 Spawn a single Task subagent that explores and explains in one pass:
 
-- `subagent_type`: `generalPurpose`
+- `subagent_type`: `general`
 - `model`: your configured how-explainer model (default `claude-fable-5-thinking-max`)
-- `readonly`: `true`
+- The explainer must not write files
 
 The agent does its own exploration (Glob, Grep, Read) and writes the explanation directly. Read `references/explainer-prompt.md` for the communication style and output format. Same structure, just no explorer findings as input.
 
@@ -80,9 +80,9 @@ Proceed to Step 4.
 
 Once all explorers return, spawn a single Task subagent to synthesize their findings into one coherent explanation:
 
-- `subagent_type`: `generalPurpose`
+- `subagent_type`: `general`
 - `model`: your configured how-explainer model (default `claude-fable-5-thinking-max`)
-- `readonly`: `true`
+- The explainer must not write files
 
 The explainer gets all explorers' findings and writes the human-facing explanation (output format below). Read `references/explainer-prompt.md` for the full prompt template. The explainer reconciles overlapping findings, resolves contradictions, and weaves the slices into a unified picture.
 
@@ -118,9 +118,9 @@ After the explanation is complete, spawn one architectural critic per model in y
 
 For each critic:
 
-- `subagent_type`: `generalPurpose`
+- `subagent_type`: `general`
 - `model`: one model from the configured how-critics list. These are minimum reasoning levels. The lead should escalate any model when the architecture warrants deeper analysis.
-- `readonly`: `true`
+- Critics must not write files
 
 Read `references/critic-prompt.md` for the prompt template. Each critic gets:
 

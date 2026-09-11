@@ -7,9 +7,9 @@ description: "Use for 'why does X work this way', 'why we picked Y', design rati
 
 Investigate the motivation and intent behind code. Why was it built this way? What edge cases were considered? What product, business, or operational constraints shaped the design? What alternatives were rejected, and why?
 
-## Pi runtime
+## Runtime
 
-Pi has no MCP. Use `git`, `gh`, and docs in the repo. Skip Linear, Slack, Datadog, Sentry, and warehouse sources unless the project has a CLI for them, and report those as unavailable. Spawn investigators with `subagents` only when isolation helps. Otherwise do the sweep yourself.
+Use `git`, `gh`, and docs in the repo. Discover MCP servers available in this session and map each to an evidence category. Skip Linear, Slack, Datadog, Sentry, and warehouse sources when no MCP or CLI is available, and report those as unavailable. Spawn investigators with Task (`subagent_type` `general`) when isolation helps. Otherwise do the sweep yourself.
 
 Companion to the `how` skill. `how` answers what the code does and how it works. `why` answers what forces led to its shape.
 
@@ -101,7 +101,7 @@ Capture this as seed context (file paths, symbols, commits, PR numbers, linked t
 
 ### Discovery
 
-Before spawning investigators, list the available MCPs from the Cursor environment. Use the available-tools map when present. Otherwise inspect the `mcps/` directory Cursor exposes for enabled MCP servers.
+Before spawning investigators, list the MCP servers available in this session from the tool list and any MCP config the dest exposes.
 
 Map each available MCP to one evidence category:
 
@@ -120,9 +120,9 @@ Aim for a complete **coverage map**, not a minimal one. A null result from an is
 Launch all matching investigators in a single message so they run concurrently. One investigator per category lets each specialize in one tool's query vocabulary and result shape. Don't ask one agent to cover multiple MCPs.
 
 Subagent config (each):
-- `subagent_type`: `generalPurpose`
+- `subagent_type`: `general`
 - `model`: your configured why-investigators model (default `grok-4.6-fast-xhigh`)
-- `readonly`: `false` (agent mode). **Do not use readonly/Ask mode.** It strips MCP access, which disables MCP-backed investigators entirely. The source control investigator would be safe in readonly, but keep modes uniform. Investigators still shouldn't write anything. That's a posture, not a sandbox.
+- Investigators still shouldn't write anything. That's a posture, not a sandbox. Keep MCP access so MCP-backed investigators can query.
 
 Each investigator gets:
 1. The base prompt from `references/investigator-prompt.md`
@@ -166,9 +166,9 @@ If your scope assessment suggests a single-commit trivial target where the PR de
 
 Spawn one synthesizer subagent:
 
-- `subagent_type`: `generalPurpose`
+- `subagent_type`: `general`
 - `model`: your configured why-synthesizer model (default `claude-fable-5-thinking-max`)
-- `readonly`: `false` (agent mode). The synthesizer's quality check spot-verifies citations, which can require MCP access. Readonly/Ask mode strips MCPs and defeats that.
+- Keep MCP access. The synthesizer's quality check spot-verifies citations, which can require MCP tools.
 
 The synthesizer gets:
 1. The investigator findings, including any null results and any categories skipped with justification

@@ -19,6 +19,7 @@ skills:
   - behaviour-contracts
   - create-skill
   - diagnose
+  - how
   - docs
   - domain-modeling
   - frontend-development
@@ -37,3 +38,4 @@ skills:
   - vault-pack
   - vitest
   - webapp-testing
+  - why

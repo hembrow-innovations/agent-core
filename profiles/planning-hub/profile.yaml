@@ -10,6 +10,7 @@ skills:
   - docs
   - domain-modeling
   - handoff
+  - how
   - improve-codebase-architecture
   - playwright-cli
   - prototype
@@ -25,4 +26,5 @@ skills:
   - vitest
   - wayfinder
   - webapp-testing
+  - why
   - create-skill
