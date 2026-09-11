@@ -1,0 +1,12 @@
+{
+  "name": "@agentic-core/loop",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "opencode-loop": "./src/cli.ts"
+  },
+  "scripts": {
+    "test": "node --test src/cli.test.ts src/harness/ansi.test.ts src/harness/markdown.test.ts src/harness/tools.test.ts src/harness/index.test.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}
